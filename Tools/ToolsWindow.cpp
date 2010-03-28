@@ -1,5 +1,6 @@
 #include "ToolsWindow.h"
 #include "AddTool.h"
+#include "FormatTool.h"
 
 #include <QAction>
 #include <QMenuBar>
@@ -7,6 +8,7 @@
 ToolsWindow::ToolsWindow()
 {
     addTool(new AddTool(this));
+    addTool(new FormatTool(this));
 }
 
 void ToolsWindow::addTool(Tool *tool)

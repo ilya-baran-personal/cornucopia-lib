@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>259</width>
-    <height>212</height>
+    <width>263</width>
+    <height>224</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -165,15 +165,25 @@
             <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Expanding</enum>
+            <enum>QSizePolicy::MinimumExpanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>40</height>
+             <height>10</height>
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="includeMoc">
+           <property name="toolTip">
+            <string>Generate inclusion of moc file in the cpp file</string>
+           </property>
+           <property name="text">
+            <string>moc</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

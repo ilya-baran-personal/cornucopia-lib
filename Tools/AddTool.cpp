@@ -5,19 +5,11 @@
 #include <QDialog>
 #include <QDebug>
 #include <QFileInfo>
+#include <QProcess>
 
 static QString cppTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/cpp_template.txt";
 static QString hTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/h_template.txt";
-
-AddTool::AddTool(QWidget *parent)
-: Tool(parent)
-{
-}
-
-QString AddTool::getName() const
-{
-    return QString("Add...");
-}
+static QString cmakeListsFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/CMakeLists.txt";
 
 void AddTool::execute()
 {
@@ -33,12 +25,13 @@ void AddTool::execute()
     if(dialogUi.inDemoUI->isChecked())
         projectName = QString("DemoUI");
     if(dialogUi.inTools->isChecked())
-        projectName = QString("Tool");
+        projectName = QString("Tools");
 
-    _add(dialogUi.fileName->text(), dialogUi.header->isChecked(), dialogUi.source->isChecked(), projectName);
+    _add(dialogUi.fileName->text(), dialogUi.header->isChecked(),
+         dialogUi.source->isChecked(), dialogUi.includeMoc->isChecked(), projectName);
 }
 
-void AddTool::_add(QString fileName, bool header, bool source, QString project)
+void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString project)
 {
     qDebug() << "Adding:" << fileName << "in project" << project << "Header =" << header << "Source =" << source;
 
@@ -61,12 +54,26 @@ void AddTool::_add(QString fileName, bool header, bool source, QString project)
     mapping.append(qMakePair(QRegExp("@FILENAME@"), fileName));
     mapping.append(qMakePair(QRegExp("@CAPSFILENAME@"), fileName.toUpper()));
 
+    QString includeMocString;
+    if(moc)
+    {
+        includeMocString = QString("#include \"") + fileName + ".moc\"";
+    }
+    mapping.append(qMakePair(QRegExp("@MOCINCLUDE@"), includeMocString));
+
     if(header)
         if(!_addOneFile(hTemplateFileName, headerFileName, mapping))
             return;
 
     if(source)
         _addOneFile(cppTemplateFileName, sourceFileName, mapping);
+
+    //resize the file (and back) to update its modification date--hack, but I couldn't think of anything better
+    QFile cmakeFile(cmakeListsFileName);
+    int sz = cmakeFile.size();
+    cmakeFile.resize(sz + 1);
+    cmakeFile.resize(sz);
+
 }
 
 bool AddTool::_addOneFile(QString templateName, QString targetName,
@@ -74,25 +81,37 @@ bool AddTool::_addOneFile(QString templateName, QString targetName,
 {
     qDebug() << "Adding file:" << targetName << "from" << templateName;
 
-    QFile templateFile(templateName);
-    QFile targetFile(targetName);
+    { //block to make sure file processing is done when we get out of it
+        QFile templateFile(templateName);
+        QFile targetFile(targetName);
 
-    if(!targetFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        toolError(QString("Could not open file: ") + targetName + " for write.");
-        return false;
+        if(!targetFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            toolError(QString("Could not open file: ") + targetName + " for write.");
+            return false;
+        }
+
+        if(!templateFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            toolError(QString("Could not open file: ") + templateName + " for read.");
+            return false;
+        }
+
+        QTextStream fromStream(&templateFile);
+        QTextStream toStream(&targetFile);
+
+        transformStream(fromStream, toStream, mapping);
     }
 
-    if(!templateFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    //Now add it to mercurial
+    QProcess process;
+    process.setWorkingDirectory(QFileInfo(targetName).absolutePath());
+    process.start(QString("hg add ") + QFileInfo(targetName).fileName());
+    if(!process.waitForFinished(3000)) //3 seconds delay
     {
-        toolError(QString("Could not open file: ") + templateName + " for read.");
+        toolError(QString("Couldn't hg add the file: ") + targetName);
         return false;
     }
-
-    QTextStream fromStream(&templateFile);
-    QTextStream toStream(&targetFile);
-
-    transformStream(fromStream, toStream, mapping);
 
     return true;
 }
