@@ -1,4 +1,4 @@
-/*
+/*--
     @FILENAME@  
 
     This file is part of the Cornucopia curve sketching library.

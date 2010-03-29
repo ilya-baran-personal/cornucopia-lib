@@ -1,3 +1,24 @@
+/*--
+    FormatTool.cpp  
+
+    This file is part of the Cornucopia curve sketching library.
+    Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include "FormatTool.h"
 #include "config.h"
 
@@ -12,8 +33,11 @@ class _LineFormatter
 public:
     _LineFormatter(QString fileName)
     {
-        mapping.push_back(qMakePair(QRegExp("@FILENAME@"), fileName));
+        if(!fileName.isEmpty())
+            mapping.push_back(qMakePair(QRegExp(QString("@FILENAME@")), fileName));
         mapping.push_back(qMakePair(QRegExp("\\t"), QString("    ")));
+        mapping.push_back(qMakePair(QRegExp("\\n"), QString("")));
+        mapping.push_back(qMakePair(QRegExp("\\r"), QString("")));
     }
 
     QByteArray formatLine(QByteArray &lineArray)
@@ -73,9 +97,10 @@ void FormatTool::_formatFile(QString fileName)
     qDebug() << "Processing file:" << fileName;
 
     QByteArray processed;
-    _LineFormatter formatter(QFileInfo(fileName).fileName());
 
     //process header
+    _LineFormatter headerFormatter(QFileInfo(fileName).fileName());
+
     QFile header(fileHeaderFileName);
     if(!header.open(QIODevice::ReadOnly))
     {
@@ -86,10 +111,12 @@ void FormatTool::_formatFile(QString fileName)
     while(!header.atEnd())
     {
         QByteArray line = header.readLine();
-        processed.append(formatter.formatLine(line));
+        processed.append(headerFormatter.formatLine(line));
     }
 
     //process file
+    _LineFormatter fileFormatter("");
+
     QFile file(fileName);
     if(!file.open(QIODevice::ReadOnly))
     {
@@ -104,40 +131,51 @@ void FormatTool::_formatFile(QString fileName)
         AfterHeader
     } state = FirstLine;
 
+    QByteArray oldFile;
+
     while(!file.atEnd())
     {
         QByteArray line = file.readLine();
+        oldFile.append(line);
         switch(state)
         {
         case FirstLine:
-            if(line.trimmed() == "/*")
+            if(line.trimmed() == "/*--")
             {
                 state = InHeader;
             }
             else
             {
-                processed.append(formatter.formatLine(line));
+                processed.append('\n'); //add a break
+                processed.append(fileFormatter.formatLine(line));
                 state = AfterHeader;
             }
             break;
         case InHeader:
             if(line.trimmed() == "*/")
+            {
                 state = AfterHeader;
+            }
             break;
         case AfterHeader:
-            processed.append(formatter.formatLine(line));
+            processed.append(fileFormatter.formatLine(line));
             break;
         }
     }
 
     file.close();
-    if(!file.open(QIODevice::WriteOnly))
-    {
-        qDebug() << "Unable to write file";
-        return;
-    }
 
-    file.write(processed);
+    if(processed != oldFile)
+    {
+        if(!file.open(QIODevice::WriteOnly))
+        {
+            qDebug() << "Unable to write file";
+            return;
+        }
+
+        qDebug() << "Writing...";
+        file.write(processed);
+    }
 }
 
 #include "FormatTool.moc"
