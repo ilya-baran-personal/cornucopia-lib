@@ -1,7 +1,143 @@
 #include "FormatTool.h"
+#include "config.h"
+
+#include <QFileInfo>
+#include <QDir>
+#include <QDebug>
+
+static QString fileHeaderFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/fileHeader.txt";
+
+class _LineFormatter
+{
+public:
+    _LineFormatter(QString fileName)
+    {
+        mapping.push_back(qMakePair(QRegExp("@FILENAME@"), fileName));
+        mapping.push_back(qMakePair(QRegExp("\\t"), QString("    ")));
+    }
+
+    QByteArray formatLine(QByteArray &lineArray)
+    {
+        QString line = QString::fromAscii(lineArray.data(), lineArray.size());
+
+        for(QList<QPair<QRegExp, QString> >::const_iterator it = mapping.constBegin();
+            it != mapping.constEnd(); ++it)
+        {
+            line.replace(it->first, it->second);
+        }
+
+        QByteArray out = line.toAscii();
+        out.append('\n');
+        return out;
+    }
+
+private:
+    QList<QPair<QRegExp, QString> > mapping;
+};
 
 void FormatTool::execute()
 {
+    qDebug() << "Formatting all files";
+
+    //Find all the cpp and h files in the source tree
+    QStringList files;
+    _findAllCodeFiles(CORNUCOPIA_SOURCE_DIR, files);
+
+    for(int i = 0; i < files.count(); ++i)
+        _formatFile(files[i]);
+}
+
+void FormatTool::_findAllCodeFiles(QString dirName, QStringList &list)
+{
+    QDir dir(dirName);
+
+    QStringList dirFilters;
+    dirFilters << "[^.]*";
+    dir.setNameFilters(dirFilters);
+
+    QStringList subDirs = dir.entryList(QDir::Dirs);
+    for(int i = 0; i < (int)subDirs.size(); ++i)
+        _findAllCodeFiles(dirName + "/" + subDirs[i], list);
+
+    QStringList fileFilters;
+    fileFilters << "*.cpp" << "*.h";
+    dir.setNameFilters(fileFilters);
+
+    QStringList files = dir.entryList(QDir::Files);
+    for(int i = 0; i < (int)files.size(); ++i)
+        list.push_back(dirName + "/" + files[i]);
+}
+
+void FormatTool::_formatFile(QString fileName)
+{
+    qDebug() << "Processing file:" << fileName;
+
+    QByteArray processed;
+    _LineFormatter formatter(QFileInfo(fileName).fileName());
+
+    //process header
+    QFile header(fileHeaderFileName);
+    if(!header.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Unable to read header file:" << fileHeaderFileName;
+        return;
+    }
+
+    while(!header.atEnd())
+    {
+        QByteArray line = header.readLine();
+        processed.append(formatter.formatLine(line));
+    }
+
+    //process file
+    QFile file(fileName);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Unable to read file";
+        return;
+    }
+
+    enum State
+    {
+        FirstLine,
+        InHeader,
+        AfterHeader
+    } state = FirstLine;
+
+    while(!file.atEnd())
+    {
+        QByteArray line = file.readLine();
+        switch(state)
+        {
+        case FirstLine:
+            if(line.trimmed() == "/*")
+            {
+                state = InHeader;
+            }
+            else
+            {
+                processed.append(formatter.formatLine(line));
+                state = AfterHeader;
+            }
+            break;
+        case InHeader:
+            if(line.trimmed() == "*/")
+                state = AfterHeader;
+            break;
+        case AfterHeader:
+            processed.append(formatter.formatLine(line));
+            break;
+        }
+    }
+
+    file.close();
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "Unable to write file";
+        return;
+    }
+
+    file.write(processed);
 }
 
 #include "FormatTool.moc"

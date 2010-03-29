@@ -17,6 +17,7 @@ public slots:
     void execute();
 
 private:
+    void _findAllCodeFiles(QString dir, QStringList &list);
     void _formatFile(QString fileName);
 };
 
