@@ -84,7 +84,7 @@ void FormatTool::_findAllCodeFiles(QString dirName, QStringList &list)
         _findAllCodeFiles(dirName + "/" + subDirs[i], list);
 
     QStringList fileFilters;
-    fileFilters << "*.cpp" << "*.h";
+    fileFilters << "*.cpp" << "*.h" << "CMakeLists.txt";
     dir.setNameFilters(fileFilters);
 
     QStringList files = dir.entryList(QDir::Files);
@@ -99,19 +99,23 @@ void FormatTool::_formatFile(QString fileName)
     QByteArray processed;
 
     //process header
-    _LineFormatter headerFormatter(QFileInfo(fileName).fileName());
-
-    QFile header(fileHeaderFileName);
-    if(!header.open(QIODevice::ReadOnly))
+    bool needsHeader = !fileName.endsWith(".txt"); //only .h and .cpp files need a header
+    if(needsHeader)
     {
-        qDebug() << "Unable to read header file:" << fileHeaderFileName;
-        return;
-    }
+        _LineFormatter headerFormatter(QFileInfo(fileName).fileName());
 
-    while(!header.atEnd())
-    {
-        QByteArray line = header.readLine();
-        processed.append(headerFormatter.formatLine(line));
+        QFile header(fileHeaderFileName);
+        if(!header.open(QIODevice::ReadOnly))
+        {
+            qDebug() << "Unable to read header file:" << fileHeaderFileName;
+            return;
+        }
+
+        while(!header.atEnd())
+        {
+            QByteArray line = header.readLine();
+            processed.append(headerFormatter.formatLine(line));
+        }
     }
 
     //process file
@@ -146,7 +150,8 @@ void FormatTool::_formatFile(QString fileName)
             }
             else
             {
-                processed.append('\n'); //add a break
+                if(needsHeader)
+                    processed.append('\n'); //add a break after the header
                 processed.append(fileFormatter.formatLine(line));
                 state = AfterHeader;
             }

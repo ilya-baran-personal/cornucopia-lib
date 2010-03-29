@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.h  
+    Debugging.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,18 +19,18 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DEMOUIWINDOW_H_INCLUDED
-#define DEMOUIWINDOW_H_INCLUDED
+#include "Debugging.h"
 
-#include "defs.h"
+using namespace std;
+using namespace Eigen;
+NAMESPACE_Cornu
 
-#include <QMainWindow>
+Debugging *Debugging::_currentDebugging = new Debugging();
 
-class DemoUIWindow : public QMainWindow
+void Debugging::set(Debugging *debugging)
 {
-    Q_OBJECT
-public:
-    DemoUIWindow();
-};
+    delete _currentDebugging;
+    _currentDebugging = debugging;
+}
 
-#endif //DEMOUIWINDOW_H_INCLUDED
+END_NAMESPACE_Cornu

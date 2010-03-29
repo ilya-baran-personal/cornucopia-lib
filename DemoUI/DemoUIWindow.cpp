@@ -25,10 +25,18 @@
 #include <QMenuBar>
 #include <QMenu>
 
+#include "libTest.h"
+#include <iostream>
+
+using namespace std;
+using namespace Eigen;
+
 DemoUIWindow::DemoUIWindow()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
     QMenu *viewMenu = menuBar()->addMenu("&View");
+
+    cout << Cornu::f(4) << endl;
 }
 
 #include "DemoUIWindow.moc"

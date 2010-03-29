@@ -19,9 +19,17 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "libTest.h"
+#include "Debugging.h"
+
+using namespace std;
+using namespace Eigen;
+NAMESPACE_Cornu
 
 int f(int x)
 {
+    Debugging::get()->printf("Working on f: %d\n", x);
+
     return x + 4;
 }
 
@@ -29,3 +37,5 @@ int g(int x)
 {
     return x * 2 + 5;
 }
+
+END_NAMESPACE_Cornu

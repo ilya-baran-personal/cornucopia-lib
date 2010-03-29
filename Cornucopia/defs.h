@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.h  
+    defs.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,18 +19,20 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DEMOUIWINDOW_H_INCLUDED
-#define DEMOUIWINDOW_H_INCLUDED
+#ifndef DEFS_H_INCLUDED
+#define DEFS_H_INCLUDED
 
-#include "defs.h"
+#ifdef _WIN32
+#pragma warning(disable:4251)
+#pragma warning(disable:4275)
+#pragma warning(disable:4996)
+#endif
 
-#include <QMainWindow>
+//The macros are here so there's no base indentation in IDE's
+#define NAMESPACE_Cornu namespace Cornu {
+#define END_NAMESPACE_Cornu }
 
-class DemoUIWindow : public QMainWindow
-{
-    Q_OBJECT
-public:
-    DemoUIWindow();
-};
+namespace std {}
+namespace Eigen {}
 
-#endif //DEMOUIWINDOW_H_INCLUDED
+#endif //DEFS_H_INCLUDED

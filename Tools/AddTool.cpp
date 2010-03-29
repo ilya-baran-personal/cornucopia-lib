@@ -75,6 +75,15 @@ void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString
     mapping.append(qMakePair(QRegExp("@FILENAME@"), fileName));
     mapping.append(qMakePair(QRegExp("@CAPSFILENAME@"), fileName.toUpper()));
 
+    QString namespaceStr, endNamespaceStr;
+    if(project == "Cornucopia") //add namespace defailts to cornucopia
+    {
+        namespaceStr = "NAMESPACE_Cornu\n";
+        endNamespaceStr = "END_NAMESPACE_Cornu\n";
+    }
+    mapping.append(qMakePair(QRegExp("@NAMESPACE@"), namespaceStr));
+    mapping.append(qMakePair(QRegExp("@ENDNAMESPACE@"), endNamespaceStr));
+
     QString includeMocString;
     if(moc)
     {
