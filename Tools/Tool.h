@@ -34,7 +34,7 @@ class Tool : public QObject
 public:
     Tool(QWidget *parent) : QObject(parent), _parentWidget(parent) {}
 
-    virtual QString getName() const = 0;
+    virtual QString name() const = 0;
     QWidget *parentWidget() const { return _parentWidget; }
 
 public slots:

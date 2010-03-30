@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1128</width>
+    <width>926</width>
     <height>790</height>
    </rect>
   </property>
@@ -17,27 +17,24 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QSplitter" name="splitter">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QGraphicsView" name="graphicsView">
+      <widget class="ScrollView" name="frame">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>1</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="dragMode">
-        <enum>QGraphicsView::ScrollHandDrag</enum>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
        </property>
-       <property name="transformationAnchor">
-        <enum>QGraphicsView::AnchorUnderMouse</enum>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="lineWidth">
+        <number>1</number>
        </property>
       </widget>
       <widget class="QWidget" name="">
@@ -117,6 +114,17 @@
    <widget class="QWidget" name="dockWidgetContents"/>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ScrollView</class>
+   <extends>QFrame</extends>
+   <header>ScrollView.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <includes>
+  <include location="local">ScrollView.h</include>
+ </includes>
  <resources/>
  <connections>
   <connection>

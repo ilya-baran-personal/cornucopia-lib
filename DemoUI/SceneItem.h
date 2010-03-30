@@ -1,5 +1,5 @@
 /*--
-    AddTool.h  
+    SceneItem.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,28 +19,46 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ADDTOOL_H_INCLUDED
-#define ADDTOOL_H_INCLUDED
+#ifndef SCENEITEM_H_INCLUDED
+#define SCENEITEM_H_INCLUDED
 
-#include "Tool.h"
+#include "defs.h"
+#include "smart_ptr.h"
 
-class AddTool : public Tool
+#include <QBrush>
+#include <QPen>
+
+#include <Eigen/Core>
+
+class SceneItem : public Cornu::smart_base
 {
-    Q_OBJECT
 public:
-    AddTool(QWidget *parent) : Tool(parent) {}
+    SceneItem(QString group, QPen pen = QPen(), QBrush brush = QBrush())
+        : _group(group), _pen(pen), _brush(brush) {}
 
-    //override
-    QString name() const { return QString("Add..."); }
+    virtual void draw(QPainter *) const = 0;
+    virtual QRectF rect() const = 0;
 
-public slots:
-    //override
-    void execute();
+    QString group() const { return _group; }
 
-private:
-    void _add(QString fileName, bool header, bool source, bool moc, QString project);
-    bool _addOneFile(QString templateName, QString targetName,
-                     const QList<QPair<QRegExp, QString> >& mapping); //returns false on failure
+protected:
+    QString _group;
+    QPen _pen;
+    QBrush _brush;
 };
 
-#endif //ADDTOOL_H_INCLUDED
+class LineSceneItem : public SceneItem
+{
+public:
+    LineSceneItem(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, QString group, QPen pen = QPen(), QBrush brush = QBrush());
+
+    //override
+    void draw(QPainter *p) const;
+    //override
+    QRectF rect() const;
+
+private:
+    QPointF _p1, _p2;
+};
+
+#endif //SCENEITEM_H_INCLUDED

@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.cpp  
+    SceneItem.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,40 +19,26 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "DemoUIWindow.h"
-#include "ui_DebugWindow.h"
-#include "DebuggingImpl.h"
+#include "SceneItem.h"
 
-#include <QScrollArea>
-#include <QMenuBar>
-#include <QMenu>
+#include <QPainter>
 
 using namespace std;
 using namespace Eigen;
 
-DemoUIWindow::DemoUIWindow()
+LineSceneItem::LineSceneItem(const Vector2d &p1, const Vector2d &p2, QString group, QPen pen, QBrush brush)
+: SceneItem(group, pen, brush), _p1(p1[0], p1[1]), _p2(p2[0], p2[1])
 {
-    QMenu *fileMenu = menuBar()->addMenu("&File");
-    QMenu *viewMenu = menuBar()->addMenu("&View");
-
-    //Initialize the debugging window
-    _debugWindow = new QMainWindow();
-    Ui::DebugWindow debugWindowUi;
-    debugWindowUi.setupUi(_debugWindow);
-
-    QAction *showDebugWindow = new QAction("Show debug window", this);
-    viewMenu->addAction(showDebugWindow);
-
-    connect(showDebugWindow, SIGNAL(triggered()), _debugWindow, SLOT(show()));
-    connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
-
-    _debugWindow->show();
 }
 
-DemoUIWindow::~DemoUIWindow()
+void LineSceneItem::draw(QPainter *p) const
 {
-    delete _debugWindow;
+    p->setPen(_pen);
+    p->setBrush(_brush);
+    p->drawLine(_p1, _p2);
 }
-    
 
-#include "DemoUIWindow.moc"
+QRectF LineSceneItem::rect() const
+{
+    return QRectF(_p1, _p2).normalized();
+}

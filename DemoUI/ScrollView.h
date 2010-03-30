@@ -1,5 +1,5 @@
 /*--
-    ToolsWindow.cpp  
+    ScrollView.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,25 +19,40 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "ToolsWindow.h"
-#include "AddTool.h"
-#include "FormatTool.h"
+#ifndef SCROLLVIEW_H_INCLUDED
+#define SCROLLVIEW_H_INCLUDED
 
-#include <QAction>
-#include <QMenuBar>
+#include "defs.h"
 
-ToolsWindow::ToolsWindow()
+#include <QAbstractScrollArea>
+#include <QVector2D>
+
+class ScrollScene;
+class QPaintEvent;
+class QResizeEvent;
+
+class ScrollView : public QAbstractScrollArea
 {
-    addTool(new AddTool(this));
-    addTool(new FormatTool(this));
-}
+    Q_OBJECT
+public:
+    ScrollView(QWidget *parent = NULL);
 
-void ToolsWindow::addTool(Tool *tool)
-{
-    QAction *action = new QAction(tool->name(), this);
-    connect(action, SIGNAL(triggered()), tool, SLOT(execute()));
+    ScrollScene *scene() const { return _scene; }
 
-    menuBar()->addAction(action);
-}
+protected:
+    void scrollContentsBy(int dx, int dy);
+    void paintEvent(QPaintEvent *);
+    void resizeEvent(QResizeEvent *);
 
-#include "ToolsWindow.moc"
+protected slots:
+    void updateScrollBars(bool scrolling = false);
+
+private:
+    //to map from view to scene: add scroll bar values and divide by zoom
+    double _zoom;
+
+    ScrollScene *_scene;
+};
+
+
+#endif //SCROLLVIEW_H_INCLUDED

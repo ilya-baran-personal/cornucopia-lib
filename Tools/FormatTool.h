@@ -31,7 +31,7 @@ public:
     FormatTool(QWidget *parent) : Tool(parent) {}
 
     //override
-    QString getName() const { return QString("Format files"); }
+    QString name() const { return QString("Format files"); }
 
 public slots:
     //override

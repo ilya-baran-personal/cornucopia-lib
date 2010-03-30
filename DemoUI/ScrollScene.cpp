@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.cpp  
+    ScrollScene.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,40 +19,39 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "DemoUIWindow.h"
-#include "ui_DebugWindow.h"
-#include "DebuggingImpl.h"
-
-#include <QScrollArea>
-#include <QMenuBar>
-#include <QMenu>
+#include "ScrollScene.h"
+#include "SceneItem.h"
 
 using namespace std;
 using namespace Eigen;
 
-DemoUIWindow::DemoUIWindow()
+QRectF ScrollScene::rect() const
 {
-    QMenu *fileMenu = menuBar()->addMenu("&File");
-    QMenu *viewMenu = menuBar()->addMenu("&View");
+    QRectF out;
+    for(int i = 0; i < (int)_items.size(); ++i)
+    {
+        if(_invisibleGroups.contains(_items[i]->group()))
+            continue;
+        out |= _items[i]->rect();
+    }
 
-    //Initialize the debugging window
-    _debugWindow = new QMainWindow();
-    Ui::DebugWindow debugWindowUi;
-    debugWindowUi.setupUi(_debugWindow);
-
-    QAction *showDebugWindow = new QAction("Show debug window", this);
-    viewMenu->addAction(showDebugWindow);
-
-    connect(showDebugWindow, SIGNAL(triggered()), _debugWindow, SLOT(show()));
-    connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
-
-    _debugWindow->show();
+    return out;
 }
 
-DemoUIWindow::~DemoUIWindow()
+void ScrollScene::draw(QPainter *p) const
 {
-    delete _debugWindow;
+    for(int i = 0; i < (int)_items.size(); ++i)
+    {
+        if(_invisibleGroups.contains(_items[i]->group()))
+            continue;
+        _items[i]->draw(p);
+    }
 }
-    
 
-#include "DemoUIWindow.moc"
+void ScrollScene::addItem(SceneItemPtr item)
+{
+    _items.push_back(item);
+    emit sceneChanged();
+}
+
+#include "ScrollScene.moc"

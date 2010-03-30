@@ -1,5 +1,5 @@
 /*--
-    ToolsWindow.cpp  
+    ScrollScene.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,25 +19,38 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "ToolsWindow.h"
-#include "AddTool.h"
-#include "FormatTool.h"
+#ifndef SCROLLSCENE_H_INCLUDED
+#define SCROLLSCENE_H_INCLUDED
 
-#include <QAction>
-#include <QMenuBar>
+#include "defs.h"
+#include "smart_ptr.h"
 
-ToolsWindow::ToolsWindow()
+#include <vector>
+
+#include <QObject>
+#include <QRectF>
+#include <QSet>
+
+SMART_FORW_DECL(SceneItem);
+class QPainter;
+
+class ScrollScene : public QObject
 {
-    addTool(new AddTool(this));
-    addTool(new FormatTool(this));
-}
+    Q_OBJECT
+public:
+    ScrollScene(QObject *parent = NULL) : QObject(parent) {}
 
-void ToolsWindow::addTool(Tool *tool)
-{
-    QAction *action = new QAction(tool->name(), this);
-    connect(action, SIGNAL(triggered()), tool, SLOT(execute()));
+    QRectF rect() const;
+    void draw(QPainter *p) const;
 
-    menuBar()->addAction(action);
-}
+    void addItem(SceneItemPtr item);
 
-#include "ToolsWindow.moc"
+signals:
+    void sceneChanged();
+
+protected:
+    QSet<QString> _invisibleGroups;
+    std::vector<SceneItemPtr> _items;
+};
+
+#endif //SCROLLSCENE_H_INCLUDED

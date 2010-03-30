@@ -31,6 +31,7 @@ class DemoUIWindow : public QMainWindow
     Q_OBJECT
 public:
     DemoUIWindow();
+    ~DemoUIWindow();
 
 private:
     QMainWindow *_debugWindow;
