@@ -1,5 +1,5 @@
 /*--
-    Debugging.h  
+    DebuggingImpl.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,36 +19,49 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DEBUGGING_H_INCLUDED
-#define DEBUGGING_H_INCLUDED
+#include "DebuggingImpl.h"
 
-#include "defs.h"
+#include <cstdarg>
 
-#include <string>
+using namespace std;
+using namespace Eigen;
 
-NAMESPACE_Cornu
-
-//This class does nothing by default
-class Debugging
+DebuggingImpl *DebuggingImpl::get()
 {
-public:
-    static Debugging *get() { return _currentDebugging; }
+    //see if an instance exists
+    DebuggingImpl *cur = dynamic_cast<DebuggingImpl *>(Cornu::Debugging::get());
+    if(cur)
+        return cur;
 
-    virtual ~Debugging() {}
+    //create new instance
+    cur = new DebuggingImpl();
+    Cornu::Debugging::set(cur);
+    return cur;
+}
 
-    virtual void printf(const char *fmt, ...) {}
+void DebuggingImpl::printf(const char *fmt, ...)
+{
+    const int sz = 200; //we don't need terribly long debug strings
+    char buffer[sz];
 
-    virtual void startTiming(const std::string &description) {}
-    virtual void stopTiming(const std::string &description = "") {}
+    va_list ap;
+    va_start(ap, fmt);
 
-protected:
-    Debugging() {}
-    static void set(Debugging *debugging);
+    vsnprintf(buffer, sz, fmt, ap);
 
-private:
-    static Debugging *_currentDebugging;
-};
+    va_end(ap);
 
-END_NAMESPACE_Cornu
+    std::printf("%s", buffer);
 
-#endif //DEBUGGING_H_INCLUDED
+    emit print(QString::fromAscii(buffer));
+}
+
+void DebuggingImpl::startTiming(const string &description)
+{
+}
+
+void DebuggingImpl::stopTiming(const string &description)
+{
+}
+
+#include "DebuggingImpl.moc"

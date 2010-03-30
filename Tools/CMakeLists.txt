@@ -16,6 +16,8 @@ QT4_AUTOMOC(${Tools_Sources})
 
 #This is for moc files
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+
+#And this is for config.h
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 ADD_EXECUTABLE(CornucopiaTools ${Tools_Sources})

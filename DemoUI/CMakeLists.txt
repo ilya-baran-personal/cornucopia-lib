@@ -8,6 +8,10 @@ INCLUDE_DIRECTORIES(${CORNUCOPIA_SOURCE_DIR}/Cornucopia)
 
 FILE(GLOB DemoUI_CPP "*.cpp")
 FILE(GLOB DemoUI_H "*.h")
+FILE(GLOB DemoUI_UI "*.ui")
+
+QT4_WRAP_UI(DemoUI_H ${DemoUI_UI})
+
 LIST(APPEND DemoUI_Sources ${DemoUI_CPP} ${DemoUI_H})
 
 QT4_AUTOMOC(${DemoUI_Sources})

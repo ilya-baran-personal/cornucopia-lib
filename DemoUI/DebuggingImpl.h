@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.h  
+    DebuggingImpl.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,21 +19,33 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DEMOUIWINDOW_H_INCLUDED
-#define DEMOUIWINDOW_H_INCLUDED
+#ifndef DEBUGGINGIMPL_H_INCLUDED
+#define DEBUGGINGIMPL_H_INCLUDED
 
 #include "defs.h"
+#include "Debugging.h"
 
-#include <QMainWindow>
+#include <QObject>
 
-class DemoUIWindow : public QMainWindow
+class DebuggingImpl : public QObject, public Cornu::Debugging
 {
     Q_OBJECT
 public:
-    DemoUIWindow();
+    static DebuggingImpl *get();
+
+    //override
+    void printf(const char *fmt, ...);
+
+    //override
+    void startTiming(const std::string &description);
+    //override
+    void stopTiming(const std::string &description = "");
+
+signals:
+    void print(QString);
 
 private:
-    QMainWindow *_debugWindow;
+    DebuggingImpl() {}
 };
 
-#endif //DEMOUIWINDOW_H_INCLUDED
+#endif //DEBUGGINGIMPL_H_INCLUDED

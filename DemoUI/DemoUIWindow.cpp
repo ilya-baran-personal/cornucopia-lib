@@ -20,13 +20,12 @@
 */
 
 #include "DemoUIWindow.h"
+#include "ui_DebugWindow.h"
+#include "DebuggingImpl.h"
 
 #include <QScrollArea>
 #include <QMenuBar>
 #include <QMenu>
-
-#include "libTest.h"
-#include <iostream>
 
 using namespace std;
 using namespace Eigen;
@@ -36,7 +35,16 @@ DemoUIWindow::DemoUIWindow()
     QMenu *fileMenu = menuBar()->addMenu("&File");
     QMenu *viewMenu = menuBar()->addMenu("&View");
 
-    cout << Cornu::f(4) << endl;
+    //Initialize the debugging window
+    _debugWindow = new QMainWindow(this);
+    Ui::DebugWindow debugWindowUi;
+    debugWindowUi.setupUi(_debugWindow);
+
+    QAction *showDebugWindow = new QAction("Show debug window", this);
+    viewMenu->addAction(showDebugWindow);
+
+    connect(showDebugWindow, SIGNAL(triggered()), _debugWindow, SLOT(show()));
+    connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
 }
 
 #include "DemoUIWindow.moc"
