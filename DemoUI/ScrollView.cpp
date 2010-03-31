@@ -25,12 +25,14 @@
 
 #include <QPainter>
 #include <QScrollBar>
+#include <QWheelEvent>
+#include <QMouseEvent>
 
 using namespace std;
 using namespace Eigen;
 
 ScrollView::ScrollView(QWidget *parent)
-: QAbstractScrollArea(parent), _zoom(2.)
+: QAbstractScrollArea(parent), _zoom(2.), _updating(0)
 {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -43,7 +45,7 @@ ScrollView::ScrollView(QWidget *parent)
 
 void ScrollView::scrollContentsBy(int dx, int dy)
 {
-    updateScrollBars(true);
+    updateScrollBars();
     viewport()->repaint();
 }
 
@@ -60,11 +62,14 @@ void ScrollView::paintEvent(QPaintEvent *)
 
 void ScrollView::resizeEvent(QResizeEvent *)
 {
-    updateScrollBars(true);
+    updateScrollBars();
 }
 
-void ScrollView::updateScrollBars(bool scrolling)
+void ScrollView::updateScrollBars()
 {
+    ++_updating;
+    setUpdatesEnabled(false);
+
     QRect viewRect = viewport()->geometry();
     QRect sceneRect = QTransform::fromScale(_zoom, _zoom).mapRect(_scene->rect() ).toAlignedRect(); //scene rect in view coordinates
     const int adj = 5; //pixels around the scene
@@ -82,6 +87,89 @@ void ScrollView::updateScrollBars(bool scrolling)
     horizontalScrollBar()->setRange(minX, maxX);
     int minY = sceneRect.top() - viewRect.top(), maxY = sceneRect.bottom() - viewRect.bottom();
     verticalScrollBar()->setRange(minY, maxY);
+    if(--_updating <= 0)
+        setUpdatesEnabled(true);
+}
+
+void ScrollView::mousePressEvent(QMouseEvent *e)
+{
+    if(!(e->buttons() & Qt::MidButton))
+        return;
+
+    _prevMousePos = e->pos();
+    setCursor(Qt::ClosedHandCursor);
+}
+
+void ScrollView::mouseReleaseEvent(QMouseEvent *e)
+{
+    if(e->button() != Qt::MidButton)
+        return;
+    
+    unsetCursor();
+}
+
+void ScrollView::mouseMoveEvent(QMouseEvent *e)
+{
+    if(!(e->buttons() & Qt::MidButton))
+        return;
+    
+    int dx = e->x() - _prevMousePos.x();
+    int dy = e->y() - _prevMousePos.y();
+    _prevMousePos = e->pos();
+
+    _pan(dx, dy);
+    viewport()->repaint();
+}
+
+void ScrollView::_pan(int dx, int dy)
+{
+    ++_updating;
+    setUpdatesEnabled(false);
+
+    QScrollBar *h = horizontalScrollBar(), *v = verticalScrollBar();
+
+    int x = h->value(), y = v->value();
+    x -= dx; y -= dy;
+    h->setRange(min(h->minimum(), x), max(h->maximum(), x));
+    h->setValue(x);
+    v->setRange(min(v->minimum(), y), max(v->maximum(), y));
+    v->setValue(y);
+    if(--_updating <= 0)
+        setUpdatesEnabled(true);
+}
+
+void ScrollView::wheelEvent(QWheelEvent *e)
+{
+    const double minZoom = 1e-4;
+    const double maxZoom = 1e4;
+    const double zoomFactor = 1.002;
+    double oldZoom = _zoom;
+    _zoom *= pow(zoomFactor, e->delta());
+    _zoom = max(minZoom, min(maxZoom, _zoom));
+
+    //scale the slider values too
+    int curX = -horizontalScrollBar()->value();
+    int curY = -verticalScrollBar()->value();
+    curX -= e->x();
+    curY -= e->y();
+
+    int newX = (int)floor(0.5 + curX * (_zoom / oldZoom));
+    int newY = (int)floor(0.5 + curY * (_zoom / oldZoom));
+
+    _pan(newX - curX, newY - curY);
+
+    updateScrollBars();
+    viewport()->repaint();
+}
+
+void ScrollView::resetView()
+{
+    int curX = -horizontalScrollBar()->value();
+    int curY = -verticalScrollBar()->value();
+
+    _zoom = 1.;
+    _pan(-curX, -curY);
+    viewport()->repaint();
 }
 
 #include "ScrollView.moc"

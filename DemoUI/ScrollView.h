@@ -30,6 +30,8 @@
 class ScrollScene;
 class QPaintEvent;
 class QResizeEvent;
+class QWheelEvent;
+class QMouseEvent;
 
 class ScrollView : public QAbstractScrollArea
 {
@@ -43,15 +45,25 @@ protected:
     void scrollContentsBy(int dx, int dy);
     void paintEvent(QPaintEvent *);
     void resizeEvent(QResizeEvent *);
+    void wheelEvent(QWheelEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
+    void mouseMoveEvent(QMouseEvent *);
 
 protected slots:
-    void updateScrollBars(bool scrolling = false);
+    void updateScrollBars();
+    void resetView();
 
 private:
+    void _pan(int dx, int dy);
+
     //to map from view to scene: add scroll bar values and divide by zoom
     double _zoom;
+    QVector2D _offset;
 
     ScrollScene *_scene;
+    QPoint _prevMousePos;
+    int _updating;
 };
 
 
