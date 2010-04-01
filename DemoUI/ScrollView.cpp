@@ -38,7 +38,7 @@ ScrollView::ScrollView(QWidget *parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
     _scene = new ScrollScene(this);
-    connect(_scene, SIGNAL(sceneChanged()), this, SLOT(updateScrollBars()));
+    connect(_scene, SIGNAL(sceneChanged()), this, SLOT(update()));
 }
 
 void ScrollView::scrollContentsBy(int dx, int dy)
@@ -48,7 +48,7 @@ void ScrollView::scrollContentsBy(int dx, int dy)
 
     _offset += QVector2D(dx, dy);
 
-    updateScrollBars();
+    update();
     viewport()->repaint();
 }
 
@@ -62,10 +62,10 @@ void ScrollView::paintEvent(QPaintEvent *)
 
 void ScrollView::resizeEvent(QResizeEvent *)
 {
-    updateScrollBars();
+    update();
 }
 
-void ScrollView::updateScrollBars()
+void ScrollView::update()
 {
     ++_updating;
 
@@ -79,6 +79,7 @@ void ScrollView::updateScrollBars()
     {
         horizontalScrollBar()->setRange(0, 0);
         verticalScrollBar()->setRange(0, 0);
+        viewport()->update();
         --_updating;
         return;
     }
@@ -99,6 +100,8 @@ void ScrollView::updateScrollBars()
 
     horizontalScrollBar()->setValue(0);
     verticalScrollBar()->setValue(0);
+
+    viewport()->update();
 
     --_updating;
 }
@@ -129,14 +132,9 @@ void ScrollView::mouseMoveEvent(QMouseEvent *e)
     int dy = e->y() - _prevMousePos.y();
     _prevMousePos = e->pos();
 
-    _pan(dx, dy);
-    viewport()->repaint();
-}
-
-void ScrollView::_pan(int dx, int dy)
-{
     _offset += QVector2D(dx, dy);
-    updateScrollBars();
+    update();
+    viewport()->repaint();
 }
 
 void ScrollView::wheelEvent(QWheelEvent *e)
@@ -152,7 +150,7 @@ void ScrollView::wheelEvent(QWheelEvent *e)
     QVector2D mousePos(e->pos());
     _offset = mousePos + (_offset - mousePos) * (_zoom / oldZoom);
 
-    updateScrollBars();
+    update();
     viewport()->repaint();
 }
 
@@ -161,7 +159,7 @@ void ScrollView::resetView()
     _offset = QVector2D();
     _zoom = 1.;
 
-    updateScrollBars();
+    update();
     viewport()->repaint();
 }
 

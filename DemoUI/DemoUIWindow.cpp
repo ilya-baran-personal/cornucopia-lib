@@ -35,20 +35,36 @@ DemoUIWindow::DemoUIWindow()
     QMenu *fileMenu = menuBar()->addMenu("&File");
     QMenu *viewMenu = menuBar()->addMenu("&View");
 
+    QAction *quit = new QAction("&Quit", this);
+    quit->setShortcut(QKeySequence("Ctrl+Q"));
+    fileMenu->addAction(quit);
+    connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+
     //Initialize the debugging window
     _debugWindow = new QMainWindow();
     Ui::DebugWindow debugWindowUi;
     debugWindowUi.setupUi(_debugWindow);
 
-    QAction *showDebugWindow = new QAction("Show debug window", this);
+    connect(debugWindowUi.actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+    QAction *showDebugWindow = new QAction("Show &debug window", this);
     viewMenu->addAction(showDebugWindow);
 
     connect(showDebugWindow, SIGNAL(triggered()), _debugWindow, SLOT(show()));
     connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
 
-    DebuggingImpl::get()->setScene(debugWindowUi.debugView->scene());
+    ScrollScene *scene = debugWindowUi.debugView->scene(); //the ScrollView created it
+    DebuggingImpl::get()->setScene(scene);
+    debugWindowUi.groupSelWidget->setScene(scene);
 
     _debugWindow->show();
+
+    for(int i = 0; i < 100; ++i)
+    {
+        char group[20];
+        sprintf(group, "Group%d", i);
+        Cornu::Debugging::get()->drawPoint(Vector2d(i * 10, i + 10), Vector3d(1, 0, 0), group);
+    }
 }
 
 DemoUIWindow::~DemoUIWindow()

@@ -78,4 +78,31 @@ void ScrollScene::clearGroups(QString groups)
     emit sceneChanged();
 }
 
+bool ScrollScene::isGroupVisible(QString group) const
+{
+    return !_invisibleGroups.contains(group);
+}
+
+void ScrollScene::setGroupVisible(QString group, bool visible)
+{
+    if(isGroupVisible(group) == visible)
+        return;
+
+    if(visible)
+        _invisibleGroups.remove(group);
+    else
+        _invisibleGroups.insert(group);
+    emit sceneChanged();
+}
+
+QSet<QString> ScrollScene::getAllGroups() const
+{
+    QSet<QString> out;
+
+    for(int i = 0; i < (int)_items.size(); ++i)
+        out.insert(_items[i]->group());
+
+    return out;
+}
+
 #include "ScrollScene.moc"

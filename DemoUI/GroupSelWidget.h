@@ -1,5 +1,5 @@
 /*--
-    ScrollView.h  
+    GroupSelWidget.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,50 +19,45 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SCROLLVIEW_H_INCLUDED
-#define SCROLLVIEW_H_INCLUDED
+#ifndef GROUPSELWIDGET_H_INCLUDED
+#define GROUPSELWIDGET_H_INCLUDED
 
 #include "defs.h"
 
-#include <QAbstractScrollArea>
-#include <QVector2D>
+#include <QWidget>
+#include <QSet>
 
 class ScrollScene;
-class QPaintEvent;
-class QResizeEvent;
-class QWheelEvent;
-class QMouseEvent;
+class QCheckBox;
 
-class ScrollView : public QAbstractScrollArea
+class GroupSelWidget : public QWidget
 {
     Q_OBJECT
 public:
-    ScrollView(QWidget *parent = NULL);
+    GroupSelWidget(QWidget *parent);
 
-    ScrollScene *scene() const { return _scene; }
+    void setScene(ScrollScene *scene);
 
-protected:
-    void scrollContentsBy(int dx, int dy);
-    void paintEvent(QPaintEvent *);
-    void resizeEvent(QResizeEvent *);
-    void wheelEvent(QWheelEvent *);
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-
-protected slots:
-    void update();
-    void resetView();
+private slots:
+    void sceneChanged();
 
 private:
-    //to map from scene to view: multiply by zoom and add offset
-    double _zoom;
-    QVector2D _offset;
-
     ScrollScene *_scene;
-    QPoint _prevMousePos;
-    int _updating;
+    QSet<QString> _prevGroupSet;
 };
 
+class VisibilitySetter : public QObject
+{
+    Q_OBJECT
+public:
+    VisibilitySetter(QCheckBox *parent, ScrollScene *scene, QString group);
 
-#endif //SCROLLVIEW_H_INCLUDED
+private slots:
+    void visibilityChanged(int state);
+
+private:
+    ScrollScene *_scene;
+    QString _group;
+};
+
+#endif //GROUPSELWIDGET_H_INCLUDED

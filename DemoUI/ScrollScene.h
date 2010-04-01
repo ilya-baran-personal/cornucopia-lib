@@ -46,6 +46,10 @@ public:
     void addItem(SceneItemPtr item);
 
     void clearGroups(QString groups);
+    bool isGroupVisible(QString group) const;
+    QSet<QString> getAllGroups() const;
+
+    void setGroupVisible(QString group, bool visible);
 
 signals:
     void sceneChanged();
