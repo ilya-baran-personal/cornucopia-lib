@@ -35,4 +35,6 @@
 namespace std {}
 namespace Eigen {}
 
+#include "Debugging.h"
+
 #endif //DEFS_H_INCLUDED

@@ -20,7 +20,6 @@
 */
 
 #include "libTest.h"
-#include "Debugging.h"
 
 using namespace std;
 using namespace Eigen;

@@ -36,7 +36,7 @@ public:
     SceneItem(QString group, QPen pen = QPen(), QBrush brush = QBrush())
         : _group(group), _pen(pen), _brush(brush) {}
 
-    virtual void draw(QPainter *) const = 0;
+    virtual void draw(QPainter *, const QTransform &) const = 0;
     virtual QRectF rect() const = 0;
 
     QString group() const { return _group; }
@@ -47,14 +47,27 @@ protected:
     QBrush _brush;
 };
 
+class PointSceneItem : public SceneItem
+{
+public:
+    PointSceneItem(const Eigen::Vector2d &pos, QString group, QColor color);
+
+    //overrides
+    void draw(QPainter *p, const QTransform &) const;
+    QRectF rect() const;
+
+private:
+    static const int radius = 3;
+    QPointF _pos;
+};
+
 class LineSceneItem : public SceneItem
 {
 public:
     LineSceneItem(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, QString group, QPen pen = QPen(), QBrush brush = QBrush());
 
-    //override
-    void draw(QPainter *p) const;
-    //override
+    //overrides
+    void draw(QPainter *p, const QTransform &) const;
     QRectF rect() const;
 
 private:

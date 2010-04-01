@@ -26,6 +26,9 @@
 #include "Debugging.h"
 
 #include <QObject>
+#include <QHash>
+
+class ScrollScene;
 
 class DebuggingImpl : public QObject, public Cornu::Debugging
 {
@@ -33,19 +36,28 @@ class DebuggingImpl : public QObject, public Cornu::Debugging
 public:
     static DebuggingImpl *get();
 
-    //override
+    //overrides
     void printf(const char *fmt, ...);
 
-    //override
     void startTiming(const std::string &description);
-    //override
-    void stopTiming(const std::string &description = "");
+    void elapsedTime(const std::string &description = "");
+
+    void clear(const std::string &groups = "");
+    void drawPoint(const Vector2d &pos, const Color &color, const std::string &group = "");
+    void drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group = "", double thickness = 1);
+
+    //not overrides
+    void setScene(ScrollScene *scene) { _scene = scene; }
 
 signals:
     void print(QString);
 
 private:
-    DebuggingImpl() {}
+    DebuggingImpl() : _scene(NULL) {}
+
+    ScrollScene *_scene;
+
+    QHash<QString, int> _startTimes; 
 };
 
 #endif //DEBUGGINGIMPL_H_INCLUDED

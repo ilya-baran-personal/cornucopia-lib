@@ -20,7 +20,10 @@
 */
 
 #include "DebuggingImpl.h"
+#include "ScrollScene.h"
+#include "SceneItem.h"
 
+#include <ctime>
 #include <cstdarg>
 
 using namespace std;
@@ -51,17 +54,45 @@ void DebuggingImpl::printf(const char *fmt, ...)
 
     va_end(ap);
 
-    std::printf("%s", buffer);
+    std::printf("%s\n", buffer);
 
     emit print(QString::fromAscii(buffer));
 }
 
 void DebuggingImpl::startTiming(const string &description)
 {
+    _startTimes[QString(description.c_str())] = clock();
 }
 
-void DebuggingImpl::stopTiming(const string &description)
+void DebuggingImpl::elapsedTime(const string &description)
 {
+    QString desc(description.c_str());
+    if(!_startTimes.contains(desc))
+    {
+        printf("Timing description not found: %s", description.c_str());
+
+        return;
+    }
+    int diff = clock() - _startTimes[desc];
+    printf("Timing: %20s   ---   %.3lf", description.c_str(), double(diff) / CLOCKS_PER_SEC);
+}
+
+void DebuggingImpl::clear(const std::string &groups)
+{
+    if(_scene)
+        _scene->clearGroups(groups.c_str());
+}
+
+void DebuggingImpl::drawPoint(const Vector2d &pos, const Color &color, const std::string &group)
+{
+    if(_scene)
+        _scene->addItem(new PointSceneItem(pos, group.c_str(), QColor::fromRgbF(color[0], color[1], color[2])));
+}
+
+void DebuggingImpl::drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group, double thickness)
+{
+    if(_scene)
+        _scene->addItem(new LineSceneItem(p1, p2, group.c_str(), QPen(QColor::fromRgbF(color[0], color[1], color[2]), thickness)));
 }
 
 #include "DebuggingImpl.moc"

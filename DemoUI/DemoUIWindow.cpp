@@ -46,6 +46,8 @@ DemoUIWindow::DemoUIWindow()
     connect(showDebugWindow, SIGNAL(triggered()), _debugWindow, SLOT(show()));
     connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
 
+    DebuggingImpl::get()->setScene(debugWindowUi.debugView->scene());
+
     _debugWindow->show();
 }
 

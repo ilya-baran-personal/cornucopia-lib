@@ -38,19 +38,43 @@ QRectF ScrollScene::rect() const
     return out;
 }
 
-void ScrollScene::draw(QPainter *p) const
+void ScrollScene::draw(QPainter *p, const QTransform &transform) const
 {
     for(int i = 0; i < (int)_items.size(); ++i)
     {
         if(_invisibleGroups.contains(_items[i]->group()))
             continue;
-        _items[i]->draw(p);
+        _items[i]->draw(p, transform);
     }
 }
 
 void ScrollScene::addItem(SceneItemPtr item)
 {
     _items.push_back(item);
+    emit sceneChanged();
+}
+
+void ScrollScene::clearGroups(QString groups)
+{
+    if(groups.isEmpty())
+    {
+        _items.clear();
+        emit sceneChanged();
+        return;
+    }
+
+    QRegExp groupExp(groups);
+
+    int deleted = 0;
+    for(int i = 0; i < (int)_items.size(); ++i)
+    {
+        if(groupExp.exactMatch(_items[i]->group()))
+            ++deleted;
+        else
+            _items[i - deleted] = _items[i];
+    }
+    _items.resize((int)_items.size() - deleted);
+
     emit sceneChanged();
 }
 

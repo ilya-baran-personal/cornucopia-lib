@@ -41,9 +41,11 @@ public:
     ScrollScene(QObject *parent = NULL) : QObject(parent) {}
 
     QRectF rect() const;
-    void draw(QPainter *p) const;
+    void draw(QPainter *p, const QTransform &transform) const;
 
     void addItem(SceneItemPtr item);
+
+    void clearGroups(QString groups);
 
 signals:
     void sceneChanged();

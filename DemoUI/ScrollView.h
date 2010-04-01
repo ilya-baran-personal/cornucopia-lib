@@ -57,7 +57,7 @@ protected slots:
 private:
     void _pan(int dx, int dy);
 
-    //to map from view to scene: add scroll bar values and divide by zoom
+    //to map from scene to view: multiply by zoom and add offset
     double _zoom;
     QVector2D _offset;
 
