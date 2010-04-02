@@ -23,6 +23,8 @@
 #include "ui_DebugWindow.h"
 #include "DebuggingImpl.h"
 
+#include "libTest.h"
+
 #include <QScrollArea>
 #include <QMenuBar>
 #include <QMenu>
@@ -59,12 +61,7 @@ DemoUIWindow::DemoUIWindow()
 
     _debugWindow->show();
 
-    for(int i = 0; i < 100; ++i)
-    {
-        char group[20];
-        sprintf(group, "Group%d", i);
-        Cornu::Debugging::get()->drawPoint(Vector2d(i * 10, i + 10), Vector3d(1, 0, 0), group);
-    }
+    Cornu::f(4);
 }
 
 DemoUIWindow::~DemoUIWindow()

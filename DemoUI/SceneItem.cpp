@@ -20,6 +20,7 @@
 */
 
 #include "SceneItem.h"
+#include "Curve.h"
 
 #include <QPainter>
 
@@ -57,4 +58,26 @@ void LineSceneItem::draw(QPainter *p, const QTransform &transform) const
 QRectF LineSceneItem::rect() const
 {
     return QRectF(_p1, _p2).normalized();
+}
+
+CurveSceneItem::CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen pen, QBrush brush)
+: SceneItem(group, pen, brush), _curve(curve)
+{
+    Vector2d pt;
+
+    for(double s = 0; s < curve->length(); s += 2.) //walk two pixels
+    {
+         pt = curve->pos(s);
+        _curveTess.push_back(QPointF(pt[0], pt[1]));
+    }
+    pt = curve->endPos();
+    _curveTess.push_back(QPointF(pt[0], pt[1]));
+
+    _rect = _curveTess.boundingRect();
+}
+
+void CurveSceneItem::draw(QPainter *p, const QTransform &transform) const
+{
+    p->setPen(_pen);
+    p->drawPolyline(transform.map(_curveTess));
 }

@@ -1,5 +1,5 @@
 /*--
-    libTest.cpp  
+    AngleUtils.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,26 +19,24 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "libTest.h"
-#include "Line.h"
+#ifndef ANGLEUTILS_H_INCLUDED
+#define ANGLEUTILS_H_INCLUDED
 
-using namespace std;
-using namespace Eigen;
+#include "defs.h"
+
+#include <Eigen/Core>
 
 NAMESPACE_Cornu
 
-int f(int x)
+/*
+    This class has a bunch of static methods for working with angles
+*/
+class AngleUtils
 {
-    Debugging::get()->printf("Working on f: %d\n", x);
-
-    Debugging::get()->drawCurve(new Line(Vector2d(10, 10), Vector2d(100, 200)), Vector3d(0, 1, 1), "f Line", 3);
-
-    return x + 4;
-}
-
-int g(int x)
-{
-    return x * 2 + 5;
-}
+public:
+    static double angle(const Eigen::Vector2d &v) { return atan2(v[1], v[0]); }
+};
 
 END_NAMESPACE_Cornu
+
+#endif //ANGLEUTILS_H_INCLUDED

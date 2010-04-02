@@ -23,11 +23,14 @@
 #define DEBUGGING_H_INCLUDED
 
 #include "defs.h"
+#include "smart_ptr.h"
 
 #include <string>
 #include <Eigen/Core>
 
 NAMESPACE_Cornu
+
+SMART_FORW_DECL(Curve);
 
 //This class does nothing by default
 class Debugging
@@ -49,7 +52,7 @@ public:
 
     virtual void drawPoint(const Vector2d &/*pos*/, const Color &/*color*/, const std::string &/*group*/ = "") {}
     virtual void drawLine(const Vector2d &/*p1*/, const Vector2d &/*p2*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1) {}
-    //virtual void drawCurve(smart_ptr<const ICurve<2> > /*curve*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1) {}
+    virtual void drawCurve(CurveConstPtr /*curve*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1) {}
 
 protected:
     Debugging() {}

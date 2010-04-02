@@ -26,7 +26,7 @@
 #include <QDir>
 #include <QDebug>
 
-static QString fileHeaderFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/fileHeader.txt";
+static const QString fileHeaderFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/fileHeader.txt";
 
 class _LineFormatter
 {

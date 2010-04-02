@@ -28,9 +28,9 @@
 #include <QFileInfo>
 #include <QProcess>
 
-static QString cppTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/cpp_template.txt";
-static QString hTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/h_template.txt";
-static QString cmakeListsFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/CMakeLists.txt";
+static const QString cppTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/cpp_template.txt";
+static const QString hTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/h_template.txt";
+static const QString cmakeListsFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/CMakeLists.txt";
 
 void AddTool::execute()
 {

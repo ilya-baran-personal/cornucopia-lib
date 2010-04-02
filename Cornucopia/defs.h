@@ -37,4 +37,11 @@ namespace Eigen {}
 
 #include "Debugging.h"
 
+namespace Cornu
+{
+    static const double PI = 3.1415926535897932385;
+    static const double TWOPI = 6.2831853071795864769;
+    static const double HALFPI = 1.5707963267948966192;
+}
+
 #endif //DEFS_H_INCLUDED

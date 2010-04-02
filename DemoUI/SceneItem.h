@@ -27,6 +27,7 @@
 
 #include <QBrush>
 #include <QPen>
+#include <QPainterPath>
 
 #include <Eigen/Core>
 
@@ -72,6 +73,21 @@ public:
 
 private:
     QPointF _p1, _p2;
+};
+
+class CurveSceneItem : public SceneItem
+{
+public:
+    CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen pen = QPen(), QBrush brush = QBrush());
+
+    //overrides
+    void draw(QPainter *p, const QTransform &) const;
+    QRectF rect() const { return _rect; }
+
+private:
+    Cornu::CurveConstPtr _curve;
+    QRectF _rect;
+    QPolygonF _curveTess;
 };
 
 #endif //SCENEITEM_H_INCLUDED

@@ -95,4 +95,11 @@ void DebuggingImpl::drawLine(const Vector2d &p1, const Vector2d &p2, const Color
         _scene->addItem(new LineSceneItem(p1, p2, group.c_str(), QPen(QColor::fromRgbF(color[0], color[1], color[2]), thickness)));
 }
 
+void DebuggingImpl::drawCurve(Cornu::CurveConstPtr curve, const Color &color, const std::string &group, double thickness)
+{
+    if(_scene)
+        _scene->addItem(new CurveSceneItem(curve, group.c_str(), QPen(QColor::fromRgbF(color[0], color[1], color[2]), thickness)));
+}
+
+
 #include "DebuggingImpl.moc"
