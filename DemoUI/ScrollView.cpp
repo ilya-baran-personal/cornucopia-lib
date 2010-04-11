@@ -46,7 +46,7 @@ void ScrollView::scrollContentsBy(int dx, int dy)
     if(_updating)
         return;
 
-    _offset += QVector2D(dx, dy);
+    _offset += QPointF(dx, dy);
 
     update();
     viewport()->repaint();
@@ -132,7 +132,7 @@ void ScrollView::mouseMoveEvent(QMouseEvent *e)
     int dy = e->y() - _prevMousePos.y();
     _prevMousePos = e->pos();
 
-    _offset += QVector2D(dx, dy);
+    _offset += QPointF(dx, dy);
     update();
     viewport()->repaint();
 }
@@ -147,7 +147,7 @@ void ScrollView::wheelEvent(QWheelEvent *e)
     _zoom = max(minZoom, min(maxZoom, _zoom));
 
     //scale the offset too
-    QVector2D mousePos(e->pos());
+    QPointF mousePos(e->pos());
     _offset = mousePos + (_offset - mousePos) * (_zoom / oldZoom);
 
     update();
@@ -156,7 +156,7 @@ void ScrollView::wheelEvent(QWheelEvent *e)
 
 void ScrollView::resetView()
 {
-    _offset = QVector2D();
+    _offset = QPointF();
     _zoom = 1.;
 
     update();

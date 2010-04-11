@@ -327,7 +327,7 @@ void runTest()
     }
     Debugging::get()->elapsedTime("Fresnel scalar");
 
-    printf("Done, sum = %lf\n", sum);
+    Debugging::get()->printf("Done, sum = %lf\n", sum);
     sum = 0;
 
     Debugging::get()->startTiming("Fresnel 2d");
@@ -348,7 +348,7 @@ void runTest()
     }
     Debugging::get()->elapsedTime("Fresnel 2d");
 
-    printf("Done, sum = %lf\n", sum);
+    Debugging::get()->printf("Done, sum = %lf\n", sum);
     sum = 0;
 
 #if 0

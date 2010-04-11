@@ -33,6 +33,7 @@
 
 SMART_FORW_DECL(SceneItem);
 class QPainter;
+class QTransform;
 
 class ScrollScene : public QObject
 {

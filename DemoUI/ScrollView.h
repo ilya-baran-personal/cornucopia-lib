@@ -25,7 +25,7 @@
 #include "defs.h"
 
 #include <QAbstractScrollArea>
-#include <QVector2D>
+#include <QPointF>
 
 class ScrollScene;
 class QPaintEvent;
@@ -57,7 +57,7 @@ protected slots:
 private:
     //to map from scene to view: multiply by zoom and add offset
     double _zoom;
-    QVector2D _offset;
+    QPointF _offset;
 
     ScrollScene *_scene;
     QPoint _prevMousePos;
