@@ -113,20 +113,14 @@ EIGEN_STRONG_INLINE Packet4f packetFmod(const Packet4f &a, const Packet4f &b)
 
 //==================Coefficients===========================
 
-template<typename Real> 
-struct FresnelCoefs
-{
-    static Matrix<Real, Dynamic, 1> sn, sd, cn, cd, fn, fd, gn, gd;
-};
-
-VectorXd FresnelCoefs<double>::sn(6), FresnelCoefs<double>::sd(6);
-VectorXd FresnelCoefs<double>::cn(6), FresnelCoefs<double>::cd(7);
-VectorXd FresnelCoefs<double>::fn(10), FresnelCoefs<double>::fd(10);
-VectorXd FresnelCoefs<double>::gn(11), FresnelCoefs<double>::gd(11);
-VectorXf FresnelCoefs<float>::sn(7), FresnelCoefs<float>::sd(0);
-VectorXf FresnelCoefs<float>::cn(7), FresnelCoefs<float>::cd(0);
-VectorXf FresnelCoefs<float>::fn(8), FresnelCoefs<float>::fd(0);
-VectorXf FresnelCoefs<float>::gn(8), FresnelCoefs<float>::gd(0);
+static VectorXd dsn(6), dsd(6);
+static VectorXd dcn(6), dcd(7);
+static VectorXd dfn(10), dfd(10);
+static VectorXd dgn(10), dgd(11);
+static VectorXf ssn(7);
+static VectorXf scn(7);
+static VectorXf sfn(8);
+static VectorXf sgn(8);
 
 struct InitCoefs
 {
@@ -138,7 +132,7 @@ struct InitCoefs
 
     void initFloat()
     {
-        FresnelCoefs<float>::sn <<
+        ssn <<
             1.647629463788700E-009,
             -1.522754752581096E-007,
             8.424748808502400E-006,
@@ -146,7 +140,7 @@ struct InitCoefs
             7.244727626597022E-003,
             -9.228055941124598E-002,
             5.235987735681432E-001;
-        FresnelCoefs<float>::cn <<
+        scn <<
             1.416802502367354E-008,
             -1.157231412229871E-006,
             5.387223446683264E-005,
@@ -154,7 +148,7 @@ struct InitCoefs
             2.818489036795073E-002,
             -2.467398198317899E-001,
             9.999999760004487E-001;
-        FresnelCoefs<float>::fn <<
+        sfn <<
             -1.903009855649792E+012,
             1.355942388050252E+011,
             -4.158143148511033E+009,
@@ -163,7 +157,7 @@ struct InitCoefs
             8.560515466275470E+003,
             -1.032877601091159E+002,
             2.999401847870011E+000;
-        FresnelCoefs<float>::gn <<
+        sgn <<
             -1.860843997624650E+011,
             1.278350673393208E+010,
             -3.779387713202229E+008,
@@ -176,14 +170,14 @@ struct InitCoefs
 
     void initDouble()
     {
-        FresnelCoefs<double>::sn <<
+        dsn <<
             -2.99181919401019853726E3,
             7.08840045257738576863E5,
             -6.29741486205862506537E7,
             2.54890880573376359104E9,
             -4.42979518059697779103E10,
             3.18016297876567817986E11;
-        FresnelCoefs<double>::sd <<
+        dsd <<
             /* 1.00000000000000000000E0,*/
             2.81376268889994315696E2,
             4.55847810806532581675E4,
@@ -191,14 +185,14 @@ struct InitCoefs
             4.19320245898111231129E8,
             2.24411795645340920940E10,
             6.07366389490084639049E11;
-        FresnelCoefs<double>::cn <<
+        dcn <<
             -4.98843114573573548651E-8,
             9.50428062829859605134E-6,
             -6.45191435683965050962E-4,
             1.88843319396703850064E-2,
             -2.05525900955013891793E-1,
             9.99999999999999998822E-1;
-        FresnelCoefs<double>::cd <<
+        dcd <<
             3.99982968972495980367E-12,
             9.15439215774657478799E-10,
             1.25001862479598821474E-7,
@@ -206,7 +200,7 @@ struct InitCoefs
             8.68029542941784300606E-4,
             4.12142090722199792936E-2,
             1.00000000000000000118E0;
-        FresnelCoefs<double>::fn <<
+        dfn <<
             4.21543555043677546506E-1,
             1.43407919780758885261E-1,
             1.15220955073585758835E-2,
@@ -217,7 +211,7 @@ struct InitCoefs
             1.72010743268161828879E-13,
             1.34283276233062758925E-16,
             3.76329711269987889006E-20;
-        FresnelCoefs<double>::fd <<
+        dfd <<
             /*  1.00000000000000000000E0,*/
             7.51586398353378947175E-1,
             1.16888925859191382142E-1,
@@ -229,7 +223,7 @@ struct InitCoefs
             5.88754533621578410010E-14,
             4.52001434074129701496E-17,
             1.25443237090011264384E-20;
-        FresnelCoefs<double>::gn <<
+        dgn <<
             5.04442073643383265887E-1,
             1.97102833525523411709E-1,
             1.87648584092575249293E-2,
@@ -241,7 +235,7 @@ struct InitCoefs
             1.37555460633261799868E-15,
             8.36354435630677421531E-19,
             1.86958710162783235106E-22;
-        FresnelCoefs<double>::gd <<
+        dgd <<
             /*  1.00000000000000000000E0,*/
             1.47495759925128324529E0,
             3.37748989120019970451E-1,
@@ -259,8 +253,6 @@ struct InitCoefs
 
 void fresnel( double xxa, double *ssa, double *cca )
 {
-    typedef FresnelCoefs<double> FC;
-
     double f, g, cc, ss, c, s, t, u;
     double x, x2;
 
@@ -269,8 +261,8 @@ void fresnel( double xxa, double *ssa, double *cca )
     if( x2 < 2.5625 )
     {
         t = x2 * x2;
-        ss = x * x2 * polevl( t, FC::sn)/p1evl( t, FC::sd);
-        cc = x * polevl( t, FC::cn)/polevl(t, FC::cd);
+        ss = x * x2 * polevl( t, dsn)/p1evl( t, dsd);
+        cc = x * polevl( t, dcn)/polevl(t, dcd);
         goto done;
     }
 
@@ -288,8 +280,8 @@ void fresnel( double xxa, double *ssa, double *cca )
     t = PI * x2;
     u = 1.0/(t * t);
     t = 1.0/t;
-    f = 1.0 - u * polevl( u, FC::fn)/p1evl(u, FC::fd);
-    g = t * polevl( u, FC::gn)/p1evl(u, FC::gd);
+    f = 1.0 - u * polevl( u, dfn)/p1evl(u, dfd);
+    g = t * polevl( u, dgn)/p1evl(u, dgd);
 
     t = HALFPI * x2;
     c = cos(t);
@@ -311,8 +303,6 @@ done:
 
 void fresnelLow( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
 {
-    typedef FresnelCoefs<float> FC;
-
     Packet4f cc, ss, t;
     Packet4f x, x2;
 
@@ -320,8 +310,8 @@ void fresnelLow( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     x2 = ei_pmul(x, x);
 
     t = ei_pmul(x2, x2);
-    ss = ei_pmul(x, ei_pmul(x2, polevl( t, FC::sn)));
-    cc = ei_pmul(x, polevl( t, FC::cn));
+    ss = ei_pmul(x, ei_pmul(x2, polevl( t, ssn)));
+    cc = ei_pmul(x, polevl( t, scn));
 
     *ssa = packetTransferSign(ss, xxa);
     *cca = packetTransferSign(cc, xxa);
@@ -329,8 +319,6 @@ void fresnelLow( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
 
 void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
 {
-    typedef FresnelCoefs<float> FC;
-
     Packet4f cc, ss, t, u, f, g, c, s;
     Packet4f x, x2;
 
@@ -340,8 +328,8 @@ void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     t = ei_pmul(ei_pset1(float(PI)), x2);
     t = ei_pdiv(ei_pset1(float(1.0)), t);
     u = ei_pmul(t, t);
-    f = ei_psub(ei_pset1(float(1.0)), ei_pmul(u, polevl( u, FC::fn)));
-    g = ei_pmul(t, polevl( u, FC::gn));
+    f = ei_psub(ei_pset1(float(1.0)), ei_pmul(u, polevl( u, sfn)));
+    g = ei_pmul(t, polevl( u, sgn));
 
     t = ei_pmul(ei_pset1(float(HALFPI)), x2);
 
