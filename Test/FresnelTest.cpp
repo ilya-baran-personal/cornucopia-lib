@@ -54,18 +54,16 @@ public:
         Debugging::get()->elapsedTime("Fresnel approx");
 
         ArrayXd diffV = (s1 - s2).array().square() + (c1 - c2).array().square();
-        double diff = sqrt(diffV.sum());
-        Debugging::get()->printf("Done, diff = %lf", diff);
-        double total = sqrt(s1.squaredNorm() + c2.squaredNorm());
-        Debugging::get()->printf("total = %lf", total);
+        ArrayXd errVec = (diffV / (s1.array().square() + c1.array().square())).sqrt();
+        double relErr = errVec.maxCoeff();
+        Debugging::get()->printf("Done, max relative error = %.10lf", relErr);
 
-        return diff / total < 1e-6;
+        return relErr < 1e-6;
     }
 
     double f(int i, int num)
     {
-        return double(rand() % 100) / 10. - 5.;
-        //return double(rand() % 1000) / 1000. - .5;
+        return (double(i) / double(num)) * 10. - 5.;
     }
 };
 
