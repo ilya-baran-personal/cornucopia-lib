@@ -520,34 +520,5 @@ void fresnelApprox(const VectorXd &t, VectorXd *s, VectorXd *c)
 
 #endif //EIGEN_VECTORIZE_SSE
 
-inline double f(int i, int num)
-{
-    return double(rand() % 100) / 10. - 5.;
-    //return double(rand() % 1000) / 1000. - .5;
-}
-
-void runTest()
-{
-    const int num = 10000000;
-
-    VectorXd t(num), s(num), c(num);
-
-    for(int i = 0; i < num; ++i) {
-        t[i] = f(i, num);
-    }
-
-    Debugging::get()->startTiming("Fresnel double");
-    fresnel(t, &s, &c);
-    Debugging::get()->elapsedTime("Fresnel double");
-
-    Debugging::get()->printf("Done, sum = %lf\n", (s + c).sum());
-
-    Debugging::get()->startTiming("Fresnel approx");
-    fresnelApprox(t, &s, &c);
-    Debugging::get()->elapsedTime("Fresnel approx");
-
-    Debugging::get()->printf("Done, sum = %lf\n", (s + c).sum());
-}
-
 END_NAMESPACE_Cornu
 

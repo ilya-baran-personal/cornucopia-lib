@@ -30,6 +30,7 @@
 
 static const QString cppTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/cpp_template.txt";
 static const QString hTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/h_template.txt";
+static const QString testTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/test_template.txt";
 static const QString cmakeListsFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/CMakeLists.txt";
 
 void AddTool::execute()
@@ -47,6 +48,8 @@ void AddTool::execute()
         projectName = QString("DemoUI");
     if(dialogUi.inTools->isChecked())
         projectName = QString("Tools");
+    if(dialogUi.inTest->isChecked())
+        projectName = QString("Test");
 
     _add(dialogUi.fileName->text(), dialogUi.header->isChecked(),
          dialogUi.source->isChecked(), dialogUi.includeMoc->isChecked(), projectName);
@@ -54,6 +57,12 @@ void AddTool::execute()
 
 void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString project)
 {
+    if(project == "Test")
+    {
+        header = false;
+        moc = false;
+    }
+
     qDebug() << "Adding:" << fileName << "in project" << project << "Header =" << header << "Source =" << source;
 
     QString headerFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/" + project + "/" + fileName + ".h";
@@ -76,10 +85,11 @@ void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString
     mapping.append(qMakePair(QRegExp("@CAPSFILENAME@"), fileName.toUpper()));
 
     QString namespaceStr, endNamespaceStr;
-    if(project == "Cornucopia") //add namespace defailts to cornucopia
+    if(project == "Cornucopia") //add namespace defaults to cornucopia
     {
         namespaceStr = "NAMESPACE_Cornu\n";
         endNamespaceStr = "END_NAMESPACE_Cornu\n";
+        moc = false; //Cornucopia has no Qt dependency
     }
     mapping.append(qMakePair(QRegExp("@NAMESPACE@"), namespaceStr));
     mapping.append(qMakePair(QRegExp("@ENDNAMESPACE@"), endNamespaceStr));
@@ -96,14 +106,18 @@ void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString
             return;
 
     if(source)
-        _addOneFile(cppTemplateFileName, sourceFileName, mapping);
+    {
+        if(project == "Test")
+            _addOneFile(testTemplateFileName, sourceFileName, mapping);
+        else
+            _addOneFile(cppTemplateFileName, sourceFileName, mapping);
+    }
 
     //resize the file (and back) to update its modification date--hack, but I couldn't think of anything better
     QFile cmakeFile(cmakeListsFileName);
     int sz = cmakeFile.size();
     cmakeFile.resize(sz + 1);
     cmakeFile.resize(sz);
-
 }
 
 bool AddTool::_addOneFile(QString templateName, QString targetName,

@@ -1,5 +1,5 @@
 /*--
-    libTest.cpp  
+    CurveDerivativesTest.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,27 +19,24 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "libTest.h"
-#include "Line.h"
-#include "Fresnel.h"
+#include "Test.h"
 
 using namespace std;
 using namespace Eigen;
+using namespace Cornu;
 
-NAMESPACE_Cornu
-
-int f(int x)
+class CurveDerivativesTest : public TestCase
 {
-    Debugging::get()->printf("Working on f: %d\n", x);
+public:
+    //override
+    std::string name() { return "CurveDerivativesTest"; }
 
-    Debugging::get()->drawCurve(new Line(Vector2d(10, 10), Vector2d(100, 200)), Vector3d(0, 1, 1), "f Line", 3);
+    //override
+    bool run()
+    {
+        //TODO: implement
+        return true;
+    }
+};
 
-    return x + 4;
-}
-
-int g(int x)
-{
-    return x * 2 + 5;
-}
-
-END_NAMESPACE_Cornu
+static CurveDerivativesTest test;

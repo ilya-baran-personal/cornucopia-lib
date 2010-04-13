@@ -35,8 +35,6 @@ void fresnel(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c);
 void fresnelApprox(double xxa, double *ssa, double *cca);
 void fresnelApprox(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c);
 
-void runTest();
-
 END_NAMESPACE_Cornu
 
 #endif //FRESNEL_H_INCLUDED

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>263</width>
-    <height>224</height>
+    <width>233</width>
+    <height>242</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -51,7 +51,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -59,69 +59,70 @@
          <property name="minimumSize">
           <size>
            <width>140</width>
-           <height>101</height>
+           <height>143</height>
           </size>
          </property>
          <property name="title">
           <string>Project</string>
          </property>
-         <widget class="QWidget" name="layoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>20</y>
-            <width>117</width>
-            <height>76</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <property name="sizeConstraint">
-            <enum>QLayout::SetDefaultConstraint</enum>
-           </property>
-           <item>
-            <widget class="QRadioButton" name="inCornucopia">
-             <property name="minimumSize">
-              <size>
-               <width>115</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Cornucopia</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="inTools">
-             <property name="minimumSize">
-              <size>
-               <width>115</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Tools</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="inDemoUI">
-             <property name="minimumSize">
-              <size>
-               <width>115</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>DemoUI</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="inCornucopia">
+              <property name="minimumSize">
+               <size>
+                <width>115</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Cornucopia</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="inTools">
+              <property name="minimumSize">
+               <size>
+                <width>115</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Tools</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="inDemoUI">
+              <property name="minimumSize">
+               <size>
+                <width>115</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>DemoUI</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="inTest">
+              <property name="text">
+               <string>Test</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -177,6 +178,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="includeMoc">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="toolTip">
             <string>Generate inclusion of moc file in the cpp file</string>
            </property>
@@ -234,8 +238,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>246</x>
-     <y>199</y>
+     <x>220</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -250,12 +254,60 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>246</x>
-     <y>199</y>
+     <x>220</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
-     <x>258</x>
+     <x>232</x>
      <y>211</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>inTest</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>header</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>126</x>
+     <y>167</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>218</x>
+     <y>54</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>inTest</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>includeMoc</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>46</x>
+     <y>169</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>174</x>
+     <y>180</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>inCornucopia</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>includeMoc</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>198</x>
+     <y>169</y>
     </hint>
    </hints>
   </connection>

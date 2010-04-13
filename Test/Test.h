@@ -1,5 +1,5 @@
 /*--
-    libTest.cpp  
+    Test.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,27 +19,26 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "libTest.h"
-#include "Line.h"
-#include "Fresnel.h"
+#include <vector>
 
-using namespace std;
-using namespace Eigen;
+namespace Cornu {}
+namespace Eigen {}
 
-NAMESPACE_Cornu
-
-int f(int x)
+class TestCase
 {
-    Debugging::get()->printf("Working on f: %d\n", x);
+public:
+    TestCase()
+    {
+        allTests().push_back(this);
+    }
 
-    Debugging::get()->drawCurve(new Line(Vector2d(10, 10), Vector2d(100, 200)), Vector3d(0, 1, 1), "f Line", 3);
+    virtual ~TestCase()
+    {
+        //should not be called
+    }
 
-    return x + 4;
-}
+    virtual bool run() = 0; //returns true on success
+    virtual std::string name() { return "Unnamed"; }
 
-int g(int x)
-{
-    return x * 2 + 5;
-}
-
-END_NAMESPACE_Cornu
+    static std::vector<TestCase *> &allTests(); //Meyer's singleton
+};

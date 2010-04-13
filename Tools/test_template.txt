@@ -1,0 +1,21 @@
+#include "Test.h"
+
+using namespace std;
+using namespace Eigen;
+using namespace Cornu;
+
+class @FILENAME@ : public TestCase
+{
+public:
+    //override
+    std::string name() { return "@FILENAME@"; }
+
+    //override
+    bool run()
+    {
+		//TODO: implement
+		return true;
+    }
+};
+
+static @FILENAME@ test;
