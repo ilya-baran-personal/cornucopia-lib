@@ -20,6 +20,7 @@
 */
 
 #include <vector>
+#include <string>
 
 namespace Cornu {}
 namespace Eigen {}

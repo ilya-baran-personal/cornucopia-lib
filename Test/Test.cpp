@@ -25,7 +25,6 @@
 #include <ctime>
 #include <cstdarg>
 #include <map>
-#include <string>
 
 using namespace std;
 using namespace Eigen;
