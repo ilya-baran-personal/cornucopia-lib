@@ -22,6 +22,8 @@
 #include "Test.h"
 #include "Fresnel.h"
 
+#include <iostream>
+
 using namespace std;
 using namespace Eigen;
 using namespace Cornu;
@@ -35,29 +37,29 @@ public:
     //override
     bool run()
     {
-        const int num = 1000000;
+        const int num = 5000000;
 
-        VectorXd t(num), s(num), c(num);
+        VectorXd t(num), s1, c1, s2, c2;
 
         for(int i = 0; i < num; ++i) {
             t[i] = f(i, num);
         }
 
         Debugging::get()->startTiming("Fresnel double");
-        fresnel(t, &s, &c);
+        fresnel(t, &s1, &c1);
         Debugging::get()->elapsedTime("Fresnel double");
 
-        double sum = (s.cwiseAbs() + c.cwiseAbs()).sum();
-        Debugging::get()->printf("Done, sum = %lf", sum);
-
         Debugging::get()->startTiming("Fresnel approx");
-        fresnelApprox(t, &s, &c);
+        fresnelApprox(t, &s2, &c2);
         Debugging::get()->elapsedTime("Fresnel approx");
 
-        double sum2 = (s.cwiseAbs() + c.cwiseAbs()).sum();
-        Debugging::get()->printf("Done, sum = %lf", sum2);
+        ArrayXd diffV = (s1 - s2).array().square() + (c1 - c2).array().square();
+        double diff = sqrt(diffV.sum());
+        Debugging::get()->printf("Done, diff = %lf", diff);
+        double total = sqrt(s1.squaredNorm() + c2.squaredNorm());
+        Debugging::get()->printf("total = %lf", total);
 
-        return fabs(sum - sum2) / (fabs(sum) + fabs(sum2)) < 1e-2;
+        return diff / total < 1e-6;
     }
 
     double f(int i, int num)

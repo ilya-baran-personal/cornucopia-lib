@@ -116,10 +116,11 @@ int main()
         TestCase *test = TestCase::allTests()[i];
         string name = test->name();
         DebuggingTestImpl::get()->printf("running %s", name.c_str());
-        DebuggingTestImpl::get()->indent();
         bool failed = true;
         try
         {
+            DebuggingTestImpl::get()->startTiming(name);
+            DebuggingTestImpl::get()->indent();
             failed = !test->run();
             DebuggingTestImpl::get()->unindent();
         }
@@ -128,6 +129,7 @@ int main()
             DebuggingTestImpl::get()->unindent();
             DebuggingTestImpl::get()->printf("Exception thrown");
         }
+        DebuggingTestImpl::get()->elapsedTime(name);
         if(failed)
             DebuggingTestImpl::get()->printf("FAILED! %s", name.c_str());
         else

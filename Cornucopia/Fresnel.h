@@ -33,7 +33,7 @@ void fresnel(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c);
 
 //roughly single-precision accuracy, using polynomial approximations
 void fresnelApprox(double xxa, double *ssa, double *cca);
-void fresnelApprox(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c);
+void fresnelApprox(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c); //sse vectorized
 
 END_NAMESPACE_Cornu
 
