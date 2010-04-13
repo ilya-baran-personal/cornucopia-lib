@@ -27,6 +27,14 @@
 
 NAMESPACE_Cornu
 
+//almost full double-precision accuracy, using rational approximations
+void fresnel(double xxa, double *ssa, double *cca);
+void fresnel(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c);
+
+//roughly single-precision accuracy, using polynomial approximations
+void fresnelApprox(double xxa, double *ssa, double *cca);
+void fresnelApprox(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd *c);
+
 void runTest();
 
 END_NAMESPACE_Cornu

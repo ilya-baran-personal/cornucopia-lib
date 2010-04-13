@@ -34,11 +34,12 @@ using namespace Eigen;
 NAMESPACE_Cornu
 
 //Polynomial evaluation routines
-static double polevl( double x, const VectorXd &coefVec ) //regular
+template<typename Scalar>
+static Scalar polevl( const Scalar &x, const Matrix<Scalar, Dynamic, 1> &coefVec ) //regular
 {
     int i = coefVec.size() - 1;
-    const double *coef = &(coefVec[0]);
-    double ans = *coef++;
+    const Scalar *coef = &(coefVec[0]);
+    Scalar ans = *coef++;
 
     do
     {
@@ -48,12 +49,13 @@ static double polevl( double x, const VectorXd &coefVec ) //regular
     return ans;
 }
 
-static double p1evl( double x, const VectorXd &coefVec ) //leading coef is 1
+template<typename Scalar>
+static Scalar p1evl( const Scalar &x, const Matrix<Scalar, Dynamic, 1> &coefVec ) //leading coef is 1
 {
     int i = coefVec.size() - 1;
-    const double *coef = &(coefVec[0]);
+    const Scalar *coef = &(coefVec[0]);
 
-    double ans = x + *coef++;
+    Scalar ans = x + *coef++;
 
     do
     {
@@ -63,76 +65,39 @@ static double p1evl( double x, const VectorXd &coefVec ) //leading coef is 1
     return ans;
 }
 
-template<typename Packet>
-static Packet polevl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
-{
-    int i = coefVec.size() - 1;
-    const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
-    Packet ans = ei_pset1(*coef++);
-
-    do
-    {
-        ans = ei_padd(ei_pmul(ans, x), ei_pset1(*coef++));
-    } while(--i);
-
-    return ans;
-}
-
-template<typename Packet>
-static Packet p1evl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
-{
-    int i = coefVec.size() - 1;
-    const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
-    Packet ans = ei_padd(x, ei_pset1(*coef++));
-
-    do
-    {
-        ans = ei_padd(ei_pmul(ans, x), ei_pset1(*coef++));
-    } while(--i);
-
-    return ans;
-}
-
-EIGEN_STRONG_INLINE Packet4f packetTransferSign(const Packet4f& to, const Packet4f& from)
-{
-  const Packet4f mask = _mm_and_ps(from, _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x80000000,0x80000000,0x80000000)));
-  return _mm_or_ps(to, mask);
-}
-EIGEN_STRONG_INLINE Packet2d packetTransferSign(const Packet2d& to, const Packet2d from)
-{
-  const Packet2d mask = _mm_and_pd(from, _mm_castsi128_pd(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000)));
-  return _mm_or_pd(to, mask);
-}
-
-EIGEN_STRONG_INLINE Packet4f packetFmod(const Packet4f &a, const Packet4f &b)
-{
-    Packet4f div = ei_pdiv(a, b);
-    div = _mm_cvtepi32_ps(_mm_cvtps_epi32(div));
-    return ei_psub(a, ei_pmul(div, b));
-}
-
 //==================Coefficients===========================
 
+//double precision rational coefficients for s, c, f, and g
 static VectorXd dsn(6), dsd(6);
 static VectorXd dcn(6), dcd(7);
 static VectorXd dfn(10), dfd(10);
-static VectorXd dgn(10), dgd(11);
+static VectorXd dgn(11), dgd(11);
+//single precision polynomial coefficients
 static VectorXf ssn(7);
 static VectorXf scn(7);
 static VectorXf sfn(8);
 static VectorXf sgn(8);
+//double precision polynomial coefficients
+static VectorXd dssn(7);
+static VectorXd dscn(7);
+static VectorXd dsfn(8);
+static VectorXd dsgn(8);
 
 struct InitCoefs
 {
     InitCoefs()
     {
-        initFloat();
-        initDouble();
+        initPolynomial();
+        initRational();
+        ssn = dssn.cast<float>();
+        scn = dscn.cast<float>();
+        sfn = dsfn.cast<float>();
+        sgn = dsgn.cast<float>();
     }
 
-    void initFloat()
+    void initPolynomial()
     {
-        ssn <<
+        dssn <<
             1.647629463788700E-009,
             -1.522754752581096E-007,
             8.424748808502400E-006,
@@ -140,7 +105,7 @@ struct InitCoefs
             7.244727626597022E-003,
             -9.228055941124598E-002,
             5.235987735681432E-001;
-        scn <<
+        dscn <<
             1.416802502367354E-008,
             -1.157231412229871E-006,
             5.387223446683264E-005,
@@ -148,7 +113,7 @@ struct InitCoefs
             2.818489036795073E-002,
             -2.467398198317899E-001,
             9.999999760004487E-001;
-        sfn <<
+        dsfn <<
             -1.903009855649792E+012,
             1.355942388050252E+011,
             -4.158143148511033E+009,
@@ -157,7 +122,7 @@ struct InitCoefs
             8.560515466275470E+003,
             -1.032877601091159E+002,
             2.999401847870011E+000;
-        sgn <<
+        dsgn <<
             -1.860843997624650E+011,
             1.278350673393208E+010,
             -3.779387713202229E+008,
@@ -168,7 +133,7 @@ struct InitCoefs
             9.999841934744914E-001;
     }
 
-    void initDouble()
+    void initRational()
     {
         dsn <<
             -2.99181919401019853726E3,
@@ -251,6 +216,7 @@ struct InitCoefs
     }
 } init;
 
+//full double precision accuracy using rational functions
 void fresnel( double xxa, double *ssa, double *cca )
 {
     double f, g, cc, ss, c, s, t, u;
@@ -301,6 +267,120 @@ done:
     *ssa = ss;
 }
 
+//roughly single-precision accuracy, using polynomial approximations
+void fresnelApprox( double xxa, double *ssa, double *cca )
+{
+    double f, g, cc, ss, c, s, t, u;
+    double x, x2;
+
+    x = fabs(xxa);
+    x2 = x * x;
+    if( x2 < 2.5625 )
+    {
+        t = x2 * x2;
+        ss = x * x2 * polevl( t, dssn);
+        cc = x * polevl( t, dscn);
+        goto done;
+    }
+
+    if( x > 36974.0 )
+    {
+        cc = 0.5;
+        ss = 0.5;
+        goto done;
+    }
+
+    /*        Asymptotic power series auxiliary functions
+    *        for large argument
+    */
+    x2 = x * x;
+    t = PI * x2;
+    u = 1.0/(t * t);
+    t = 1.0/t;
+    f = 1.0 - u * polevl( u, dsfn);
+    g = t * polevl( u, dsgn);
+
+    t = HALFPI * x2;
+    c = cos(t);
+    s = sin(t);
+    t = PI * x;
+    cc = 0.5  +  (f * s  -  g * c)/t;
+    ss = 0.5  -  (f * c  +  g * s)/t;
+
+done:
+    if( xxa < 0.0 )
+    {
+        cc = -cc;
+        ss = -ss;
+    }
+
+    *cca = cc;
+    *ssa = ss;
+}
+
+//The double precision version is not vectorized because the scalar version is actually faster
+void fresnel(const VectorXd &t, VectorXd *s, VectorXd *c)
+{
+    s->resize(t.size());
+    c->resize(t.size());
+    for(int i = 0; i < t.size(); ++i)
+        fresnel(t[i], &((*s)[i]), &((*c)[i]));
+}
+
+//Vectorization stuff
+#ifdef EIGEN_VECTORIZE_SSE
+
+//vectorized polynomial evaluation
+template<typename Packet>
+static Packet vecpolevl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
+{
+    int i = coefVec.size() - 1;
+    const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
+    Packet ans = ei_pset1(*coef++);
+
+    do
+    {
+        ans = ei_padd(ei_pmul(ans, x), ei_pset1(*coef++));
+    } while(--i);
+
+    return ans;
+}
+
+template<typename Packet>
+static Packet vecp1evl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
+{
+    int i = coefVec.size() - 1;
+    const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
+    Packet ans = ei_padd(x, ei_pset1(*coef++));
+
+    do
+    {
+        ans = ei_padd(ei_pmul(ans, x), ei_pset1(*coef++));
+    } while(--i);
+
+    return ans;
+}
+
+//other vectorized utilities
+EIGEN_STRONG_INLINE Packet4f packetTransferSign(const Packet4f& to, const Packet4f& from)
+{
+  const Packet4f mask = _mm_and_ps(from, _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x80000000,0x80000000,0x80000000)));
+  return _mm_or_ps(to, mask);
+}
+EIGEN_STRONG_INLINE Packet2d packetTransferSign(const Packet2d& to, const Packet2d from)
+{
+  const Packet2d mask = _mm_and_pd(from, _mm_castsi128_pd(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000)));
+  return _mm_or_pd(to, mask);
+}
+
+EIGEN_STRONG_INLINE Packet4f packetFmod(const Packet4f &a, const Packet4f &b)
+{
+    Packet4f div = ei_pdiv(a, b);
+    div = _mm_cvtepi32_ps(_mm_cvtps_epi32(div));
+    return ei_psub(a, ei_pmul(div, b));
+}
+
+//vectorized for the low branch of the Fresnel approximation
 void fresnelLow( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
 {
     Packet4f cc, ss, t;
@@ -310,13 +390,14 @@ void fresnelLow( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     x2 = ei_pmul(x, x);
 
     t = ei_pmul(x2, x2);
-    ss = ei_pmul(x, ei_pmul(x2, polevl( t, ssn)));
-    cc = ei_pmul(x, polevl( t, scn));
+    ss = ei_pmul(x, ei_pmul(x2, vecpolevl( t, ssn)));
+    cc = ei_pmul(x, vecpolevl( t, scn));
 
     *ssa = packetTransferSign(ss, xxa);
     *cca = packetTransferSign(cc, xxa);
 }
 
+//vectorized for the high branch
 void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
 {
     Packet4f cc, ss, t, u, f, g, c, s;
@@ -328,12 +409,14 @@ void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     t = ei_pmul(ei_pset1(float(PI)), x2);
     t = ei_pdiv(ei_pset1(float(1.0)), t);
     u = ei_pmul(t, t);
-    f = ei_psub(ei_pset1(float(1.0)), ei_pmul(u, polevl( u, sfn)));
-    g = ei_pmul(t, polevl( u, sgn));
+    f = ei_psub(ei_pset1(float(1.0)), ei_pmul(u, vecpolevl( u, sfn)));
+    g = ei_pmul(t, vecpolevl( u, sgn));
 
     t = ei_pmul(ei_pset1(float(HALFPI)), x2);
 
-    t = packetFmod(t, ei_pset1(float(TWOPI)));
+    //The following line is necessary because Eigen's ei_psin and ei_pcos don't handle large
+    //inputs well.
+    t = packetFmod(t, ei_pset1(float(TWOPI))); 
 
     c = ei_pcos(t);
     s = ei_psin(t);
@@ -346,13 +429,8 @@ void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     *cca = packetTransferSign(cc, xxa);
 }
 
-void fresnelNoVec(const VectorXd &t, VectorXd &s, VectorXd &c)
-{
-    for(int i = 0; i < t.size(); ++i)
-        fresnel(t[i], &(s[i]), &(c[i]));
-}
-
-void fresnelVec(const VectorXd &t, VectorXd &s, VectorXd &c)
+//This version is vectorized
+void fresnelApprox(const VectorXd &t, VectorXd *s, VectorXd *c)
 {
     const int packetSize = 4;
     typedef Packet4f Packet;
@@ -361,8 +439,8 @@ void fresnelVec(const VectorXd &t, VectorXd &s, VectorXd &c)
     typedef Matrix<float, packetSize, 1> ValVec;
     typedef Matrix<int, packetSize, 1> IdxVec;
 
-    s.resize(t.size());
-    c.resize(t.size());
+    s->resize(t.size());
+    c->resize(t.size());
 
     ValVec lowVal, medVal;
     IdxVec lowIdx, medIdx;
@@ -376,9 +454,9 @@ void fresnelVec(const VectorXd &t, VectorXd &s, VectorXd &c)
         if(vsq > 1367076676)
         {
             if(t[i] < 0)
-                s[i] = c[i] = -0.5;
+                (*s)[i] = (*c)[i] = -0.5;
             else
-                s[i] = c[i] = 0.5;
+                (*s)[i] = (*c)[i] = 0.5;
 
             continue;
         }
@@ -395,8 +473,8 @@ void fresnelVec(const VectorXd &t, VectorXd &s, VectorXd &c)
                 vc.writePacket<Aligned>(0, pc);
                 for(int j = 0; j < packetSize; ++j)
                 {
-                    s[lowIdx[j]] = vs[j];
-                    c[lowIdx[j]] = vc[j];
+                    (*s)[lowIdx[j]] = vs[j];
+                    (*c)[lowIdx[j]] = vc[j];
                 }
                 lowNum = 0;
             }
@@ -414,8 +492,8 @@ void fresnelVec(const VectorXd &t, VectorXd &s, VectorXd &c)
                 vc.writePacket<Aligned>(0, pc);
                 for(int j = 0; j < packetSize; ++j)
                 {
-                    s[medIdx[j]] = vs[j];
-                    c[medIdx[j]] = vc[j];
+                    (*s)[medIdx[j]] = vs[j];
+                    (*c)[medIdx[j]] = vc[j];
                 }
                 medNum = 0;
             }
@@ -424,15 +502,28 @@ void fresnelVec(const VectorXd &t, VectorXd &s, VectorXd &c)
 
     //finish up
     for(int i = 0; i < lowNum; ++i)
-        fresnel(lowVal[i], &(s[lowIdx[i]]), &(c[lowIdx[i]]));
+        fresnelApprox(lowVal[i], &((*s)[lowIdx[i]]), &((*c)[lowIdx[i]]));
     for(int i = 0; i < medNum; ++i)
-        fresnel(medVal[i], &(s[medIdx[i]]), &(c[medIdx[i]]));
+        fresnelApprox(medVal[i], &((*s)[medIdx[i]]), &((*c)[medIdx[i]]));
 }
+
+#else //EIGEN_VECTORIZE_SSE
+
+//The unvectorized version
+void fresnelApprox(const VectorXd &t, VectorXd *s, VectorXd *c)
+{
+    s->resize(t.size());
+    c->resize(t.size());
+    for(int i = 0; i < t.size(); ++i)
+        fresnelApprox(t[i], &((*s)[i]), &((*c)[i]));
+}
+
+#endif //EIGEN_VECTORIZE_SSE
 
 inline double f(int i, int num)
 {
-    //return double(rand() % 100) / 10. - 5.;
-    return double(rand() % 1000) / 1000. - .5;
+    return double(rand() % 100) / 10. - 5.;
+    //return double(rand() % 1000) / 1000. - .5;
 }
 
 void runTest()
@@ -445,15 +536,15 @@ void runTest()
         t[i] = f(i, num);
     }
 
-    Debugging::get()->startTiming("Fresnel scalar");
-    fresnelNoVec(t, s, c);
-    Debugging::get()->elapsedTime("Fresnel scalar");
+    Debugging::get()->startTiming("Fresnel double");
+    fresnel(t, &s, &c);
+    Debugging::get()->elapsedTime("Fresnel double");
 
     Debugging::get()->printf("Done, sum = %lf\n", (s + c).sum());
 
-    Debugging::get()->startTiming("Fresnel 4f");
-    fresnelVec(t, s, c);
-    Debugging::get()->elapsedTime("Fresnel 4f");
+    Debugging::get()->startTiming("Fresnel approx");
+    fresnelApprox(t, &s, &c);
+    Debugging::get()->elapsedTime("Fresnel approx");
 
     Debugging::get()->printf("Done, sum = %lf\n", (s + c).sum());
 }
