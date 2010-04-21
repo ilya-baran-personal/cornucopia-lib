@@ -67,7 +67,8 @@ public:
     //derivative with respect to paramters
     virtual void derivativeAt(double s, ParamDer &out) = 0;
 
-    void setParams(const ParamVec &params) { _params = params; paramsChanged(); }
+    void setParams(const ParamVec &params) { _params = params; _paramsChanged(); }
+    const ParamVec &params() const { return _params; }
 
     //overrides
     double length() const { return _length(); }
@@ -80,7 +81,7 @@ protected:
     Vec _startPos() const { return _params.head<2>(); }
     double _startAngle() const { return _params[ANGLE]; }
 
-    virtual void paramsChanged() = 0;
+    virtual void _paramsChanged() = 0;
 
     ParamVec _params;
 };

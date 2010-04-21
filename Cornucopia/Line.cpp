@@ -48,6 +48,13 @@ Line::Line(const Vec &p1, const Vec &p2)
     }
 }
 
+bool Line::isValid() const
+{
+    if(_params[LENGTH] < 0.)
+        return false;
+    return true;
+}
+
 double Line::project(const Vec &point) const
 {
     return min(_length(), max(0., _der.dot(point - _startPos())));
@@ -85,7 +92,8 @@ void Line::derivativeAt(double s, ParamDer &out)
     out = ParamDer::Zero(4, 2);
     out(X, 0) = 1;
     out(Y, 1) = 1;
-    //TODO
+    out(ANGLE, 0) = -s * _der(1);
+    out(ANGLE, 1) = s * _der(0);
 }
 
 END_NAMESPACE_Cornu

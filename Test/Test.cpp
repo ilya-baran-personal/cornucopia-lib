@@ -113,6 +113,9 @@ int main()
 
     for(int i = 0; i < (int)TestCase::allTests().size(); ++i)
     {
+        if(i > 0)
+            DebuggingTestImpl::get()->printf("");
+
         TestCase *test = TestCase::allTests()[i];
         string name = test->name();
         DebuggingTestImpl::get()->printf("running %s", name.c_str());
@@ -121,7 +124,12 @@ int main()
         {
             DebuggingTestImpl::get()->startTiming(name);
             DebuggingTestImpl::get()->indent();
-            failed = !test->run();
+            test->run();
+            failed = false;
+            DebuggingTestImpl::get()->unindent();
+        }
+        catch(Assertion)
+        {
             DebuggingTestImpl::get()->unindent();
         }
         catch(...)

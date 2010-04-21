@@ -22,8 +22,6 @@
 #include "Test.h"
 #include "Fresnel.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace Eigen;
 using namespace Cornu;
@@ -35,7 +33,7 @@ public:
     std::string name() { return "FresnelTest"; }
 
     //override
-    bool run()
+    void run()
     {
         const int num = 5000000;
 
@@ -58,7 +56,7 @@ public:
         double relErr = errVec.maxCoeff();
         Debugging::get()->printf("Done, max relative error = %.10lf", relErr);
 
-        return relErr < 1e-6;
+        CORNU_ASSERT(relErr < 1e-6);
     }
 
     double f(int i, int num)

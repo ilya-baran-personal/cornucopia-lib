@@ -60,6 +60,9 @@ public:
     virtual double endAngle() const { return angle(length()); }
     virtual double startCurvature() const { return curvature(0); }
     virtual double endCurvature() const { return curvature(length()); }
+
+    //self-test
+    virtual bool isValid() const { return true; }
 };
 
 END_NAMESPACE_Cornu

@@ -1,5 +1,5 @@
 /*--
-    libTest.cpp  
+    Clothoid.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,37 +19,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "libTest.h"
-#include "Line.h"
-#include "Arc.h"
-#include "Fresnel.h"
+#ifndef CLOTHOID_H_INCLUDED
+#define CLOTHOID_H_INCLUDED
 
-using namespace std;
-using namespace Eigen;
+#include "defs.h"
 
 NAMESPACE_Cornu
 
-int f(int z)
-{
-    Debugging::get()->printf("Working on f: %d\n", z);
-
-    Debugging::get()->drawCurve(new Line(Vector2d(10, 10), Vector2d(100, 200)), Vector3d(0, 1, 1), "f Line", 3);
-    ArcPtr arc = new Arc(Vector2d(100, 100), 0.5, 200, 0.01);
-    Debugging::get()->drawCurve(arc, Vector3d(1, 0, 1), "f Arc", 3);
-
-    for(int x = 0; x < 350; x += 30) for(int y = 0; y < 350; y += 30)
-    {
-        Vector2d p1 = Vector2d(double(x), double(y));
-        Vector2d p2 = arc->pos(arc->project(p1));
-        Debugging::get()->drawLine(p1, p2, Vector3d(0, 0, 1), "proj", 1);
-    }
-
-    return z + 4;
-}
-
-int g(int x)
-{
-    return x * 2 + 5;
-}
-
 END_NAMESPACE_Cornu
+
+#endif //CLOTHOID_H_INCLUDED

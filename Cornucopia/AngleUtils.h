@@ -35,6 +35,10 @@ class AngleUtils
 {
 public:
     static double angle(const Eigen::Vector2d &v) { return atan2(v[1], v[0]); }
+    //These functions bring an angle into the range [0,2Pi] or [rangeStart, rangeStart+2Pi]
+    //They assume we're not super far on the negative side of the range
+    static double toRange(double angle) { return fmod(angle + 8 * PI, TWOPI); }
+    static double toRange(double angle, double rangeStart) { return fmod(angle + 16 * PI - rangeStart, TWOPI) + rangeStart; }
 };
 
 END_NAMESPACE_Cornu

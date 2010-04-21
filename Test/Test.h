@@ -19,8 +19,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifndef TEST_H_INCLUDED
+#define TEST_H_INCLUDED
+
 #include <vector>
 #include <string>
+
+#include "TestUtils.h"
+
+#include <sstream>
 
 namespace Cornu {}
 namespace Eigen {}
@@ -38,8 +45,10 @@ public:
         //should not be called
     }
 
-    virtual bool run() = 0; //returns true on success
+    virtual void run() = 0; //throws on failure
     virtual std::string name() { return "Unnamed"; }
 
     static std::vector<TestCase *> &allTests(); //Meyer's singleton
 };
+
+#endif //TEST_H_INCLUDED

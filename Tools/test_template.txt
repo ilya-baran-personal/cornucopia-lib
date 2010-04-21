@@ -11,10 +11,9 @@ public:
     std::string name() { return "@FILENAME@"; }
 
     //override
-    bool run()
+    void run()
     {
 		//TODO: implement
-		return true;
     }
 };
 
