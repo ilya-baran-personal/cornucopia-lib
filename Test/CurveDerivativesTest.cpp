@@ -41,6 +41,7 @@ public:
     {
         testLine();
         testArc();
+        testClothoid();
     }
 
     void testLine()
@@ -102,6 +103,46 @@ public:
 
                 CORNU_ASSERT_LT_MSG((derV.transpose() - der.row(i)).norm(), delta, "-- Param = " << i \
                     << " numeric = " << derV.transpose() << " analytic = " << der.row(i));
+            }
+        }
+    }
+
+    void testClothoid()
+    {
+        ClothoidPtr clothoid = new Clothoid(Vector2d(1., 3.), 0.5, 3, 0.0, 0.0);
+
+        CORNU_ASSERT(clothoid->isValid());
+
+        CurvePrimitive::ParamDer der;
+        for(double s = 0; s < 3.; s += 0.1)
+        {
+            for(double sc = -.1; sc < .1001; sc += .01)
+            {
+                for(double ec = -.1; ec < .1001; ec += .01)
+                {
+                    CurvePrimitive::ParamVec params = clothoid->params();
+                    params[CurvePrimitive::CURVATURE] = sc;
+                    params[CurvePrimitive::DCURVATURE] = (ec - sc) / params[CurvePrimitive::LENGTH];
+                    clothoid->setParams(params);
+
+                    clothoid->derivativeAt(s, der);
+
+                    double delta = 5e-6;
+                    for(int i = 0; i < (int)params.size(); ++i)
+                    {
+                        CurvePrimitive::ParamVec newParams = params;
+                        newParams[i] += delta;
+                        clothoid->setParams(newParams);
+                        Vector2d p1 = clothoid->pos(s);
+                        newParams[i] = params[i] - delta;
+                        clothoid->setParams(newParams);
+                        Vector2d p0 = clothoid->pos(s);
+                        Vector2d derV = (p1 - p0) / (2. * delta);
+
+                        CORNU_ASSERT_LT_MSG((derV.transpose() - der.row(i)).norm(), delta, "-- Param = " << i \
+                            << " numeric = " << derV.transpose() << " analytic = " << der.row(i));
+                    }
+                }
             }
         }
     }

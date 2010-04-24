@@ -47,7 +47,7 @@ public:
     Vec der2(double s) const { return Vec::Zero(); }
 
     double angle(double s) const { return _startAngle(); }
-    double evalCurvature(double s) const { return 0; }
+    double curvature(double s) const { return 0; }
 
     double endAngle() const { return _startAngle(); }
     double startCurvature() const { return 0; }

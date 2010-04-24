@@ -22,7 +22,7 @@
 #include "libTest.h"
 #include "Line.h"
 #include "Arc.h"
-#include "Fresnel.h"
+#include "Clothoid.h"
 
 using namespace std;
 using namespace Eigen;
@@ -42,6 +42,25 @@ int f(int z)
         Vector2d p1 = Vector2d(double(x), double(y));
         Vector2d p2 = arc->pos(arc->project(p1));
         Debugging::get()->drawLine(p1, p2, Vector3d(0, 0, 1), "proj", 1);
+    }
+
+    {
+        double stc = 0.005;
+        for(double enc = -0.01; enc < 0.01; enc += 0.001)
+        {
+
+        ClothoidPtr c1 = new Clothoid(Vector2d(500, 500), .5, 600, stc, enc);
+        ArcPtr a1 = new Arc(Vector2d(500, 500), .5, 600, stc);
+        ArcPtr a2 = new Arc(c1->endPos(), PI + c1->endAngle(), 600, -enc);
+
+        Debugging::get()->drawCurve(c1, Vector3d(1, 0, 0), "Clothoid", 3);
+        Debugging::get()->drawCurve(a1, Vector3d(0, 1, 0), "Arc", 3);
+        Debugging::get()->drawCurve(a2, Vector3d(0, 1, 0), "Arc", 3);
+
+        Vector2d pt = c1->pos(300);
+        Debugging::get()->drawLine(pt, pt + c1->der(300) * 100, Vector3d(0, 0, 1), "Der1", 3);
+        Debugging::get()->drawLine(pt, pt + c1->der2(300) * 200 / fabs(stc + enc), Vector3d(0, 0, 1), "Der2", 3);
+        }
     }
 
     return z + 4;

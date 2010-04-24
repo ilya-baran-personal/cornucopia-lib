@@ -42,12 +42,8 @@ public:
 
     double project(const Vec &point) const;
 
-    //Vec pos(double s) const;
-    //Vec der(double s) const;
-    //Vec der2(double s) const;
-
     double angle(double s) const { return _startAngle() + s * _params[CURVATURE]; }
-    double evalCurvature(double s) const { return _params[CURVATURE]; }
+    double curvature(double s) const { return _params[CURVATURE]; }
 
     double endAngle() const { return _startAngle() + _angleDiff; }
     double startCurvature() const { return _params[CURVATURE]; }

@@ -125,7 +125,7 @@ void Arc::trim(double sFrom, double sTo)
 void Arc::flip()
 {
     Vec newStart = endPos();
-    _params[ANGLE] = -endAngle();
+    _params[ANGLE] = PI + endAngle();
     _params[CURVATURE] = -_params[CURVATURE];
     _params[X] = newStart[0];
     _params[Y] = newStart[1];

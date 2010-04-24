@@ -52,7 +52,7 @@ public:
         ANGLE,
         LENGTH,
         CURVATURE,
-        ENDCURVATURE
+        DCURVATURE
     };
 
     int numParams() const { return 4 + getType(); } //line has 4 params, etc.
@@ -74,6 +74,10 @@ public:
     double length() const { return _length(); }
     Vec startPos() const { return _startPos(); }
     double startAngle() const { return _startAngle(); }
+
+    //utility functions
+    CurvePrimitivePtr flipped() { CurvePrimitivePtr out = clone(); out->flip(); return out; }
+    CurvePrimitivePtr trimmed(double sFrom, double sTo) { CurvePrimitivePtr out = clone(); out->trim(sFrom, sTo); return out; }
 
 protected:
     //non-virtual inline functions -- use them in derived classes
