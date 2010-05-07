@@ -21,6 +21,7 @@
 
 #include "Clothoid.h"
 #include "Fresnel.h"
+#include "Eigen/LU"
 
 using namespace std;
 using namespace Eigen;
@@ -59,7 +60,7 @@ void Clothoid::_paramsChanged()
             double cosA = cos(angle), sinA = sin(angle);
 
             _mat << cosA, -sinA,
-                    sinA, cosA;
+                sinA, cosA;
 
             startcs = Vector2d(0, 0);
         }
@@ -72,7 +73,7 @@ void Clothoid::_paramsChanged()
             double cosAS = cos(angle) / _params[CURVATURE], sinAS = sin(angle) / _params[CURVATURE];
 
             _mat << cosAS, -sinAS,
-                    sinAS, cosAS;
+                sinAS, cosAS;
 
             startcs = Vector2d(1, 0);
         }
@@ -89,14 +90,14 @@ void Clothoid::_paramsChanged()
             double angleShift = _params[ANGLE] - _t1 * _t1 * HALFPI;
             double cosAS = PI * scale * cos(angleShift), sinAS = PI * scale * sin(angleShift);
             _mat << cosAS, -sinAS,
-                    sinAS, cosAS;
+                sinAS, cosAS;
         }
         else //we need a reflection here
         {
             double angleShift = _params[ANGLE] + _t1 * _t1 * HALFPI;
             double cosAS = PI * scale * cos(angleShift), sinAS = PI * scale * sin(angleShift);
             _mat << -cosAS, -sinAS,
-                    -sinAS, cosAS;
+                -sinAS, cosAS;
         }
 
         fresnel(_t1, &(startcs[1]), &(startcs[0]));
@@ -105,7 +106,7 @@ void Clothoid::_paramsChanged()
     _startShift = _startPos() - _mat * startcs;    
 }
 
-bool Clothoid::isValid() const
+bool Clothoid::isValidImpl() const
 {
     if(_params[LENGTH] < 0.)
         return false;
@@ -152,8 +153,24 @@ double Clothoid::curvature(double s) const
 
 double Clothoid::project(const Vec &point) const
 {
-    //TODO
-    return 0;
+    if(_flat)
+    {
+        //TODO
+        Debugging::get()->printf("Flat!!!");
+        return 0;
+    }
+    else if(_arc)
+    {
+        //TODO
+        Debugging::get()->printf("Arc!!!");
+        return 0;
+    }
+    //Go to the canonical clothoid
+    double endT = _t1 + _tdiff * _length();
+    Vec pt = _mat.inverse() * (point - _startShift);
+
+    double bestT = _clothoidProjector()->project(pt, min(_t1, endT), max(_t1, endT));
+    return (bestT - _t1) / _tdiff;
 }
 
 void Clothoid::trim(double sFrom, double sTo)
@@ -207,7 +224,7 @@ void Clothoid::derivativeAt(double s, ParamDer &out)
         Vec curvDer(curvs * cosCur + sinStart - sinCur, curvs * sinCur + cosCur - cosStart);
         out.row(CURVATURE) = curvDer / (curv * curv);
         Vec dcurvDer(cosStart + (curvs * curvs * 0.5 - 1.) * cosCur - curvs * sinCur,
-                          sinStart + (curvs * curvs * 0.5 - 1.) * sinCur + curvs * cosCur);
+            sinStart + (curvs * curvs * 0.5 - 1.) * sinCur + curvs * cosCur);
         out.row(DCURVATURE) = dcurvDer / (curv * curv * curv);
     }
     else //non-degenerate
@@ -221,7 +238,7 @@ void Clothoid::derivativeAt(double s, ParamDer &out)
         //dcs/dx = cossin(pi t^2 / 2) * dt/dx
         //dstartcs/dx = cossin(pi t1^2 / 2) * dt1/dx
         //dp/dx = dmat/dx * (cs - startcs) + mat * (dcs/dx - dstartcs/dx)
-        
+
         double t = _t1 + s * _tdiff;
         double scale = sqrt(fabs(1. / (PI * _params[DCURVATURE])));
         RowVector2d dt1dx(scale, -_params[CURVATURE] * scale / (2. * _params[DCURVATURE]));
@@ -244,7 +261,7 @@ void Clothoid::derivativeAt(double s, ParamDer &out)
 
         double cosAS = cos(angleShift), sinAS = sin(angleShift);
         dmatdc << sinAS, cosAS,
-                  -cosAS, sinAS;
+            -cosAS, sinAS;
         dmatdc *= PI * scale * _params[CURVATURE] / _params[DCURVATURE];
         double curvSqr = _params[CURVATURE] * _params[CURVATURE];
         dmatdd(0, 0) = -_params[DCURVATURE] * cosAS - curvSqr * sinAS;

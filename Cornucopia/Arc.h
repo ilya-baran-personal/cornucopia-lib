@@ -34,10 +34,9 @@ class Arc : public CurvePrimitive
 public:
     Arc() {} //uninitialized
     Arc(const Vec &start, double startAngle, double length, double curvature);
+    Arc(const Vec &start, const Vec &mid, const Vec &end);
 
     //overrides
-    bool isValid() const;
-
     void eval(double s, Vec *pos, Vec *der = NULL, Vec *der2 = NULL) const;
 
     double project(const Vec &point) const;
@@ -60,6 +59,7 @@ public:
 protected:
     //override
     void _paramsChanged();
+    bool isValidImpl() const;
 
 private:
     Vec _tangent; //at start

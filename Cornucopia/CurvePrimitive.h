@@ -74,6 +74,7 @@ public:
     double length() const { return _length(); }
     Vec startPos() const { return _startPos(); }
     double startAngle() const { return _startAngle(); }
+    bool isValid() const; //calls isValidImpl internally
 
     //utility functions
     CurvePrimitivePtr flipped() { CurvePrimitivePtr out = clone(); out->flip(); return out; }
@@ -86,6 +87,7 @@ protected:
     double _startAngle() const { return _params[ANGLE]; }
 
     virtual void _paramsChanged() = 0;
+    virtual bool isValidImpl() const = 0;
 
     ParamVec _params;
 };

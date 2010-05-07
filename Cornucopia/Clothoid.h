@@ -36,8 +36,6 @@ public:
     Clothoid(const Vec &start, double startAngle, double length, double curvature, double endCurvature);
 
     //overrides
-    bool isValid() const;
-
     void eval(double s, Vec *pos, Vec *der = NULL, Vec *der2 = NULL) const;
 
     double project(const Vec &point) const;
@@ -55,10 +53,17 @@ public:
     CurvePrimitivePtr clone() const { ClothoidPtr out = new Clothoid(); out->setParams(_params); return out; }
     void derivativeAt(double s, ParamDer &out);
 
+    class _ClothoidProjector : public smart_base //internal singleton class
+    {
+    public:
+        virtual double project(const Vec &pt, double from, double to) const = 0;
+    };
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 protected:
     //override
     void _paramsChanged();
+    bool isValidImpl() const;
 
 private:
     Vec _startShift; //translation component of transformation from canonical clothoid
@@ -67,6 +72,9 @@ private:
     double _tdiff;
     bool _arc;
     bool _flat;
+
+    class _ClothoidProjectorImpl;
+    static smart_ptr<_ClothoidProjector> _clothoidProjector(); //projects onto a generic clothoid
 };
 
 END_NAMESPACE_Cornu

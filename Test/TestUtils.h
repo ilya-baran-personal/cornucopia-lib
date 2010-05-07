@@ -35,6 +35,11 @@ namespace Eigen {}
 class Stringize
 {
 public:
+    Stringize()
+    {
+        _out.precision(10);
+    }
+
     template <typename T> const Stringize& operator<<(const T& item) const
     {
         _out << item;

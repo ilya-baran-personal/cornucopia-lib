@@ -48,7 +48,7 @@ Line::Line(const Vec &p1, const Vec &p2)
     }
 }
 
-bool Line::isValid() const
+bool Line::isValidImpl() const
 {
     if(_params[LENGTH] < 0.)
         return false;

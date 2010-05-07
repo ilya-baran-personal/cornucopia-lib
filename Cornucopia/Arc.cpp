@@ -52,7 +52,7 @@ void Arc::_paramsChanged()
     }
 }
 
-bool Arc::isValid() const
+bool Arc::isValidImpl() const
 {
     if(_params[LENGTH] < 0.)
         return false;
@@ -158,6 +158,33 @@ void Arc::derivativeAt(double s, ParamDer &out)
         out(CURVATURE, 0) = (s * cosa + (_tangent[1] - sina) * _radius) * _radius;
         out(CURVATURE, 1) = (s * sina - (_tangent[0] - cosa) * _radius) * _radius;
     }
+}
+
+Arc::Arc(const Vec &start, const Vec &mid, const Vec &end)
+{
+    _params.resize(numParams());
+
+    Vec mid1 = mid - start;
+    Vec end1 = end - start;
+
+    double twiceSignedArea = (mid1[0] * end1[1] - mid1[1] * end1[0]);
+    double abc = sqrt(mid1.squaredNorm() * end1.squaredNorm() * (mid - end).squaredNorm());
+
+    _params.head<2>() = start;
+    _params[CURVATURE] = 2. * twiceSignedArea / abc;
+    double halfArcAngle = asin(fabs(0.5 * end1.norm() * _params[CURVATURE]));
+
+    if(mid1.dot(end - mid) < 0.)
+        halfArcAngle = PI - halfArcAngle;
+
+    _params[LENGTH] = fabs(2. * halfArcAngle / _params[CURVATURE]);
+
+    if(twiceSignedArea < 0.)
+        _params[ANGLE] = AngleUtils::angle(end1) + halfArcAngle;
+    else
+        _params[ANGLE] = AngleUtils::angle(end1) - halfArcAngle;
+
+    _paramsChanged();    
 }
 
 END_NAMESPACE_Cornu

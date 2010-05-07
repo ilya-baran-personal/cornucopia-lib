@@ -45,22 +45,34 @@ int f(int z)
     }
 
     {
-        double stc = 0.005;
-        for(double enc = -0.01; enc < 0.01; enc += 0.001)
+        double stc = 0.005, enc = 0.0;
+        for(enc = -0.01; enc < 0.01; enc += 0.001)
         {
+            ClothoidPtr c1 = new Clothoid(Vector2d(500, 500), .5, 600, stc, enc);
+            ArcPtr a1 = new Arc(Vector2d(500, 500), .5, 600, stc);
+            ArcPtr a2 = new Arc(c1->endPos(), PI + c1->endAngle(), 600, -enc);
 
-        ClothoidPtr c1 = new Clothoid(Vector2d(500, 500), .5, 600, stc, enc);
-        ArcPtr a1 = new Arc(Vector2d(500, 500), .5, 600, stc);
-        ArcPtr a2 = new Arc(c1->endPos(), PI + c1->endAngle(), 600, -enc);
+            Debugging::get()->drawCurve(c1, Vector3d(1, 0, 0), "Clothoid", 3);
+            Debugging::get()->drawCurve(a1, Vector3d(0, 1, 0), "Arc", 3);
+            Debugging::get()->drawCurve(a2, Vector3d(0, 1, 0), "Arc", 3);
 
-        Debugging::get()->drawCurve(c1, Vector3d(1, 0, 0), "Clothoid", 3);
-        Debugging::get()->drawCurve(a1, Vector3d(0, 1, 0), "Arc", 3);
-        Debugging::get()->drawCurve(a2, Vector3d(0, 1, 0), "Arc", 3);
-
-        Vector2d pt = c1->pos(300);
-        Debugging::get()->drawLine(pt, pt + c1->der(300) * 100, Vector3d(0, 0, 1), "Der1", 3);
-        Debugging::get()->drawLine(pt, pt + c1->der2(300) * 200 / fabs(stc + enc), Vector3d(0, 0, 1), "Der2", 3);
+            Vector2d pt = c1->pos(300);
+            Debugging::get()->drawLine(pt, pt + c1->der(300) * 100, Vector3d(0, 0, 1), "Der1", 3);
+            if(c1->der2(300).squaredNorm() > 1e-8)
+                Debugging::get()->drawLine(pt, pt + c1->der2(300) * 200 / fabs(stc + enc), Vector3d(0, 0, 1), "Der2", 3);
         }
+    }
+
+    {
+        Vector2d p1(500, 500), p2(150, 250), p3(300, 100), p4(100, 400);
+        arc = new Arc(p1, p2, p3);
+        Debugging::get()->drawCurve(arc, Vector3d(1, 0, 1), "Arc Pt 1", 3);
+        arc = new Arc(p1, p2, p4);
+        Debugging::get()->drawCurve(arc, Vector3d(1, 0, 1), "Arc Pt 2", 3);
+        Debugging::get()->drawPoint(p1, Vector3d(1, 0, 0), "Arc Pts");
+        Debugging::get()->drawPoint(p2, Vector3d(0, 1, 0), "Arc Pts");
+        Debugging::get()->drawPoint(p3, Vector3d(0, 0, 1), "Arc Pts");
+        Debugging::get()->drawPoint(p4, Vector3d(0, 1, 1), "Arc Pts");
     }
 
     return z + 4;

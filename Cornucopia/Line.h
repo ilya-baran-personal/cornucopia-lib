@@ -36,8 +36,6 @@ public:
     Line(const Vec &p1, const Vec &p2);
 
     //overrides
-    bool isValid() const;
-
     void eval(double s, Vec *pos, Vec *der = NULL, Vec *der2 = NULL) const;
 
     double project(const Vec &point) const;
@@ -64,6 +62,7 @@ public:
 protected:
     //override
     void _paramsChanged() { _der = Vec(cos(_startAngle()), sin(_startAngle())); }
+    bool isValidImpl() const;
 
 private:
     Vec _der;
