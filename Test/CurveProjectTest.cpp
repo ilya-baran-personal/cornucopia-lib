@@ -51,14 +51,14 @@ public:
         arc = new Arc(Vector2d(-1., 3.), -0.5, 39, -0.1);
         testProject(arc);
 
-        for(int i = 0; i < 20; ++i)
+        for(int i = 0; i < 200; ++i)
         {
-            //ClothoidPtr clothoid = new Clothoid(Vector2d(0.5, 1), 0.3, drand(0.01, 3.), drand(-0.1, 0.1), drand(-0.1, 0.1));
+            ClothoidPtr clothoid = new Clothoid(Vector2d(0.5, 1), 0.3, drand(0.01, 3.), drand(-0.1, 0.1), drand(-0.1, 0.1));
             double from = drand(-2., 2.);
             double to = drand(-2., 2.);
             if(from > to)
                 swap(from, to);
-            ClothoidPtr clothoid = new Clothoid(Vector2d(0.0, 0), 0.0, (to - from) / PI, from, to);
+            //ClothoidPtr clothoid = new Clothoid(Vector2d(0.0, 0), 0.0, (to - from) / PI, from, to);
             testProject(clothoid);
         }
 
@@ -85,16 +85,16 @@ public:
                 maxDot = max(maxDot, fabs(dot));
 
             double newS = curve->project(curvePt);
-            //CORNU_ASSERT_LT_MSG(fabs(s - newS), tol, "Projecting again should yield the same result");
+            CORNU_ASSERT_LT_MSG(fabs(s - newS), tol, "Projecting again should yield the same result");
 
             double len = curve->length();
             for(double newS = 0; newS < len + 1e-8; newS += (len / 30.))
             {
                 Vector2d newPt = curve->pos(newS);
-                //CORNU_ASSERT_LT_MSG(projDist, (pt - newPt).norm() + tol * (pt - newPt).squaredNorm(), "Projection should be closest point");
+                CORNU_ASSERT_LT_MSG(projDist, (pt - newPt).norm() + tol * (pt - newPt).squaredNorm(), "Projection should be closest point");
             }
         }
-        for(int i = 0; i < 105000; ++i)
+        if(false) for(int i = 0; i < 105000; ++i)
         {
             Vector2d pt = Vector2d(drand(-10, 10), drand(-10, 10));
             double s = curve->project(pt);

@@ -30,7 +30,6 @@ using namespace Eigen;
 NAMESPACE_Cornu
 
 //an arc that approximates a part of a clothoid
-//TODO: idea -- extend the arcs slightly and filter out projections that hit the endpoints.
 class _ApproxArc
 {
 public:
@@ -44,14 +43,25 @@ public:
         _arc = new Arc(p[0], p[1], p[2]);
     }
 
-    double project(const Vector2d &pt) const
+    _ApproxArc(double start, double length, const Vector2d &startPt, const Vector2d &endPt)
     {
-        return _start + _arc->project(pt);
+        //TODO
     }
 
-    double distSq(const Vector2d &pt) const
+    //TODO: optimize -- no need to always call project
+    bool test(const Vector2d &pt, double &minDistSq, double &minT, double from, double to) const
     {
-        return (pt - _arc->pos(_arc->project(pt))).squaredNorm();
+        double t = _arc->project(pt);
+        if(t + _start < from || t + _start > to)
+            return false;
+
+        double distSq = (pt - _arc->pos(t)).squaredNorm();
+        if(distSq >= minDistSq)
+            return false;
+
+        minT = _start + t;
+        minDistSq = distSq;
+        return true;
     }
 
 //private:
@@ -114,41 +124,33 @@ public:
             minT = to;
         }
 
-        int minArcIdx = max(0, (int)floor((_maxArcParam + from) / _arcSpacing));
-        int maxArcIdx = min((int)_arcs.size(), (int)ceil((_maxArcParam + to) / _arcSpacing));
-        int bestArcIdx;
-        for(int i = minArcIdx; i < maxArcIdx; ++i)
-        //for(int i = 0; i < (int)_arcs.size(); ++i)
+        int minArcIdx = (int)floor((_maxArcParam + from) / _arcSpacing);
+        if(minArcIdx < 0)
         {
-            distSq = _arcs[i].distSq(pt);
-            if(distSq < minDistSq)
-            {
-                double t = _arcs[i].project(pt);
-                if(t > from && t < to)
-                {
-                    bestArcIdx = i;
-                    minT = t;
-                    minDistSq = distSq;
-                }
-            }
+            minArcIdx = 0;
+            //TODO: test against new first arc
         }
-        /*
-        Vec tmp;
-        eval(minT, &tmp);
-        if(minT >= from && minT <= to)
-            Debugging::get()->printf("Delta = %.10lf, dist = %.10lf", (tmp - _arcs[bestArcIdx]._arc->pos(minT - _arcs[bestArcIdx]._start)).norm(), sqrt(minDistSq));
-        else
+        int maxArcIdx = (int)ceil((_maxArcParam + to) / _arcSpacing);
+        if(maxArcIdx > (int)_arcs.size())
+        {
+            maxArcIdx = (int)_arcs.size();
+            //TODO: test against new last arc
+        }
+
+        for(int i = minArcIdx; i < maxArcIdx; ++i)
+            _arcs[i].test(pt, minDistSq, minT, from, to);
+
+        //TODO: get rid of this debugging crap, once the method is complete and tested
+        if(minT < from || minT > to)
             Debugging::get()->printf("Off: (%lf %lf) %lf", from, to, minT);
-            */
-        /*
+
         if(minArcIdx != (int)floor((_maxArcParam + from) / _arcSpacing))
             Debugging::get()->printf("Out of bounds low!");
         if(maxArcIdx != (int)ceil((_maxArcParam + to) / _arcSpacing))
             Debugging::get()->printf("Out of bounds high!");
-        */
 #endif
 
-        //minT = projectNewton(minT, pt, from, to);
+        minT = projectNewton(minT, pt, from, to);
         //minT = projectNewton(minT, pt, from, to);
         //minT = projectNewton(minT, pt, from, to);
         return minT;

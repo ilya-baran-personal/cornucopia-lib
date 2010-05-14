@@ -155,15 +155,32 @@ double Clothoid::project(const Vec &point) const
 {
     if(_flat)
     {
-        //TODO
-        Debugging::get()->printf("Flat!!!");
-        return 0;
+        Vector2d tangent(cos(_params[ANGLE]), sin(_params[ANGLE]));
+        return min(_length(), max(0., tangent.dot(point - _startPos())));
     }
     else if(_arc)
     {
-        //TODO
-        Debugging::get()->printf("Arc!!!");
-        return 0;
+        Vector2d tangent(cos(_params[ANGLE]), sin(_params[ANGLE]));
+        Vec toCenter(-tangent[1], tangent[0]);
+        Vector2d center = _startPos() + toCenter / _params[CURVATURE];;
+        double angleDiff = _length() * _params[CURVATURE];
+
+        double projAngle = atan2(point[1] - center[1], point[0] - center[0]);
+        //To compute the projection, get the angle difference into the range centered on the midpoint of
+        //the arc.
+        double t;
+        if(_params[CURVATURE] > 0.)
+        {
+            double projAngleDiff = HALFPI + projAngle - _startAngle();
+            t = AngleUtils::toRange(projAngleDiff, 0.5 * angleDiff - PI) / _params[CURVATURE];
+        }
+        else
+        {
+            double projAngleDiff = HALFPI - projAngle + _startAngle();
+            t = AngleUtils::toRange(projAngleDiff, -0.5 * angleDiff - PI) / -_params[CURVATURE];
+        }
+
+        return max(0., min(_length(), t));
     }
     //Go to the canonical clothoid
     double endT = _t1 + _tdiff * _length();

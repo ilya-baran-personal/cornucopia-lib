@@ -23,14 +23,33 @@
 #include "Line.h"
 #include "Arc.h"
 #include "Clothoid.h"
+#include "CornerDetector.h"
 
 using namespace std;
 using namespace Eigen;
 
 NAMESPACE_Cornu
 
+class TmpAlg : public Algorithm<TmpAlg>
+{
+public:
+    void run() { printf("Running Tmp\n"); }
+    string name() { return "Temp"; }
+    static void _initializePrivate()
+    {
+        printf("Init tmp\n");
+        _addAlgorithm(new TmpAlg());
+    }
+};
+
 int f(int z)
 {
+    CornerDetector::get(CornerDetector::ALG1)->run();
+    CornerDetector::get(CornerDetector::ALG1)->run();
+    TmpAlg::get(CornerDetector::ALG1)->run();
+    TmpAlg::get(CornerDetector::ALG1)->run();
+    TmpAlg::names();
+
     Debugging::get()->printf("Working on f: %d\n", z);
 
     Debugging::get()->drawCurve(new Line(Vector2d(10, 10), Vector2d(100, 200)), Vector3d(0, 1, 1), "f Line", 3);
