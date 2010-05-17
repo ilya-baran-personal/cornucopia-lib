@@ -23,6 +23,7 @@
 #include "Line.h"
 #include "Arc.h"
 #include "Clothoid.h"
+#include "Polyline.h"
 
 using namespace std;
 using namespace Eigen;
@@ -37,8 +38,6 @@ public:
     //override
     void run()
     {
-        maxDot = 0;
-
         LinePtr line = new Line(Vector2d(1., 3.), Vector2d(4., 2.));
         testProject(line);
 
@@ -50,6 +49,20 @@ public:
 
         arc = new Arc(Vector2d(-1., 3.), -0.5, 39, -0.1);
         testProject(arc);
+
+        for(int i = 0; i < 2; ++i)
+        {
+            VectorC<Vector2d> pts(5, i == 1);
+            pts[0] = Vector2d(1, 1);
+            pts[1] = Vector2d(2, 3);
+            pts[2] = Vector2d(4, 4);
+            pts[3] = Vector2d(.5, 1);
+            pts[4] = Vector2d(-1, -2);
+
+            testProject(new Polyline(pts));
+        }
+
+        maxDot = 0;
 
         for(int i = 0; i < 200; ++i)
         {
@@ -65,7 +78,7 @@ public:
         Debugging::get()->printf("Projection max dot product = %.10lf", maxDot);
     }
 
-    void testProject(CurvePrimitivePtr curve)
+    void testProject(CurvePtr curve)
     {
         CORNU_ASSERT(curve->isValid());
 

@@ -32,13 +32,11 @@ public:
 
     void run()
     {
-        printf("Running MyCornerDetector!\n");
     }
 };
 
 void CornerDetector::_initializePrivate()
 {
-    printf("Initializing CornerDetector!\n");
     _addAlgorithm(new MyCornerDetector());
 }
 

@@ -36,7 +36,7 @@ public:
         ALG2
     };
 
-    virtual void run() = 0;
+    //virtual void run(const Parameters &parameters, const ) = 0;
 
     static void _initializePrivate();
 };

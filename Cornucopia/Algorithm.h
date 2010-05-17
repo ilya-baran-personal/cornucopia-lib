@@ -27,7 +27,11 @@
 
 NAMESPACE_Cornu
 
-template<class Derived>
+//This class is the base class of algorithms that can be selected at runtime.
+//A derived class provides an interface and several derived singleton implementations.
+//It implements the initializePrivate function that populates the _algorithms vector
+//with the instances of implementations.  An algorithm is then accessed using get(int).
+template<typename Derived>
 class Algorithm
 {
 public:
@@ -51,6 +55,7 @@ public:
     }
 
 protected:
+    //should only be called by _initializePrivate()
     static void _addAlgorithm(Derived *algorithm) { _algorithms.push_back(algorithm); }
 
 private:
