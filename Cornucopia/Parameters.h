@@ -42,16 +42,23 @@ public:
         G2_COST,
         ERROR_COST,
         INFLECTION_COST,
-        INTERNAL_PARAMETERS_MARKER, //This is not a real parameter--below are parameters the user should not control
+        //This is not a real parameter--below are parameters the user should not control
+        INTERNAL_PARAMETERS_MARKER, 
         PIXEL_SIZE,
+        SMALL_CURVE_PIXELS,
+        LARGE_CURVE_PIXELS,
+        MAX_RESCALE,
         CLOSEDNESS_THRESHOLD
     };
 
     Parameters(const std::string &name = std::string());
-    Parameters(const Parameters &parameters) : _name(parameters._name), _values(parameters._values) {}
+    Parameters(const Parameters &parameters) : _name(parameters._name), _values(parameters._values), _algorithms(parameters._algorithms) {}
 
     void set(ParameterType param, double val) { _values[param] = val; }
     double get(ParameterType param) const { return _values[param]; }
+    void setAlgorithm(int stage, int algorithm) { _algorithms[stage] = algorithm; }
+    int getAlgorithm(int stage) const { return _algorithms[stage]; }
+
     const std::string &name() const { return _name; } 
 
     bool operator==(const Parameters &other) const { return _values == other._values; }
@@ -60,6 +67,7 @@ public:
 private:
     std::string _name;
     std::vector<double> _values;
+    std::vector<int> _algorithms;
 
     //===== static description data =====
 public:

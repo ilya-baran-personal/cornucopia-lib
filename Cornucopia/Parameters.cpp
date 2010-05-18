@@ -20,13 +20,14 @@
 */
 
 #include "Parameters.h"
+#include "Algorithm.h"
 
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
 Parameters::Parameters(const string &name)
-: _name(name)
+: _name(name), _algorithms(NUM_ALGORITHM_TYPES, 0)
 {
     _initializeParameters();
     _values.resize(_parameters.size());
@@ -52,6 +53,9 @@ void Parameters::_initializeParameters()
 
     _parameters.push_back(Parameter(INTERNAL_PARAMETERS_MARKER, "NOT A PARAMETER", 0., 0., 0.));
     _parameters.push_back(Parameter(PIXEL_SIZE, 1.));
+    _parameters.push_back(Parameter(SMALL_CURVE_PIXELS, 200.));
+    _parameters.push_back(Parameter(LARGE_CURVE_PIXELS, 500.));
+    _parameters.push_back(Parameter(MAX_RESCALE, 2.));
     _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, 10.));
 }
 

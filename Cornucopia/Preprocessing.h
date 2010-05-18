@@ -1,5 +1,5 @@
 /*--
-    CornerDetector.cpp  
+    Preprocessing.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,29 +19,51 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "CornerDetector.h"
-#include "Fitter.h"
+#ifndef PREPROCESSING_H_INCLUDED
+#define PREPROCESSING_H_INCLUDED
 
-using namespace std;
-using namespace Eigen;
+#include "defs.h"
+#include "Algorithm.h"
+
 NAMESPACE_Cornu
 
-class DefaultCornerDetector : public Algorithm<CORNER_DETECTION>
-{
-public:
-    string name() const { return "Default"; }
+SMART_FORW_DECL(Polyline)
 
-protected:
-    void _run(const Fitter &fitter, AlgorithmOutput<CORNER_DETECTION> &out)
-    {
-    }
+template<>
+struct AlgorithmOutput<SCALE_DETECTION> : public AlgorithmOutputBase
+{
+    AlgorithmOutput() : scale(1.) {}
+
+    double scale;
 };
 
-void Algorithm<CORNER_DETECTION>::_initializePrivate()
+template<>
+struct AlgorithmOutput<CURVE_CLOSING> : public AlgorithmOutputBase
 {
-    _addAlgorithm(new DefaultCornerDetector());
-}
+    PolylineConstPtr output;
+};
+
+template<>
+class Algorithm<SCALE_DETECTION> : public AlgorithmBaseTemplate<SCALE_DETECTION>
+{
+public:
+    //override
+    std::string stageName() const { return "Scale Detector"; }
+
+    static void _initializePrivate();
+};
+
+template<>
+class Algorithm<CURVE_CLOSING> : public AlgorithmBaseTemplate<CURVE_CLOSING>
+{
+public:
+    //override
+    std::string stageName() const { return "Closedness Detector"; }
+
+    static void _initializePrivate();
+};
+
 
 END_NAMESPACE_Cornu
 
-
+#endif //PREPROCESSING_H_INCLUDED

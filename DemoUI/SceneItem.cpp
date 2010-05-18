@@ -21,6 +21,7 @@
 
 #include "SceneItem.h"
 #include "Curve.h"
+#include "Polyline.h"
 
 #include <QPainter>
 
@@ -65,13 +66,31 @@ CurveSceneItem::CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen p
 {
     Vector2d pt;
 
-    for(double s = 0; s < curve->length(); s += 2.) //walk two pixels
+    //dynamically check if it's a polyline
+    Cornu::PolylineConstPtr polyline = dynamic_pointer_cast<const Cornu::Polyline>(curve);
+    if(polyline)
     {
-         pt = curve->pos(s);
+        for(int i = 0; i < (int)polyline->pts().size(); ++i)
+        {
+            pt = polyline->pts()[i];
+            _curveTess.push_back(QPointF(pt[0], pt[1]));
+        }
+        if(polyline->isClosed())
+        {
+            pt = polyline->pts()[0];
+            _curveTess.push_back(QPointF(pt[0], pt[1]));
+        }
+    }
+    else
+    {
+        for(double s = 0; s < curve->length(); s += 2.) //walk two pixels
+        {
+             pt = curve->pos(s);
+            _curveTess.push_back(QPointF(pt[0], pt[1]));
+        }
+        pt = curve->endPos();
         _curveTess.push_back(QPointF(pt[0], pt[1]));
     }
-    pt = curve->endPos();
-    _curveTess.push_back(QPointF(pt[0], pt[1]));
 
     _rect = _curveTess.boundingRect();
 }

@@ -1,5 +1,5 @@
 /*--
-    CornerDetector.cpp  
+    Algorithm.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,28 +19,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "CornerDetector.h"
-#include "Fitter.h"
+#include "Algorithm.h"
 
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
-class DefaultCornerDetector : public Algorithm<CORNER_DETECTION>
-{
-public:
-    string name() const { return "Default"; }
-
-protected:
-    void _run(const Fitter &fitter, AlgorithmOutput<CORNER_DETECTION> &out)
-    {
-    }
-};
-
-void Algorithm<CORNER_DETECTION>::_initializePrivate()
-{
-    _addAlgorithm(new DefaultCornerDetector());
-}
+std::vector<std::vector<AlgorithmBase *> > AlgorithmBase::_algorithms(NUM_ALGORITHM_TYPES);
 
 END_NAMESPACE_Cornu
 

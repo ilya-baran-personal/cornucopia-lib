@@ -23,24 +23,73 @@
 #define ALGORITHM_H_INCLUDED
 
 #include "defs.h"
+#include "smart_ptr.h"
 #include <vector>
 
 NAMESPACE_Cornu
 
-//This class is the base class of algorithms that can be selected at runtime.
-//A derived class provides an interface and several derived singleton implementations.
-//It implements the initializePrivate function that populates the _algorithms vector
-//with the instances of implementations.  An algorithm is then accessed using get(int).
-template<typename Derived>
+//This header file defines the stages and base classes for algorithms in the fitting pipeline.
+//Fitting proceeds in stages, each one having access to the outputs of all the previous stages
+//through the Fitter class.
+
+enum AlgorithmStage
+{
+    SCALE_DETECTION,
+    CURVE_CLOSING,
+    CORNER_DETECTION,
+    //RESAMPLING,
+    NUM_ALGORITHM_TYPES
+};
+
+struct AlgorithmOutputBase : public smart_base
+{
+};
+
+SMART_TYPEDEFS(AlgorithmOutputBase);
+
+template<int AlgStage>
+struct AlgorithmOutput : public AlgorithmOutputBase
+{
+};
+
+class Fitter;
+
+template<int AlgStage>
 class Algorithm
 {
-public:
-    virtual std::string name() = 0;
+};
 
-    static Derived *get(int algorithm)
+class AlgorithmBase
+{
+public:
+    virtual std::string name() const { return "Default"; }
+    virtual std::string stageName() const = 0;
+    virtual AlgorithmOutputBasePtr run(const Fitter &) = 0;
+
+    static int numAlgorithmsOfType(AlgorithmStage stage) { return _algorithms[stage].size(); }
+    static AlgorithmBase *get(AlgorithmStage stage, int algorithm) { return _algorithms[stage][algorithm]; }
+
+protected:
+    static std::vector<std::vector<AlgorithmBase *> > _algorithms;
+};
+
+template<int AlgStage>
+class AlgorithmBaseTemplate : public AlgorithmBase
+{
+public:
+
+    //override
+    AlgorithmOutputBasePtr run(const Fitter &fitter)
     {
-        _initialize();
-        return _algorithms[algorithm];
+        smart_ptr<AlgorithmOutput<AlgStage> > out = new AlgorithmOutput<AlgStage>();
+        _run(fitter, *out);
+        return out;
+    }
+
+    static Algorithm<AlgStage> *get(int algorithm)
+    {
+        Algorithm<AlgStage>::_initialize();
+        return static_cast<Algorithm<AlgStage> *>(_algorithms[AlgStage][algorithm]);
     }
 
     static std::vector<std::string> names()
@@ -49,14 +98,16 @@ public:
 
         std::vector<std::string> out;
         for(int i = 0; i < (int)_algorithms.size(); ++i)
-            out.push_back(_algorithms[i]->name());
+            out.push_back(_algorithms[AlgStage][i]->name());
 
         return out;
     }
 
 protected:
+    virtual void _run(const Fitter &fitter, AlgorithmOutput<AlgStage> &out) = 0;
+
     //should only be called by _initializePrivate()
-    static void _addAlgorithm(Derived *algorithm) { _algorithms.push_back(algorithm); }
+    static void _addAlgorithm(Algorithm<AlgStage> *algorithm) { _algorithms[AlgStage].push_back(algorithm); }
 
 private:
     static void _initialize()
@@ -68,11 +119,7 @@ private:
             Derived::_initializePrivate(); //derived classes should implement this
         }
     }
-
-    static std::vector<Derived *> _algorithms;
 };
-
-template<class Derived> std::vector<Derived *> Algorithm<Derived>::_algorithms;
 
 END_NAMESPACE_Cornu
 

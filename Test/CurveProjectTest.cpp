@@ -56,7 +56,7 @@ public:
             pts[0] = Vector2d(1, 1);
             pts[1] = Vector2d(2, 3);
             pts[2] = Vector2d(4, 4);
-            pts[3] = Vector2d(.5, 1);
+            pts[3] = Vector2d(1.5, 1);
             pts[4] = Vector2d(-1, -2);
 
             testProject(new Polyline(pts));

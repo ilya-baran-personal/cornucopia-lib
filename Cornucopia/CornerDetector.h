@@ -27,16 +27,18 @@
 
 NAMESPACE_Cornu
 
-class CornerDetector : public Algorithm<CornerDetector>
+template<>
+struct AlgorithmOutput<CORNER_DETECTION> : public AlgorithmOutputBase
+{
+    std::vector<bool> corners;
+};
+
+template<>
+class Algorithm<CORNER_DETECTION> : public AlgorithmBaseTemplate<CORNER_DETECTION>
 {
 public:
-    enum Algorithm
-    {
-        ALG1,
-        ALG2
-    };
-
-    //virtual void run(const Parameters &parameters, const ) = 0;
+    //override
+    std::string stageName() const { return "Corner Detector"; }
 
     static void _initializePrivate();
 };
