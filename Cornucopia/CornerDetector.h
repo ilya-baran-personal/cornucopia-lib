@@ -40,7 +40,9 @@ public:
     //override
     std::string stageName() const { return "Corner Detector"; }
 
-    static void _initializePrivate();
+private:
+    friend class AlgorithmBase;
+    static void _initialize();
 };
 
 END_NAMESPACE_Cornu

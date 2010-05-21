@@ -1,5 +1,5 @@
 /*--
-    Fitter.cpp  
+    MainView.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,30 +19,20 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Fitter.h"
-#include "Preprocessing.h"
+#ifndef MAINVIEW_H_INCLUDED
+#define MAINVIEW_H_INCLUDED
 
-using namespace std;
-using namespace Eigen;
-NAMESPACE_Cornu
+#include "defs.h"
+#include "ScrollView.h"
 
-void Fitter::_runStage(AlgorithmStage stage)
+class MainView : public ScrollView
 {
-    _outputs[stage] = AlgorithmBase::get(stage, _params.getAlgorithm(stage))->run(*this);
-}
+    Q_OBJECT
+public:
+    MainView(QWidget *parent = NULL) : ScrollView(parent) {}
 
-void Fitter::_clearBefore(AlgorithmStage stage)
-{
-    for(int i = stage; i < NUM_ALGORITHM_STAGES; ++i)
-        _outputs[i] = AlgorithmOutputBasePtr();
-}
-
-double Fitter::scaledParameter(Parameters::ParameterType param) const
-{
-    return _params.get(param) * output<SCALE_DETECTION>()->scale * _params.get(Parameters::PIXEL_SIZE);
-}
+private:
+};
 
 
-END_NAMESPACE_Cornu
-
-
+#endif //MAINVIEW_H_INCLUDED

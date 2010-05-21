@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OneParamWidgetUi</class>
+ <widget class="QWidget" name="OneParamWidgetUi">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>377</width>
+    <height>166</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>7</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+       <property name="margin">
+        <number>7</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="infinityBox">
+       <property name="text">
+        <string>Inf</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="spinBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QSlider" name="slider">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+     <property name="invertedControls">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>infinityBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>124</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>165</x>
+     <y>52</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>infinityBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>slider</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>112</x>
+     <y>122</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

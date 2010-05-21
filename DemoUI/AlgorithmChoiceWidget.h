@@ -1,5 +1,5 @@
 /*--
-    Preprocessing.h  
+    AlgorithmChoiceWidget.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,55 +19,49 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef PREPROCESSING_H_INCLUDED
-#define PREPROCESSING_H_INCLUDED
+#ifndef ALGORITHMCHOICEWIDGET_H_INCLUDED
+#define ALGORITHMCHOICEWIDGET_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
 
-NAMESPACE_Cornu
+#include <QGroupBox>
+#include <QRadioButton>
 
-SMART_FORW_DECL(Polyline)
+class QVBoxLayout;
+class ParamWidget;
 
-template<>
-struct AlgorithmOutput<SCALE_DETECTION> : public AlgorithmOutputBase
+class AlgorithmChoiceWidget : public QGroupBox
 {
-    AlgorithmOutput() : scale(1.) {}
-
-    double scale;
-};
-
-template<>
-struct AlgorithmOutput<CURVE_CLOSING> : public AlgorithmOutputBase
-{
-    PolylineConstPtr output;
-};
-
-template<>
-class Algorithm<SCALE_DETECTION> : public AlgorithmBaseTemplate<SCALE_DETECTION>
-{
+    Q_OBJECT
 public:
-    //override
-    std::string stageName() const { return "Scale Detector"; }
+    AlgorithmChoiceWidget(ParamWidget *paramWidget, QWidget *parent, Cornu::AlgorithmStage stage);
+
+public slots:
+    void parametersChanged();
 
 private:
-    friend class AlgorithmBase;
-    static void _initialize();
+    ParamWidget *_paramWidget;
+    Cornu::AlgorithmStage _stage;
+    QVBoxLayout *_layout;
+    std::vector<QRadioButton *> _buttons;
 };
 
-template<>
-class Algorithm<CURVE_CLOSING> : public AlgorithmBaseTemplate<CURVE_CLOSING>
+class AlgorithmSetter : public QObject
 {
+    Q_OBJECT
 public:
-    //override
-    std::string stageName() const { return "Closedness Detector"; }
+    AlgorithmSetter(ParamWidget *paramWidget, QRadioButton *button, Cornu::AlgorithmStage stage, int algorithm);
+
+public slots:
+    void selected(bool);
+
+signals:
+    void setAlgorithm(Cornu::AlgorithmStage stage, int algorithm);
 
 private:
-    friend class AlgorithmBase;
-    static void _initialize();
+    Cornu::AlgorithmStage _stage;
+    int _algorithm;
 };
 
-
-END_NAMESPACE_Cornu
-
-#endif //PREPROCESSING_H_INCLUDED
+#endif //ALGORITHMCHOICEWIDGET_H_INCLUDED

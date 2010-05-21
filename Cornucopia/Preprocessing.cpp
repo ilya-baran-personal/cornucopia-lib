@@ -23,6 +23,7 @@
 #include "Fitter.h"
 #include "Polyline.h"
 #include "Debugging.h"
+#include <iostream>
 
 #include "Eigen/Geometry"
 
@@ -72,11 +73,11 @@ protected:
     }
 };
 
-void Algorithm<SCALE_DETECTION>::_initializePrivate()
+void Algorithm<SCALE_DETECTION>::_initialize()
 {
-    _addAlgorithm(new AdaptiveScaleDetector());
-    _addAlgorithm(new NoScaleDetector());
-}
+    new AdaptiveScaleDetector();
+    new NoScaleDetector();
+};
 
 class DefaultCurveCloser : public Algorithm<CURVE_CLOSING>
 {
@@ -91,9 +92,9 @@ protected:
     }
 };
 
-void Algorithm<CURVE_CLOSING>::_initializePrivate()
+void Algorithm<CURVE_CLOSING>::_initialize()
 {
-    _addAlgorithm(new DefaultCurveCloser());
+    new DefaultCurveCloser();
 }
 
 END_NAMESPACE_Cornu

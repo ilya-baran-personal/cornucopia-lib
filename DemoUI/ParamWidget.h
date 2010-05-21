@@ -1,5 +1,5 @@
 /*--
-    Preprocessing.h  
+    ParamWidget.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,55 +19,48 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef PREPROCESSING_H_INCLUDED
-#define PREPROCESSING_H_INCLUDED
+#ifndef PARAMWIDGET_H_INCLUDED
+#define PARAMWIDGET_H_INCLUDED
 
 #include "defs.h"
+#include "Parameters.h"
 #include "Algorithm.h"
 
-NAMESPACE_Cornu
+#include <QDockWidget>
 
-SMART_FORW_DECL(Polyline)
-
-template<>
-struct AlgorithmOutput<SCALE_DETECTION> : public AlgorithmOutputBase
+namespace Ui
 {
-    AlgorithmOutput() : scale(1.) {}
+    class ParamWidgetUi;
+}
 
-    double scale;
-};
+class QListWidgetItem;
 
-template<>
-struct AlgorithmOutput<CURVE_CLOSING> : public AlgorithmOutputBase
+class ParamWidget : public QDockWidget
 {
-    PolylineConstPtr output;
-};
-
-template<>
-class Algorithm<SCALE_DETECTION> : public AlgorithmBaseTemplate<SCALE_DETECTION>
-{
+    Q_OBJECT
 public:
-    //override
-    std::string stageName() const { return "Scale Detector"; }
+    ParamWidget(QWidget *parent = NULL);
+    ~ParamWidget();
+
+    const Cornu::Parameters &parameters() const { return _parameters; }
+
+public slots:
+    void setParameter(Cornu::Parameters::ParameterType parameter, double value);
+    void setAlgorithm(Cornu::AlgorithmStage stage, int algorithm);
+    void setPresetFromList();
+    void makePreset();
+
+signals:
+    void parametersChanged();
 
 private:
-    friend class AlgorithmBase;
-    static void _initialize();
+    void _parametersChanged();
+    void _addPreset(const Cornu::Parameters &params);
+
+    Cornu::Parameters _parameters;
+    Ui::ParamWidgetUi *_ui;
+
+    std::vector<Cornu::Parameters> _presets;
 };
 
-template<>
-class Algorithm<CURVE_CLOSING> : public AlgorithmBaseTemplate<CURVE_CLOSING>
-{
-public:
-    //override
-    std::string stageName() const { return "Closedness Detector"; }
-
-private:
-    friend class AlgorithmBase;
-    static void _initialize();
-};
-
-
-END_NAMESPACE_Cornu
-
-#endif //PREPROCESSING_H_INCLUDED
+#endif //PARAMWIDGET_H_INCLUDED

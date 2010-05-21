@@ -22,6 +22,8 @@
 #include "DemoUIWindow.h"
 #include "ui_DebugWindow.h"
 #include "DebuggingImpl.h"
+#include "ParamWidget.h"
+#include "MainView.h"
 
 #include "libTest.h"
 
@@ -41,6 +43,12 @@ DemoUIWindow::DemoUIWindow()
     quit->setShortcut(QKeySequence("Ctrl+Q"));
     fileMenu->addAction(quit);
     connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+    //Initialize the main window
+    MainView *mainView = new MainView(this);
+    setCentralWidget(mainView);
+    ParamWidget *paramWidget = new ParamWidget(this);
+    addDockWidget(Qt::RightDockWidgetArea, paramWidget);
 
     //Initialize the debugging window
     _debugWindow = new QMainWindow();

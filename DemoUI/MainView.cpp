@@ -1,5 +1,5 @@
 /*--
-    Fitter.cpp  
+    MainView.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,30 +19,10 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Fitter.h"
-#include "Preprocessing.h"
+#include "MainView.h"
 
 using namespace std;
 using namespace Eigen;
-NAMESPACE_Cornu
-
-void Fitter::_runStage(AlgorithmStage stage)
-{
-    _outputs[stage] = AlgorithmBase::get(stage, _params.getAlgorithm(stage))->run(*this);
-}
-
-void Fitter::_clearBefore(AlgorithmStage stage)
-{
-    for(int i = stage; i < NUM_ALGORITHM_STAGES; ++i)
-        _outputs[i] = AlgorithmOutputBasePtr();
-}
-
-double Fitter::scaledParameter(Parameters::ParameterType param) const
-{
-    return _params.get(param) * output<SCALE_DETECTION>()->scale * _params.get(Parameters::PIXEL_SIZE);
-}
 
 
-END_NAMESPACE_Cornu
-
-
+#include "MainView.moc"

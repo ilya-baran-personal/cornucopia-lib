@@ -60,8 +60,9 @@ public:
     int getAlgorithm(int stage) const { return _algorithms[stage]; }
 
     const std::string &name() const { return _name; } 
+    void setName(const std::string &name) { _name = name; }
 
-    bool operator==(const Parameters &other) const { return _values == other._values; }
+    bool operator==(const Parameters &other) const { return _values == other._values && _algorithms == other._algorithms; }
     bool operator!=(const Parameters &other) const { return !((*this) == other); }
 
 private:
@@ -73,14 +74,15 @@ private:
 public:
     struct Parameter
     {
-        Parameter(ParameterType inType, const std::string &inName, double inMin, double inMax, double inDefault)
-            : type(inType), typeName(inName), min(inMin), max(inMax), defaultVal(inDefault) {}
-        Parameter(ParameterType inType, double inValue) //for internal parameters
-            : type(inType), min(inValue), max(inValue), defaultVal(inValue) {}
+        Parameter(ParameterType inType, const std::string &inName, double inMin, double inMax, double inDefault, bool inInfinityAllowed = true)
+            : type(inType), typeName(inName), min(inMin), max(inMax), defaultVal(inDefault), infinityAllowed(inInfinityAllowed) {}
+        Parameter(ParameterType inType, const std::string &inName, double inValue) //for internal parameters
+            : type(inType), typeName(inName), min(inValue), max(inValue), defaultVal(inValue), infinityAllowed(false) {}
 
         ParameterType type;
         std::string typeName;
         double min, max, defaultVal;
+        bool infinityAllowed;
     };
 
     static const double infinity;

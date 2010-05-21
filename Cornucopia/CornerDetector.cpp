@@ -37,9 +37,9 @@ protected:
     }
 };
 
-void Algorithm<CORNER_DETECTION>::_initializePrivate()
+void Algorithm<CORNER_DETECTION>::_initialize()
 {
-    _addAlgorithm(new DefaultCornerDetector());
+    new DefaultCornerDetector();
 }
 
 END_NAMESPACE_Cornu

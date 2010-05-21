@@ -27,7 +27,7 @@ using namespace Eigen;
 NAMESPACE_Cornu
 
 Parameters::Parameters(const string &name)
-: _name(name), _algorithms(NUM_ALGORITHM_TYPES, 0)
+: _name(name), _algorithms(NUM_ALGORITHM_STAGES, 0)
 {
     _initializeParameters();
     _values.resize(_parameters.size());
@@ -42,9 +42,9 @@ void Parameters::_initializeParameters()
         return;
     initialized = true;
 
-    _parameters.push_back(Parameter(LINE_COST, "Line cost", 0.1, 20., 7.5));
-    _parameters.push_back(Parameter(ARC_COST, "Arc cost", 0.1, 30., 9.));
-    _parameters.push_back(Parameter(CLOTHOID_COST, "Clothoid cost", 0.1, 50., 15.));
+    _parameters.push_back(Parameter(LINE_COST, "Line cost", 0., 20., 7.5));
+    _parameters.push_back(Parameter(ARC_COST, "Arc cost", 0., 30., 9.));
+    _parameters.push_back(Parameter(CLOTHOID_COST, "Clothoid cost", 0., 50., 15.));
     _parameters.push_back(Parameter(G0_COST, "G0 cost", 0., 50., 999.));
     _parameters.push_back(Parameter(G1_COST, "G1 cost", 0., 50., 999.));
     _parameters.push_back(Parameter(G2_COST, "G2 cost", 0., 50., 0.));
@@ -52,11 +52,11 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(INFLECTION_COST, "Inflection cost", 0., 20., 10.));
 
     _parameters.push_back(Parameter(INTERNAL_PARAMETERS_MARKER, "NOT A PARAMETER", 0., 0., 0.));
-    _parameters.push_back(Parameter(PIXEL_SIZE, 1.));
-    _parameters.push_back(Parameter(SMALL_CURVE_PIXELS, 200.));
-    _parameters.push_back(Parameter(LARGE_CURVE_PIXELS, 500.));
-    _parameters.push_back(Parameter(MAX_RESCALE, 2.));
-    _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, 10.));
+    _parameters.push_back(Parameter(PIXEL_SIZE, "Pixel size", 1.));
+    _parameters.push_back(Parameter(SMALL_CURVE_PIXELS, "Small curve pixels", 200.));
+    _parameters.push_back(Parameter(LARGE_CURVE_PIXELS, "Large curve pixels", 500.));
+    _parameters.push_back(Parameter(MAX_RESCALE, "Max rescale", 2.));
+    _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness Threshold", 10.));
 }
 
 void Parameters::_initializePresets()

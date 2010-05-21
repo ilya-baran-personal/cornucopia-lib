@@ -38,7 +38,7 @@ enum AlgorithmStage
     CURVE_CLOSING,
     CORNER_DETECTION,
     //RESAMPLING,
-    NUM_ALGORITHM_TYPES
+    NUM_ALGORITHM_STAGES
 };
 
 struct AlgorithmOutputBase : public smart_base
@@ -66,10 +66,16 @@ public:
     virtual std::string stageName() const = 0;
     virtual AlgorithmOutputBasePtr run(const Fitter &) = 0;
 
-    static int numAlgorithmsOfType(AlgorithmStage stage) { return _algorithms[stage].size(); }
-    static AlgorithmBase *get(AlgorithmStage stage, int algorithm) { return _algorithms[stage][algorithm]; }
+    static int numAlgorithmsForStage(AlgorithmStage stage) { return _getAlgorithms()[stage].size(); }
+    static AlgorithmBase *get(AlgorithmStage stage, int algorithm) { return _getAlgorithms()[stage][algorithm]; }
 
 protected:
+    static const std::vector<std::vector<AlgorithmBase *> > &_getAlgorithms();
+    static void _addAlgorithm(int stage, AlgorithmBase *algorithm);
+
+private:
+    static bool _initializationFinished;
+    static void _initialize();
     static std::vector<std::vector<AlgorithmBase *> > _algorithms;
 };
 
@@ -77,7 +83,6 @@ template<int AlgStage>
 class AlgorithmBaseTemplate : public AlgorithmBase
 {
 public:
-
     //override
     AlgorithmOutputBasePtr run(const Fitter &fitter)
     {
@@ -86,39 +91,22 @@ public:
         return out;
     }
 
-    static Algorithm<AlgStage> *get(int algorithm)
-    {
-        Algorithm<AlgStage>::_initialize();
-        return static_cast<Algorithm<AlgStage> *>(_algorithms[AlgStage][algorithm]);
-    }
-
     static std::vector<std::string> names()
     {
-        _initialize();
-
         std::vector<std::string> out;
-        for(int i = 0; i < (int)_algorithms.size(); ++i)
-            out.push_back(_algorithms[AlgStage][i]->name());
+        for(int i = 0; i < (int)_getAlgorithms().size(); ++i)
+            out.push_back(_getAlgorithms()[AlgStage][i]->name());
 
         return out;
     }
 
 protected:
-    virtual void _run(const Fitter &fitter, AlgorithmOutput<AlgStage> &out) = 0;
-
-    //should only be called by _initializePrivate()
-    static void _addAlgorithm(Algorithm<AlgStage> *algorithm) { _algorithms[AlgStage].push_back(algorithm); }
-
-private:
-    static void _initialize()
+    AlgorithmBaseTemplate()
     {
-        static bool initialized = false;
-        if(!initialized)
-        {
-            initialized = true;
-            Derived::_initializePrivate(); //derived classes should implement this
-        }
+        _addAlgorithm(AlgStage, this);
     }
+
+    virtual void _run(const Fitter &fitter, AlgorithmOutput<AlgStage> &out) = 0;
 };
 
 END_NAMESPACE_Cornu

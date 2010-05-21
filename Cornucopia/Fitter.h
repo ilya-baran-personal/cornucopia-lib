@@ -33,7 +33,7 @@ SMART_FORW_DECL(Polyline);
 class Fitter
 {
 public:
-    Fitter() : _outputs(NUM_ALGORITHM_TYPES) {}
+    Fitter() : _outputs(NUM_ALGORITHM_STAGES) {}
 
     const Parameters &params() const { return _params; }
     void setParams(const Parameters &params) { _params = params; _clearBefore(SCALE_DETECTION); }

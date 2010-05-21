@@ -20,12 +20,44 @@
 */
 
 #include "Algorithm.h"
+#include "Preprocessing.h"
+#include "CornerDetector.h"
+#include "Debugging.h"
 
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
-std::vector<std::vector<AlgorithmBase *> > AlgorithmBase::_algorithms(NUM_ALGORITHM_TYPES);
+std::vector<std::vector<AlgorithmBase *> > AlgorithmBase::_algorithms(NUM_ALGORITHM_STAGES);
+bool AlgorithmBase::_initializationFinished = false;
+
+const std::vector<std::vector<AlgorithmBase *> > &AlgorithmBase::_getAlgorithms()
+{
+    _initialize();
+    return _algorithms;
+}
+
+void AlgorithmBase::_addAlgorithm(int stage, AlgorithmBase *algorithm)
+{
+    if(_initializationFinished)
+    {
+        Debugging::get()->printf("ERROR: Attempting to create algorithm too late!");
+        return; //Noop
+    }
+    _algorithms[stage].push_back(algorithm);
+}
+
+void AlgorithmBase::_initialize()
+{
+    if(_initializationFinished)
+        return;
+
+    Algorithm<SCALE_DETECTION>::_initialize();
+    Algorithm<CURVE_CLOSING>::_initialize();
+    Algorithm<CORNER_DETECTION>::_initialize();
+
+    _initializationFinished = true;
+}
 
 END_NAMESPACE_Cornu
 
