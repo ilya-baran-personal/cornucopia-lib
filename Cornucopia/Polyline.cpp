@@ -36,7 +36,7 @@ Polyline::Polyline(const VectorC<Eigen::Vector2d> &pts) : _pts(pts)
 
 int Polyline::paramToIdx(double param, double *outParam) const
 {
-    int idx = min(std::upper_bound(_lengths.begin(), _lengths.end(), param) - _lengths.begin(), (int)_lengths.size() - 1) - 1;
+    int idx = min(std::upper_bound(_lengths.begin(), _lengths.end(), param) - _lengths.begin(), (ptrdiff_t)_lengths.size() - 1) - 1;
     if(outParam)
         *outParam = param - _lengths[idx];
     return idx;

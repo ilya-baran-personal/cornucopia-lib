@@ -67,7 +67,7 @@ CurveSceneItem::CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen p
     Vector2d pt;
 
     //dynamically check if it's a polyline
-    Cornu::PolylineConstPtr polyline = dynamic_pointer_cast<const Cornu::Polyline>(curve);
+    Cornu::PolylineConstPtr polyline = Cornu::dynamic_pointer_cast<const Cornu::Polyline>(curve);
     if(polyline)
     {
         for(int i = 0; i < (int)polyline->pts().size(); ++i)

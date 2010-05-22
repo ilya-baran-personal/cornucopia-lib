@@ -39,6 +39,8 @@ public:
     typedef std::vector<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
                 Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T) > > Base;
 
+    using Base::size;
+
     VectorC(bool circular) : _circular(circular) {}
     VectorC(int size, bool circular) : Base(size), _circular(circular) {}
     VectorC(const Base &base, bool circular) : Base(base), _circular(circular) {}
@@ -54,7 +56,7 @@ public:
     bool circular() const { return _circular; }
 
     //returns the size for iteration where at each iteration we access elements i, i+1, ..., i+offset
-    int endIdx(int offset) const { return _circular ? (int)size() : std::max(0, (int)size() - offset); }
+    int endIdx(int offset) const { return _circular ? (int)Base::size() : std::max(0, (int)size() - offset); }
 
 private:
     int toLinearIdx(int idx) const
