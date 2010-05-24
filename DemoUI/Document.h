@@ -1,5 +1,5 @@
 /*--
-    MainView.h  
+    Document.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,35 +19,29 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MAINVIEW_H_INCLUDED
-#define MAINVIEW_H_INCLUDED
+#ifndef DOCUMENT_H_INCLUDED
+#define DOCUMENT_H_INCLUDED
 
 #include "defs.h"
-#include "ScrollView.h"
-#include "VectorC.h"
 
-class Document;
-class ParamWidget;
+#include <QObject>
 
-class MainView : public ScrollView
+namespace Cornu
+{
+    SMART_FORW_DECL(Polyline);
+}
+class MainView;
+
+class Document : public QObject
 {
     Q_OBJECT
 public:
-    MainView(QWidget *parent, ParamWidget *paramWidget);
+    Document(MainView *view);
 
-    Document *document() const { return _document; }
-    ParamWidget *paramWidget() const { return _paramWidget; }
-
-protected:
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
+    void curveDrawn(Cornu::PolylineConstPtr polyline);
 
 private:
-    Cornu::VectorC<Eigen::Vector2d> _pointsDrawn;
-    Document *_document;
-    ParamWidget *_paramWidget;
+    MainView *_view;
 };
 
-
-#endif //MAINVIEW_H_INCLUDED
+#endif //DOCUMENT_H_INCLUDED

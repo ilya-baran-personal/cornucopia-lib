@@ -1,5 +1,5 @@
 /*--
-    MainView.h  
+    Document.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,35 +19,27 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MAINVIEW_H_INCLUDED
-#define MAINVIEW_H_INCLUDED
+#include "Document.h"
+#include "MainView.h"
+#include "ParamWidget.h"
+#include "Polyline.h"
+#include "Fitter.h"
 
-#include "defs.h"
-#include "ScrollView.h"
-#include "VectorC.h"
+using namespace std;
+using namespace Eigen;
 
-class Document;
-class ParamWidget;
-
-class MainView : public ScrollView
+Document::Document(MainView *view)
+    : QObject(view), _view(view)
 {
-    Q_OBJECT
-public:
-    MainView(QWidget *parent, ParamWidget *paramWidget);
+}
 
-    Document *document() const { return _document; }
-    ParamWidget *paramWidget() const { return _paramWidget; }
+void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
+{
+    Cornu::Fitter fitter;
+    fitter.setOriginalSketch(polyline);
+    fitter.setParams(_view->paramWidget()->parameters());
+    fitter.run();
+    //TODO: output
+}
 
-protected:
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-
-private:
-    Cornu::VectorC<Eigen::Vector2d> _pointsDrawn;
-    Document *_document;
-    ParamWidget *_paramWidget;
-};
-
-
-#endif //MAINVIEW_H_INCLUDED
+#include "Document.moc"

@@ -44,7 +44,7 @@ OneParamWidget::OneParamWidget(ParamWidget *paramWidget, QWidget *parent, const 
     connect(paramWidget, SIGNAL(parametersChanged()), this, SLOT(parametersChanged()));
 
     _ui->slider->setRange(0, _sliderMarks);
-    _ui->spinBox->setRange(0, 1e10); //TODO: maximum value slider allows
+    _ui->spinBox->setRange(0, 1e10); //TODO: maximum value slider allows without overflow
 
     if(!param.infinityAllowed)
     {

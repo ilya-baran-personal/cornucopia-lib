@@ -20,9 +20,63 @@
 */
 
 #include "MainView.h"
+#include "Document.h"
+#include "ScrollScene.h"
+#include "SceneItem.h"
+#include "Polyline.h"
+
+#include <QMouseEvent>
 
 using namespace std;
 using namespace Eigen;
+
+MainView::MainView(QWidget *parent, ParamWidget *paramWidget)
+    : ScrollView(parent), _paramWidget(paramWidget), _pointsDrawn(Cornu::NOT_CIRCULAR)
+{
+    _document = new Document(this);
+}
+
+void MainView::mousePressEvent(QMouseEvent *e)
+{
+    if(e->buttons() & Qt::LeftButton)
+    {
+        _pointsDrawn.clear();
+
+        _prevMousePos = e->pos();
+        QPointF scenePt = viewToScene(_prevMousePos);
+        _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
+
+        return;
+    }
+    ScrollView::mousePressEvent(e);
+}
+
+void MainView::mouseReleaseEvent(QMouseEvent *e)
+{
+    if(e->button() == Qt::LeftButton)
+    {
+        scene()->clearGroups("currentlyDrawing");
+        _document->curveDrawn(new Cornu::Polyline(_pointsDrawn));
+        return;
+    }
+    ScrollView::mouseReleaseEvent(e);
+}
+
+void MainView::mouseMoveEvent(QMouseEvent *e)
+{
+    if(e->buttons() & Qt::LeftButton)
+    {
+        _prevMousePos = e->pos();
+        QPointF scenePt = viewToScene(_prevMousePos);
+        _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
+
+        scene()->clearGroups("currentlyDrawing");
+        scene()->addItem(new CurveSceneItem(new Cornu::Polyline(_pointsDrawn), "currentlyDrawing"));
+
+        return;
+    }
+    ScrollView::mouseMoveEvent(e);
+}
 
 
 #include "MainView.moc"

@@ -45,9 +45,9 @@ DemoUIWindow::DemoUIWindow()
     connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
 
     //Initialize the main window
-    MainView *mainView = new MainView(this);
-    setCentralWidget(mainView);
     ParamWidget *paramWidget = new ParamWidget(this);
+    MainView *mainView = new MainView(this, paramWidget);
+    setCentralWidget(mainView);
     addDockWidget(Qt::RightDockWidgetArea, paramWidget);
 
     //Initialize the debugging window

@@ -21,10 +21,21 @@
 
 #include "Fitter.h"
 #include "Preprocessing.h"
+#include "Polyline.h"
 
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
+
+void Fitter::run()
+{
+    Debugging::get()->clear();
+    Debugging::get()->drawCurve(_originalSketch, Vector3d(0, 0, 0), "Original Sketch"); //TODO: dashed
+
+    for(int i = 0; i < NUM_ALGORITHM_STAGES; ++i)
+        if(!(_outputs[i]))
+            _runStage((AlgorithmStage)i);
+}
 
 void Fitter::_runStage(AlgorithmStage stage)
 {

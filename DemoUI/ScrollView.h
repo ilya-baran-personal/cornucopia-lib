@@ -41,7 +41,12 @@ public:
 
     ScrollScene *scene() const { return _scene; }
 
+    QPointF sceneToView(const QPointF &scene) const { return scene * _zoom + _offset; }
+    QPointF viewToScene(const QPointF &view) const { return (view - _offset) * (1. / _zoom); }
+
 protected:
+    QPoint _prevMousePos;
+
     void scrollContentsBy(int dx, int dy);
     void paintEvent(QPaintEvent *);
     void resizeEvent(QResizeEvent *);
@@ -60,7 +65,6 @@ private:
     QPointF _offset;
 
     ScrollScene *_scene;
-    QPoint _prevMousePos;
     int _updating;
 };
 
