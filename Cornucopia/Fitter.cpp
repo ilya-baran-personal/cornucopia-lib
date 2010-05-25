@@ -30,11 +30,22 @@ NAMESPACE_Cornu
 void Fitter::run()
 {
     Debugging::get()->clear();
-    Debugging::get()->drawCurve(_originalSketch, Vector3d(0, 0, 0), "Original Sketch"); //TODO: dashed
+    Debugging::get()->printf("Starting...");
+    Debugging::get()->drawCurve(_originalSketch, Vector3d(0, 0, 0), "Original Sketch", 2., Debugging::DOTTED);
+    Debugging::get()->startTiming("Total");
 
     for(int i = 0; i < NUM_ALGORITHM_STAGES; ++i)
+    {
         if(!(_outputs[i]))
+        {
+            std::string stageName = AlgorithmBase::get((AlgorithmStage)i, 0)->stageName();
+            Debugging::get()->startTiming(stageName);
             _runStage((AlgorithmStage)i);
+            if(Debugging::get()->getTimeElapsed(stageName) > 0.01) //only print significant times
+                Debugging::get()->elapsedTime(stageName);
+        }
+    }
+    Debugging::get()->elapsedTime("Total");
 }
 
 void Fitter::_runStage(AlgorithmStage stage)

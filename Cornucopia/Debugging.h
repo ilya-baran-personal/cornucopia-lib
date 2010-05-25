@@ -39,6 +39,13 @@ public:
     typedef Eigen::Vector3d Color;
     typedef Eigen::Vector2d Vector2d;
 
+    enum LineStyle
+    {
+        SOLID,
+        DASHED,
+        DOTTED
+    };
+
     static Debugging *get() { return _currentDebugging; }
 
     virtual ~Debugging() {}
@@ -46,13 +53,14 @@ public:
     virtual void printf(const char * /*fmt*/, ...) {}
 
     virtual void startTiming(const std::string &/*description*/) {}
-    virtual void elapsedTime(const std::string &/*description*/ = "") {}
+    virtual void elapsedTime(const std::string &/*description*/) {} //prints the elapsed time
+    virtual double getTimeElapsed(const std::string &/*description*/) { return 0.; } //in seconds
 
     virtual void clear(const std::string &/*groups*/ = "") {}
 
     virtual void drawPoint(const Vector2d &/*pos*/, const Color &/*color*/, const std::string &/*group*/ = "") {}
-    virtual void drawLine(const Vector2d &/*p1*/, const Vector2d &/*p2*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1) {}
-    virtual void drawCurve(CurveConstPtr /*curve*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1) {}
+    virtual void drawLine(const Vector2d &/*p1*/, const Vector2d &/*p2*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1, LineStyle /*style*/ = SOLID) {}
+    virtual void drawCurve(CurveConstPtr /*curve*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1, LineStyle /*style*/ = SOLID) {}
 
 protected:
     Debugging() {}

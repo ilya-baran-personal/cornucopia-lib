@@ -75,7 +75,15 @@ void DebuggingImpl::elapsedTime(const string &description)
         return;
     }
     int diff = clock() - _startTimes[desc];
-    printf("Timing: %20s   ---   %.3lf", description.c_str(), double(diff) / CLOCKS_PER_SEC);
+    printf("Timing: %20s  ---  %.3lf", description.c_str(), double(diff) / CLOCKS_PER_SEC);
+}
+
+double DebuggingImpl::getTimeElapsed(const string &description)
+{
+    QString desc(description.c_str());
+    if(!_startTimes.contains(desc))
+        return 0.;
+    return double(clock() - _startTimes[desc]) / CLOCKS_PER_SEC;
 }
 
 void DebuggingImpl::clear(const std::string &groups)
@@ -90,17 +98,35 @@ void DebuggingImpl::drawPoint(const Vector2d &pos, const Color &color, const std
         _scene->addItem(new PointSceneItem(pos, group.c_str(), QColor::fromRgbF(color[0], color[1], color[2])));
 }
 
-void DebuggingImpl::drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group, double thickness)
+void DebuggingImpl::drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group, double thickness, LineStyle style)
 {
     if(_scene)
-        _scene->addItem(new LineSceneItem(p1, p2, group.c_str(), QPen(QColor::fromRgbF(color[0], color[1], color[2]), thickness)));
+        _scene->addItem(new LineSceneItem(p1, p2, group.c_str(), _toQPen(color, thickness, style)));
 }
 
-void DebuggingImpl::drawCurve(Cornu::CurveConstPtr curve, const Color &color, const std::string &group, double thickness)
+void DebuggingImpl::drawCurve(Cornu::CurveConstPtr curve, const Color &color, const std::string &group, double thickness, LineStyle style)
 {
     if(_scene)
-        _scene->addItem(new CurveSceneItem(curve, group.c_str(), QPen(QColor::fromRgbF(color[0], color[1], color[2]), thickness)));
+        _scene->addItem(new CurveSceneItem(curve, group.c_str(), _toQPen(color, thickness, style)));
 }
 
+QPen DebuggingImpl::_toQPen(const Color &color, double thickness, LineStyle style)
+{
+    QPen out(QColor::fromRgbF(color[0], color[1], color[2]), thickness);
+
+    switch(style)
+    {
+    case SOLID:
+        break;
+    case DASHED:
+        out.setStyle(Qt::DashLine);
+        break;
+    case DOTTED:
+        out.setStyle(Qt::DotLine);
+        break;
+    }
+
+    return out;
+}
 
 #include "DebuggingImpl.moc"

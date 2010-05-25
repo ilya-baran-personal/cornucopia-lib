@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1281</width>
-    <height>757</height>
+    <width>1280</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,8 +47,23 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>280</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Courier New</family>
+            <pointsize>6</pointsize>
+           </font>
+          </property>
           <property name="readOnly">
            <bool>true</bool>
+          </property>
+          <property name="plainText">
+           <string/>
           </property>
          </widget>
         </item>
@@ -165,8 +180,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>71</width>
-          <height>691</height>
+          <width>55</width>
+          <height>734</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -231,7 +246,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1281</width>
+     <width>1280</width>
      <height>26</height>
     </rect>
    </property>

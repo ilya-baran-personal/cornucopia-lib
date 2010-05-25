@@ -27,6 +27,7 @@
 
 #include <QObject>
 #include <QHash>
+#include <QPen>
 
 class ScrollScene;
 
@@ -40,12 +41,13 @@ public:
     void printf(const char *fmt, ...);
 
     void startTiming(const std::string &description);
-    void elapsedTime(const std::string &description = "");
+    void elapsedTime(const std::string &description);
+    double getTimeElapsed(const std::string &description);
 
     void clear(const std::string &groups = "");
     void drawPoint(const Vector2d &pos, const Color &color, const std::string &group = "");
-    void drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group = "", double thickness = 1);
-    void drawCurve(Cornu::CurveConstPtr /*curve*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1);
+    void drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group = "", double thickness = 1, LineStyle style = SOLID);
+    void drawCurve(Cornu::CurveConstPtr curve, const Color &color, const std::string &group = "", double thickness = 1, LineStyle style = SOLID);
 
     //not overrides
     void setScene(ScrollScene *scene) { _scene = scene; }
@@ -55,6 +57,8 @@ signals:
 
 private:
     DebuggingImpl() : _scene(NULL) {}
+
+    static QPen _toQPen(const Color &color, double thickness, LineStyle style);
 
     ScrollScene *_scene;
 

@@ -35,11 +35,21 @@ Document::Document(MainView *view)
 
 void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
 {
+    _sketches.push_back(polyline);
     Cornu::Fitter fitter;
     fitter.setOriginalSketch(polyline);
     fitter.setParams(_view->paramWidget()->parameters());
     fitter.run();
     //TODO: output
+}
+
+void Document::refitLast()
+{
+    if(_sketches.empty())
+        return;
+    Cornu::PolylineConstPtr last = _sketches.back();
+    _sketches.pop_back();
+    curveDrawn(last);
 }
 
 #include "Document.moc"

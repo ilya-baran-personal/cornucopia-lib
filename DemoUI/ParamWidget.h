@@ -52,6 +52,7 @@ public slots:
 
 signals:
     void parametersChanged();
+    void rerunClicked();
 
 private:
     void _parametersChanged();

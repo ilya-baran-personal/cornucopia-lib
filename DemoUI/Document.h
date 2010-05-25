@@ -23,6 +23,7 @@
 #define DOCUMENT_H_INCLUDED
 
 #include "defs.h"
+#include <vector>
 
 #include <QObject>
 
@@ -40,7 +41,12 @@ public:
 
     void curveDrawn(Cornu::PolylineConstPtr polyline);
 
+public slots:
+    void refitLast();
+
 private:
+    std::vector<Cornu::PolylineConstPtr> _sketches;
+
     MainView *_view;
 };
 

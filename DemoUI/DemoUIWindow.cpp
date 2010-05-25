@@ -24,6 +24,7 @@
 #include "DebuggingImpl.h"
 #include "ParamWidget.h"
 #include "MainView.h"
+#include "Document.h"
 
 #include "libTest.h"
 
@@ -49,6 +50,8 @@ DemoUIWindow::DemoUIWindow()
     MainView *mainView = new MainView(this, paramWidget);
     setCentralWidget(mainView);
     addDockWidget(Qt::RightDockWidgetArea, paramWidget);
+
+    connect(paramWidget, SIGNAL(rerunClicked()), mainView->document(), SLOT(refitLast()));
 
     //Initialize the debugging window
     _debugWindow = new QMainWindow();

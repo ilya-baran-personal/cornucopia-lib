@@ -71,6 +71,7 @@ ParamWidget::ParamWidget(QWidget *parent)
     }
 
     connect(_ui->presetButton, SIGNAL(clicked()), this, SLOT(makePreset()));
+    connect(_ui->rerunButton, SIGNAL(clicked()), this, SIGNAL(rerunClicked()));
 
     _parametersChanged();
 }
