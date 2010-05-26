@@ -36,14 +36,14 @@ public:
     //override
     void run()
     {
-        VectorC<Vector2d> pts1(3, false);
+        VectorC<Vector2d> pts1(3, NOT_CIRCULAR);
         pts1[0] = Vector2d(1, 1);
         pts1[1] = Vector2d(2, 3);
         pts1[2] = Vector2d(4, 4);
         
         testPolyline(Polyline(pts1));
 
-        VectorC<Vector2d> pts2(3, true);
+        VectorC<Vector2d> pts2(3, CIRCULAR);
         pts2[0] = Vector2d(3, 1);
         pts2[1] = Vector2d(1, 3);
         pts2[2] = Vector2d(5, 4);

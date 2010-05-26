@@ -23,6 +23,7 @@
 #include "Fitter.h"
 #include "Polyline.h"
 #include "Debugging.h"
+#include "Line.h"
 #include <iostream>
 
 #include "Eigen/Geometry"
@@ -67,9 +68,9 @@ protected:
         out.scale = 1.;
 
         if(diag < pixel * smallCurvePixels)
-            out.scale = 1. / max(1. / maxRescale, diag / (pixel * smallCurvePixels));
+            out.scale = max(1. / maxRescale, diag / (pixel * smallCurvePixels));
         if(diag > pixel * largeCurvePixels)
-            out.scale = 1. / min(maxRescale, diag / (pixel * largeCurvePixels));
+            out.scale = min(maxRescale, diag / (pixel * largeCurvePixels));
     }
 };
 
@@ -79,22 +80,95 @@ void Algorithm<SCALE_DETECTION>::_initialize()
     new NoScaleDetector();
 };
 
-class DefaultCurveCloser : public Algorithm<CURVE_CLOSING>
+class OldCurveCloser : public Algorithm<CURVE_CLOSING>
 {
 public:
-    string name() const { return "Default"; }
+    string name() const { return "Old"; }
 
 protected:
     void _run(const Fitter &fitter, AlgorithmOutput<CURVE_CLOSING> &out)
     {
         out.output = fitter.originalSketch();
-        //Debugging::get()->d
+        
+        const double tol = fitter.scaledParameter(Parameters::CLOSEDNESS_THRESHOLD);
+        const double tolSq = SQR(tol);
+        const VectorC<Vector2d> &pts = fitter.originalSketch()->pts();
+
+        if(pts.size() < 3)
+            return; //definitely not closed
+
+        Vector2d start = pts[0], end = pts.back();
+
+        //find point farthest away from start-end line segment
+        Line startEnd(start, end);
+
+        if(startEnd.length() > tol) //start and end too far
+            return;
+
+        double maxDistSq = 0;
+        int farthest = 1;
+        for(int i = 1; i + 1 < (int)pts.size(); ++i) {
+            double t = startEnd.project(pts[i]);
+            double distSq = (pts[i] - startEnd.pos(t)).squaredNorm();
+            if(distSq > maxDistSq) {
+                maxDistSq = distSq;
+                farthest = i;
+            }
+        }
+
+        if(maxDistSq < tolSq)
+            return;
+
+        //now find the points closest to each other that are within tol of each
+        //other and of the segment connecting the start and end points
+        int closest0 = 0, closest1 = (int)pts.size() - 1;
+        double minDistSq = tolSq;
+        for(int i = 0; i < farthest; ++i) {
+            double t = startEnd.project(pts[i]);
+            if((pts[i] - startEnd.pos(t)).squaredNorm() > tolSq)
+                break;
+            for(int j = (int)pts.size() - 1; j > farthest; --j) {
+                double t2 = startEnd.project(pts[j]);
+                if((pts[j] - startEnd.pos(t2)).squaredNorm() > tolSq)
+                    break;
+                double distSq = (pts[i] - pts[j]).squaredNorm();
+                if(distSq > minDistSq)
+                    continue;
+                minDistSq = distSq;
+                closest0 = i;
+                closest1 = j;
+            }
+        }
+
+        if(minDistSq == tolSq)
+            return;
+        //if we are here, curve is closed
+
+        //close and adjust curve
+        VectorC<Vector2d>::Base newPts = pts;
+
+        if(closest1 + 1 < (int)newPts.size())
+            newPts.erase(newPts.begin() + closest1 + 1, newPts.end());
+        if(closest0 > 0)
+            newPts.erase(newPts.begin(), newPts.begin() + closest0 - 1);
+
+        PolylinePtr polyptr = new Polyline(VectorC<Vector2d>(newPts, NOT_CIRCULAR));
+        Vector2d adjust = newPts[0] - newPts.back();
+        for(int i = 0; i < (int)newPts.size(); ++i) {
+            double param = polyptr->idxToParam(i) / polyptr->length();
+            newPts[i] += adjust * (param - 0.5);
+        }
+        newPts.pop_back(); //the last point is duplicate
+
+        out.output = new Polyline(VectorC<Vector2d>(newPts, CIRCULAR));
+
+        Debugging::get()->drawCurve(out.output, Debugging::Color(0., 0., 0.), "Closed", 2., Debugging::DOTTED);
     }
 };
 
 void Algorithm<CURVE_CLOSING>::_initialize()
 {
-    new DefaultCurveCloser();
+    new OldCurveCloser();
 }
 
 END_NAMESPACE_Cornu

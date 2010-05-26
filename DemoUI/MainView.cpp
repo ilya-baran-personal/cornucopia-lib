@@ -31,7 +31,7 @@ using namespace std;
 using namespace Eigen;
 
 MainView::MainView(QWidget *parent, ParamWidget *paramWidget)
-    : ScrollView(parent), _paramWidget(paramWidget), _pointsDrawn(Cornu::NOT_CIRCULAR)
+    : ScrollView(parent), _paramWidget(paramWidget), _pointsDrawn(0, Cornu::NOT_CIRCULAR)
 {
     _document = new Document(this);
 }

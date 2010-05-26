@@ -42,6 +42,9 @@ namespace Cornu
     static const double PI =         3.1415926535897932385;
     static const double TWOPI =      6.2831853071795864769;
     static const double HALFPI =     1.5707963267948966192;
+
+    template<typename T> T SQR(const T &in) { return in * in; }
+    template<typename T> T CUBE(const T &in) { return in * in * in; }
 }
 
 #endif //DEFS_H_INCLUDED

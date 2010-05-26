@@ -52,7 +52,7 @@ public:
 
         for(int i = 0; i < 2; ++i)
         {
-            VectorC<Vector2d> pts(5, i == 1);
+            VectorC<Vector2d> pts(5, i == 1 ? CIRCULAR : NOT_CIRCULAR);
             pts[0] = Vector2d(1, 1);
             pts[1] = Vector2d(2, 3);
             pts[2] = Vector2d(4, 4);
@@ -98,7 +98,8 @@ public:
                 maxDot = max(maxDot, fabs(dot));
 
             double newS = curve->project(curvePt);
-            CORNU_ASSERT_LT_MSG(fabs(s - newS), tol, "Projecting again should yield the same result");
+            if(!curve->isClosed() || fabs(s - newS) + tol < curve->length())
+                CORNU_ASSERT_LT_MSG(fabs(s - newS), tol, "Projecting again should yield the same result");
 
             double len = curve->length();
             for(double newS = 0; newS < len + 1e-8; newS += (len / 30.))

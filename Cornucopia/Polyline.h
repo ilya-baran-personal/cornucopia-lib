@@ -38,7 +38,7 @@ public:
 
     //overrides
     double length() const { return _lengths.back(); }
-    bool isClosed() const { return _pts.circular(); }
+    bool isClosed() const { return _pts.circular() == CIRCULAR; }
 
     void eval(double s, Vec *pos, Vec *der = NULL, Vec *der2 = NULL) const;
 

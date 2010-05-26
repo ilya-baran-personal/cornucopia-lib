@@ -53,6 +53,11 @@ DemoUIWindow::DemoUIWindow()
 
     connect(paramWidget, SIGNAL(rerunClicked()), mainView->document(), SLOT(refitLast()));
 
+    QAction *resetView = new QAction("&Reset view", this);
+    resetView->setShortcut(QKeySequence("Ctrl+R"));
+    viewMenu->addAction(resetView);
+    connect(resetView, SIGNAL(triggered()), mainView, SLOT(resetView()));
+
     //Initialize the debugging window
     _debugWindow = new QMainWindow();
     Ui::DebugWindow debugWindowUi;

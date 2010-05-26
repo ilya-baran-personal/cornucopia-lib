@@ -164,11 +164,17 @@ Arc::Arc(const Vec &start, const Vec &mid, const Vec &end)
 {
     _params.resize(numParams());
 
+    for(int i = 0; i < numParams(); ++i)
+        _params[i] = 0;
+
     Vec mid1 = mid - start;
     Vec end1 = end - start;
 
     double twiceSignedArea = (mid1[0] * end1[1] - mid1[1] * end1[0]);
     double abc = sqrt(mid1.squaredNorm() * end1.squaredNorm() * (mid - end).squaredNorm());
+
+    if(fabs(twiceSignedArea) < 1e-16 || abc < 1e-16)
+        return; //degenerate arc
 
     _params.head<2>() = start;
     _params[CURVATURE] = 2. * twiceSignedArea / abc;
