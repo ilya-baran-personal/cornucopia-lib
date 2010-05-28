@@ -81,6 +81,28 @@ public:
                 CORNU_ASSERT_LT_MSG(diff.norm(), 1e-8, "Incorrect derivative at indices: " << indices[i] << " " << indices[i - 1]);
             }
         }
+
+        //test trimming
+        double startFrom = 0, endFrom = p.length();
+        if(p.isClosed())
+        {
+            startFrom = -p.length();
+            endFrom = p.length() * 2;
+        }
+        for(double from = startFrom; from < endFrom; ++from)
+        {
+            const double step = 0.1;
+            for(double to = from + step; to - from < p.length(); to += step)
+            {
+                PolylinePtr trim = p.trimmed(from, to);
+
+                for(double x = 0; x < trim->length(); x += step * 0.5)
+                {
+                    Vector2d diff = trim->pos(x) - p.pos(from + x);
+                    CORNU_ASSERT_LT_MSG(diff.norm(), 1e-8, "Incorrect trim");
+                }
+            }
+        }
     }
 };
 

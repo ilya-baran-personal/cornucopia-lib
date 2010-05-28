@@ -94,7 +94,7 @@ public:
         int index() const { return _ptr->toLinearIdx(_idx); }
 
     private:
-        Circulator(const VectorC<T> *ptr, int idx, int startIdx) : _ptr(ptr), _idx(idx), _startIdx(_startIdx) {}
+        Circulator(const VectorC<T> *ptr, int idx, int startIdx) : _ptr(ptr), _idx(idx), _startIdx(startIdx) {}
 
         const VectorC<T> *_ptr;
         int _idx;

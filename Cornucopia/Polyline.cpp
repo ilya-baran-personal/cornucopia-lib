@@ -45,7 +45,11 @@ int Polyline::paramToIdx(double param, double *outParam) const
 void Polyline::eval(double s, Vec *pos, Vec *der, Vec *der2) const
 {
     if(_pts.circular())
-        s = fmod(s + 10. * _lengths.back(), _lengths.back());
+    {
+        s = fmod(s, _lengths.back());
+        if(s < 0.)
+            s += _lengths.back();
+    }
     double cParam;
     int idx = paramToIdx(s, &cParam);
     int nidx = (idx + 1) % _pts.size();
@@ -84,6 +88,63 @@ double Polyline::project(const Vector2d &point) const
     }
 
     return bestS;
+}
+
+PolylinePtr Polyline::trimmed(double from, double to) const
+{
+    double len = length();
+
+    const double tol = 1e-10;
+
+    if(isClosed())
+    {
+        if(to - from > len) //trim too long--trim around the middle
+        {
+            double mid = 0.5 * (to + from);
+            from = mid - 0.5 * len + tol;
+            to = mid + 0.5 * len - tol;
+        }
+
+        //get the arguments into range
+        from = fmod(from, len);
+        if(from < 0)
+            from += len;
+        to = fmod(to, len);
+        if(to < 0)
+            to += len;
+    }
+    else //if not closed
+    {
+        from = max(0., from);
+        to = min(len, to);
+        if(from > to)
+            swap(from, to);
+    }
+
+    VectorC<Vector2d> out(0, NOT_CIRCULAR);
+
+    double paramRemainder;
+    int startIdx = paramToIdx(from, &paramRemainder);
+
+    out.push_back(pos(from)); //push the first point no matter what
+
+    int endIdx = paramToIdx(to, &paramRemainder);
+
+    if(startIdx != endIdx || (to + tol < from)) //add points from existing polyline if necessary
+    {
+        for(VectorC<Vector2d>::Circulator circ = _pts.circulator(startIdx + 1); !circ.done() ; ++circ)
+        {
+            out.push_back(*circ);
+
+            if(circ.index() == endIdx)
+                break;
+        }
+    }
+
+    if(paramRemainder > tol) //if there's something leftover at the end, add the endpoint
+        out.push_back(pos(to));
+
+    return new Polyline(out);
 }
 
 END_NAMESPACE_Cornu

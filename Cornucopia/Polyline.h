@@ -48,6 +48,11 @@ public:
     int paramToIdx(double param, double *outParam = NULL) const;
     double idxToParam(int idx) const { return _lengths[idx]; }
 
+    //Returns the curve trimmed between the input arguments, if possible, but at most
+    //the length of the original curve.  Arguments can be negative and to can be smaller
+    //than from for a closed polyline.
+    PolylinePtr trimmed(double from, double to) const;
+
     const VectorC<Eigen::Vector2d> &pts() const { return _pts; }
 
 private:
