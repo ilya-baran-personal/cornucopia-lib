@@ -56,6 +56,10 @@ OneParamWidget::OneParamWidget(ParamWidget *paramWidget, QWidget *parent, const 
     {
         delete _ui->slider;
         _ui->slider = NULL;
+        QMargins margins = _ui->verticalLayout->contentsMargins();
+        margins.setTop(0);
+        margins.setBottom(0);
+        _ui->verticalLayout->setContentsMargins(margins);
     }
 
     setValue(param.defaultVal);

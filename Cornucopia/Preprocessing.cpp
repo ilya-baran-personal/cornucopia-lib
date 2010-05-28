@@ -154,9 +154,11 @@ protected:
 
         PolylinePtr polyptr = new Polyline(VectorC<Vector2d>(newPts, NOT_CIRCULAR));
         Vector2d adjust = newPts[0] - newPts.back();
+        const double adjustPower = 3.;
         for(int i = 0; i < (int)newPts.size(); ++i) {
             double param = polyptr->idxToParam(i) / polyptr->length();
-            newPts[i] += adjust * (param - 0.5);
+            double adjustFactor = 0.5 * pow(fabs(param - 0.5) * 2., adjustPower) * (param > 0.5 ? 1. : -1.);
+            newPts[i] += adjust * adjustFactor;
         }
         newPts.pop_back(); //the last point is duplicate
 

@@ -56,7 +56,12 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(SMALL_CURVE_PIXELS, "Small curve pixels", 200.));
     _parameters.push_back(Parameter(LARGE_CURVE_PIXELS, "Large curve pixels", 500.));
     _parameters.push_back(Parameter(MAX_RESCALE, "Max rescale", 2.));
-    _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness Threshold", 10.));
+    _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness threshold", 15.));
+    _parameters.push_back(Parameter(MINIMUM_CORNER_SPACING, "Min corner spacing", 5.));
+    _parameters.push_back(Parameter(CORNER_NEIGHBORHOOD, "Corner neighborhood", 15.));
+    _parameters.push_back(Parameter(CORNER_SAMPLING_STEP, "Corner sampling step", 1.));
+    _parameters.push_back(Parameter(CORNER_SCALES, "Num corner scales (int)", 5.));
+    _parameters.push_back(Parameter(CORNER_THRESHOLD, "Corner angle threshold", PI * 0.25));
 }
 
 void Parameters::_initializePresets()

@@ -54,12 +54,13 @@ public:
 
     typedef typename Base::reference reference;
     typedef typename Base::const_reference const_reference;
-    using Base::size;
 
     VectorC() : _circular(NOT_CIRCULAR) {}
     VectorC(int size, CircularType circular) : Base(size), _circular(circular) {}
     VectorC(const Base &base, CircularType circular) : Base(base), _circular(circular) {}
     VectorC(const VectorC &other) : Base(other), _circular(other._circular) {}
+
+    int size() const { return (int)Base::size(); }
 
     reference operator[](int idx) { return Base::operator[](toLinearIdx(idx)); }
     const_reference operator[](int idx) const { return Base::operator[](toLinearIdx(idx)); }
@@ -72,7 +73,7 @@ public:
     void setCircular(CircularType circular) { _circular = circular; }
 
     //returns the size for iteration where at each iteration we access elements i, i+1, ..., i+offset
-    int endIdx(int offset) const { return _circular ? (int)Base::size() : std::max(0, (int)size() - offset); }
+    int endIdx(int offset) const { return _circular ? Base::size() : std::max(0, size() - offset); }
 
     class Circulator
     {
@@ -90,7 +91,7 @@ public:
         Circulator operator+(int x) const { return Circulator(_ptr, _idx + x, _startIdx); }
         Circulator operator-(int x) const { return Circulator(_ptr, _idx - x, _startIdx); }
 
-        bool done() const { if(_ptr->circular()) return abs(_idx - _startIdx) >= (int)_ptr->size(); else return _idx < 0 || _idx >= (int)_ptr->size(); }
+        bool done() const { if(_ptr->circular()) return abs(_idx - _startIdx) >= _ptr->size(); else return _idx < 0 || _idx >= _ptr->size(); }
         int index() const { return _ptr->toLinearIdx(_idx); }
 
     private:
@@ -101,7 +102,7 @@ public:
         int _startIdx;
     };
 
-    Circulator begin() const { return Circulator(this, 0); }
+    Circulator beginCirculator() const { return Circulator(this, 0); }
     Circulator circulator(int idx) const { return Circulator(this, toLinearIdx(idx)); }
 
 private:
@@ -109,7 +110,7 @@ private:
     {
         if(!_circular)
             return idx;
-        int out = idx % (int)size();
+        int out = idx % size();
         if(out >= 0)
             return out;
         return out + size();

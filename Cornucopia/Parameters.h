@@ -48,7 +48,12 @@ public:
         SMALL_CURVE_PIXELS,
         LARGE_CURVE_PIXELS,
         MAX_RESCALE,
-        CLOSEDNESS_THRESHOLD
+        CLOSEDNESS_THRESHOLD,
+        MINIMUM_CORNER_SPACING,
+        CORNER_NEIGHBORHOOD,
+        CORNER_SAMPLING_STEP,
+        CORNER_SCALES,
+        CORNER_THRESHOLD
     };
 
     Parameters(const std::string &name = std::string());

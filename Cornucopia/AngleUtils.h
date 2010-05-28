@@ -34,7 +34,10 @@ NAMESPACE_Cornu
 class AngleUtils
 {
 public:
+    //signed angle from (1, 0) to v
     static double angle(const Eigen::Vector2d &v) { return atan2(v[1], v[0]); }
+    //signed angle from v1 to v2
+    static double angle(const Eigen::Vector2d &v1, const Eigen::Vector2d &v2) { return atan2(v1[0] * v2[1] - v1[1] * v2[0], v1.dot(v2)); }
 
     //These functions bring an angle into the range [0,2Pi] or [rangeStart, rangeStart+2Pi]
     //They assume we're not super far on the negative side of the range
