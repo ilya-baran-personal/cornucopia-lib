@@ -34,38 +34,82 @@ enum CircularType
     CIRCULAR
 };
 
+template<typename T> struct default_allocator_traits
+{
+    typedef std::allocator<T> allocator;
+};
+
+template<> struct default_allocator_traits<Eigen::Vector2d>
+{
+    typedef Eigen::aligned_allocator<Eigen::Vector2d> allocator;
+};
+
 //VectorC represents a vector with possibly circular access.
 //Warning: inherits class with non-virtual destructor--do not use polymorphically!
-template<typename T>
-class VectorC : public std::vector<T, Eigen::aligned_allocator<T> >
+template<typename T, typename Alloc = typename default_allocator_traits<T>::allocator >
+class VectorC : public std::vector<T, Alloc>
 {
 public:
-    typedef std::vector<T, Eigen::aligned_allocator<T> > Base;
+    typedef std::vector<T, Alloc> Base;
 
+    using Base::reference;
+    using Base::const_reference;
     using Base::size;
 
+    VectorC() : _circular(NOT_CIRCULAR) {}
     VectorC(int size, CircularType circular) : Base(size), _circular(circular) {}
     VectorC(const Base &base, CircularType circular) : Base(base), _circular(circular) {}
     VectorC(const VectorC &other) : Base(other), _circular(other._circular) {}
 
-    T &operator[](int idx) { return Base::operator[](toLinearIdx(idx)); }
-    const T &operator[](int idx) const { return Base::operator[](toLinearIdx(idx)); }
+    reference operator[](int idx) { return Base::operator[](toLinearIdx(idx)); }
+    const_reference operator[](int idx) const { return Base::operator[](toLinearIdx(idx)); }
 
     //noncircular
-    T &flatAt(int idx) { return Base::operator[](idx); }
-    const T &flatAt(int idx) const { return Base::operator[](idx); }
+    reference flatAt(int idx) { return Base::operator[](idx); }
+    const_reference flatAt(int idx) const { return Base::operator[](idx); }
 
     CircularType circular() const { return _circular; }
+    void setCircular(CircularType circular) { _circular = circular; }
 
     //returns the size for iteration where at each iteration we access elements i, i+1, ..., i+offset
     int endIdx(int offset) const { return _circular ? (int)Base::size() : std::max(0, (int)size() - offset); }
+
+    class Circulator
+    {
+    public:
+        Circulator(const VectorC<T> *ptr, int idx) : _ptr(ptr), _idx(idx), _startIdx(idx) {}
+
+        const_reference operator*() const { return (*_ptr)[_idx]; }
+        bool operator==(const Circulator &other) const { return _ptr == other._ptr && _ptr->toLinearIdx(_idx) == _ptr->toLinearIdx(other._idx); }
+        bool operator!=(const Circulator &other) const { return !(*this == other); }
+
+        Circulator &operator++() { ++_idx; return *this; }
+        Circulator &operator--() { --_idx; return *this; }
+        Circulator &operator+=(int x) { _idx += x; return *this; }
+        Circulator &operator-=(int x) { _idx -= x; return *this; }
+        Circulator operator+(int x) const { return Circulator(_ptr, _idx + x, _startIdx); }
+        Circulator operator-(int x) const { return Circulator(_ptr, _idx - x, _startIdx); }
+
+        bool done() const { if(_ptr->circular()) return abs(_idx - _startIdx) >= (int)_ptr->size(); else return _idx < 0 || _idx >= (int)_ptr->size(); }
+        int index() const { return _ptr->toLinearIdx(_idx); }
+
+    private:
+        Circulator(const VectorC<T> *ptr, int idx, int startIdx) : _ptr(ptr), _idx(idx), _startIdx(_startIdx) {}
+
+        const VectorC<T> *_ptr;
+        int _idx;
+        int _startIdx;
+    };
+
+    Circulator begin() const { return Circulator(this, 0); }
+    Circulator circulator(int idx) const { return Circulator(this, toLinearIdx(idx)); }
 
 private:
     int toLinearIdx(int idx) const
     {
         if(!_circular)
             return idx;
-        int out = idx % size();
+        int out = idx % (int)size();
         if(out >= 0)
             return out;
         return out + size();

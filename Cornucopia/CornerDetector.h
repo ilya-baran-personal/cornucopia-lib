@@ -24,13 +24,14 @@
 
 #include "defs.h"
 #include "Algorithm.h"
+#include "VectorC.h"
 
 NAMESPACE_Cornu
 
 template<>
 struct AlgorithmOutput<CORNER_DETECTION> : public AlgorithmOutputBase
 {
-    std::vector<bool> corners;
+    VectorC<bool> corners;
 };
 
 template<>

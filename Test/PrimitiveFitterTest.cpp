@@ -36,7 +36,7 @@ class PrimitiveFitterTest : public TestCase
 {
 public:
     //override
-    std::string name() { return "APrimitiveFitterTest"; }
+    std::string name() { return "PrimitiveFitterTest"; }
 
     //override
     void run()
