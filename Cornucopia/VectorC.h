@@ -52,8 +52,8 @@ class VectorC : public std::vector<T, Alloc>
 public:
     typedef std::vector<T, Alloc> Base;
 
-    using Base::reference;
-    using Base::const_reference;
+    typedef typename Base::reference reference;
+    typedef typename Base::const_reference const_reference;
     using Base::size;
 
     VectorC() : _circular(NOT_CIRCULAR) {}
