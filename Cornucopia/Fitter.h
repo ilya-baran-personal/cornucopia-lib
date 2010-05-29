@@ -49,6 +49,8 @@ public:
 
     void run();
 
+    CurveConstPtr finalOutput() const;
+
     double scaledParameter(Parameters::ParameterType param) const;
 
 private:

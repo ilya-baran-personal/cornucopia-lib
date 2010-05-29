@@ -64,6 +64,10 @@ double Fitter::scaledParameter(Parameters::ParameterType param) const
     return _params.get(param) * output<SCALE_DETECTION>()->scale * _params.get(Parameters::PIXEL_SIZE);
 }
 
+CurveConstPtr Fitter::finalOutput() const
+{
+    return output<CURVE_CLOSING>()->output; //TODO
+}
 
 END_NAMESPACE_Cornu
 

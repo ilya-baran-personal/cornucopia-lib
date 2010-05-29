@@ -23,9 +23,13 @@
 #define DOCUMENT_H_INCLUDED
 
 #include "defs.h"
+#include "Parameters.h"
 #include <vector>
 
 #include <QObject>
+
+class QDataStream;
+class QTextStream;
 
 namespace Cornu
 {
@@ -43,11 +47,29 @@ public:
 
 public slots:
     void refitLast();
+    void clearAll();
+    void open();
+    void insert();
+    void save();
 
 private:
-    std::vector<Cornu::PolylineConstPtr> _sketches;
+    struct Sketch
+    {
+        Cornu::PolylineConstPtr pts;
+        QString name;
+        Cornu::Parameters params;
+    };
 
+    bool _readFile(const QString &message, bool clear); //returns true on success
+    Cornu::PolylineConstPtr _readPts(QDataStream &stream);
+    void _writePts(QDataStream &stream, Cornu::PolylineConstPtr curve);
+    std::vector<Sketch> _readNative(QTextStream &stream);
+    void _writeNative(QTextStream &stream);
+    QString _getNextSketchName();
+
+    std::vector<Sketch> _sketches;
     MainView *_view;
+    int _sketchIdx;
 };
 
 #endif //DOCUMENT_H_INCLUDED

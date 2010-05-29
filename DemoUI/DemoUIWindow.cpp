@@ -58,6 +58,26 @@ DemoUIWindow::DemoUIWindow()
     viewMenu->addAction(resetView);
     connect(resetView, SIGNAL(triggered()), mainView, SLOT(resetView()));
 
+    QAction *fileNew = new QAction("&New", this);
+    fileNew->setShortcut(QKeySequence("Ctrl+N"));
+    fileMenu->addAction(fileNew);
+    connect(fileNew, SIGNAL(triggered()), mainView->document(), SLOT(clearAll()));
+
+    QAction *fileOpen = new QAction("&Open...", this);
+    fileOpen->setShortcut(QKeySequence("Ctrl+O"));
+    fileMenu->addAction(fileOpen);
+    connect(fileOpen, SIGNAL(triggered()), mainView->document(), SLOT(open()));
+
+    QAction *fileInsert = new QAction("&Insert...", this);
+    fileInsert->setShortcut(QKeySequence("Ctrl+I"));
+    fileMenu->addAction(fileInsert);
+    connect(fileInsert, SIGNAL(triggered()), mainView->document(), SLOT(insert()));
+
+    QAction *fileSave = new QAction("&Save...", this);
+    fileSave->setShortcut(QKeySequence("Ctrl+S"));
+    fileMenu->addAction(fileSave);
+    connect(fileSave, SIGNAL(triggered()), mainView->document(), SLOT(save()));
+
     //Initialize the debugging window
     _debugWindow = new QMainWindow();
     Ui::DebugWindow debugWindowUi;
