@@ -20,6 +20,7 @@
 */
 
 #include "DemoUIWindow.h"
+#include "ui_DemoUIWindow.h"
 #include "ui_DebugWindow.h"
 #include "DebuggingImpl.h"
 #include "ParamWidget.h"
@@ -37,46 +38,16 @@ using namespace Eigen;
 
 DemoUIWindow::DemoUIWindow()
 {
-    QMenu *fileMenu = menuBar()->addMenu("&File");
-    QMenu *viewMenu = menuBar()->addMenu("&View");
-
-    QAction *quit = new QAction("&Quit", this);
-    quit->setShortcut(QKeySequence("Ctrl+Q"));
-    fileMenu->addAction(quit);
-    connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
-
     //Initialize the main window
+    Ui::DemoUIWindow ui;
+    ui.setupUi(this);
+
     ParamWidget *paramWidget = new ParamWidget(this);
     MainView *mainView = new MainView(this, paramWidget);
     setCentralWidget(mainView);
     addDockWidget(Qt::RightDockWidgetArea, paramWidget);
-
+    
     connect(paramWidget, SIGNAL(rerunClicked()), mainView->document(), SLOT(refitLast()));
-
-    QAction *resetView = new QAction("&Reset view", this);
-    resetView->setShortcut(QKeySequence("Ctrl+R"));
-    viewMenu->addAction(resetView);
-    connect(resetView, SIGNAL(triggered()), mainView, SLOT(resetView()));
-
-    QAction *fileNew = new QAction("&New", this);
-    fileNew->setShortcut(QKeySequence("Ctrl+N"));
-    fileMenu->addAction(fileNew);
-    connect(fileNew, SIGNAL(triggered()), mainView->document(), SLOT(clearAll()));
-
-    QAction *fileOpen = new QAction("&Open...", this);
-    fileOpen->setShortcut(QKeySequence("Ctrl+O"));
-    fileMenu->addAction(fileOpen);
-    connect(fileOpen, SIGNAL(triggered()), mainView->document(), SLOT(open()));
-
-    QAction *fileInsert = new QAction("&Insert...", this);
-    fileInsert->setShortcut(QKeySequence("Ctrl+I"));
-    fileMenu->addAction(fileInsert);
-    connect(fileInsert, SIGNAL(triggered()), mainView->document(), SLOT(insert()));
-
-    QAction *fileSave = new QAction("&Save...", this);
-    fileSave->setShortcut(QKeySequence("Ctrl+S"));
-    fileMenu->addAction(fileSave);
-    connect(fileSave, SIGNAL(triggered()), mainView->document(), SLOT(save()));
 
     //Initialize the debugging window
     _debugWindow = new QMainWindow();
@@ -85,10 +56,15 @@ DemoUIWindow::DemoUIWindow()
 
     connect(debugWindowUi.actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
 
-    QAction *showDebugWindow = new QAction("Show &debug window", this);
-    viewMenu->addAction(showDebugWindow);
+    //menus
+    connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(ui.action_Reset_View, SIGNAL(triggered()), mainView, SLOT(resetView()));
+    connect(ui.action_New, SIGNAL(triggered()), mainView->document(), SLOT(clearAll()));
+    connect(ui.actionOpen, SIGNAL(triggered()), mainView->document(), SLOT(open()));
+    connect(ui.actionInsert, SIGNAL(triggered()), mainView->document(), SLOT(insert()));
+    connect(ui.actionSave, SIGNAL(triggered()), mainView->document(), SLOT(save()));
+    connect(ui.actionShow_Debug_Window, SIGNAL(triggered()), _debugWindow, SLOT(show()));
 
-    connect(showDebugWindow, SIGNAL(triggered()), _debugWindow, SLOT(show()));
     connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
 
     ScrollScene *scene = debugWindowUi.debugView->scene(); //the ScrollView created it
