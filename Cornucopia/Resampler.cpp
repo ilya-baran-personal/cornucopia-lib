@@ -29,6 +29,7 @@
 
 #include <iterator>
 #include <map>
+#include <cstdio>
 
 using namespace std;
 using namespace Eigen;
