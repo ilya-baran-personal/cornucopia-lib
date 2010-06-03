@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.h  
+    DebugWindow.cpp  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,24 +19,36 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DEMOUIWINDOW_H_INCLUDED
-#define DEMOUIWINDOW_H_INCLUDED
+#include "DebugWindow.h"
+#include "ui_DebugWindow.h"
+#include "DebuggingImpl.h"
+#include "ScrollScene.h"
 
-#include "defs.h"
+using namespace std;
+using namespace Eigen;
 
-#include <QMainWindow>
-
-class DebugWindow;
-
-class DemoUIWindow : public QMainWindow
+DebugWindow::DebugWindow()
 {
-    Q_OBJECT
-public:
-    DemoUIWindow();
-    ~DemoUIWindow();
+    Ui::DebugWindow debugWindowUi;
+    debugWindowUi.setupUi(this);
 
-private:
-    DebugWindow *_debugWindow;
-};
+    connect(debugWindowUi.actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
 
-#endif //DEMOUIWINDOW_H_INCLUDED
+    connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
+
+    _scene = debugWindowUi.debugView->scene(); //the ScrollView created it
+    debugWindowUi.groupSelWidget->setScene(_scene);
+}
+
+void DebugWindow::showEvent(QShowEvent *)
+{
+    DebuggingImpl::get()->setScene(_scene);
+}
+
+void DebugWindow::hideEvent(QHideEvent *)
+{
+    _scene->clearGroups("");
+    DebuggingImpl::get()->setScene(NULL);
+}
+
+#include "DebugWindow.moc"

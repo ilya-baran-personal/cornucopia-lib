@@ -22,6 +22,7 @@
 #include "Fitter.h"
 #include "Preprocessing.h"
 #include "Polyline.h"
+#include "Resampler.h"
 
 using namespace std;
 using namespace Eigen;
@@ -41,7 +42,7 @@ void Fitter::run()
             std::string stageName = AlgorithmBase::get((AlgorithmStage)i, 0)->stageName();
             Debugging::get()->startTiming(stageName);
             _runStage((AlgorithmStage)i);
-            if(Debugging::get()->getTimeElapsed(stageName) > 0.01) //only print significant times
+            if(Debugging::get()->getTimeElapsed(stageName) > 0.001) //only print significant times
                 Debugging::get()->elapsedTime(stageName);
         }
     }
@@ -66,7 +67,7 @@ double Fitter::scaledParameter(Parameters::ParameterType param) const
 
 CurveConstPtr Fitter::finalOutput() const
 {
-    return output<CURVE_CLOSING>()->output; //TODO
+    return output<RESAMPLING>()->output; //TODO
 }
 
 END_NAMESPACE_Cornu

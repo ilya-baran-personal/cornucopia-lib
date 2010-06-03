@@ -62,7 +62,7 @@ private:
 
     ScrollScene *_scene;
 
-    QHash<QString, int> _startTimes; 
+    QHash<QString, int> _startTimes;
 };
 
 #endif //DEBUGGINGIMPL_H_INCLUDED

@@ -148,9 +148,9 @@ void ClothoidFitter::addPoint(const Vector2d &pt)
 
     double angle = atan2(pt[1] - prevPt[1], pt[0] - prevPt[0]);
     if(angle < _prevAngle) //make sure it's not far from the previous angle
-        angle += 2. * PI * int(0.5 + (_prevAngle - angle) / (2. * PI));
+        angle += TWOPI * int(0.5 + (_prevAngle - angle) / TWOPI);
     else
-        angle -= 2. * PI * int(0.5 + (angle - _prevAngle) / (2. * PI));
+        angle -= TWOPI * int(0.5 + (angle - _prevAngle) / TWOPI);
     _prevAngle = angle;
 
     double x0 = _totalLength;

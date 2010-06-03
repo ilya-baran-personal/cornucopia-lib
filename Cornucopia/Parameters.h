@@ -51,9 +51,13 @@ public:
         CLOSEDNESS_THRESHOLD,
         MINIMUM_CORNER_SPACING,
         CORNER_NEIGHBORHOOD,
-        CORNER_SAMPLING_STEP,
+        DENSE_SAMPLING_STEP,
         CORNER_SCALES,
-        CORNER_THRESHOLD
+        CORNER_THRESHOLD,
+        MAX_SAMPLING_INTERVAL,
+        CURVATURE_ESTIMATE_REGION,
+        POINTS_PER_CIRCLE,
+        MAX_SAMPLE_RATE_SLOPE
     };
 
     Parameters(const std::string &name = std::string());

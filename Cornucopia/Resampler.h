@@ -1,5 +1,5 @@
 /*--
-    DemoUIWindow.h  
+    Resampler.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,24 +19,36 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DEMOUIWINDOW_H_INCLUDED
-#define DEMOUIWINDOW_H_INCLUDED
+#ifndef RESAMPLER_H_INCLUDED
+#define RESAMPLER_H_INCLUDED
 
 #include "defs.h"
+#include "Algorithm.h"
+#include "VectorC.h"
 
-#include <QMainWindow>
+NAMESPACE_Cornu
 
-class DebugWindow;
+SMART_FORW_DECL(Polyline);
 
-class DemoUIWindow : public QMainWindow
+template<>
+struct AlgorithmOutput<RESAMPLING> : public AlgorithmOutputBase
 {
-    Q_OBJECT
-public:
-    DemoUIWindow();
-    ~DemoUIWindow();
-
-private:
-    DebugWindow *_debugWindow;
+    VectorC<bool> corners;
+    PolylineConstPtr output;
 };
 
-#endif //DEMOUIWINDOW_H_INCLUDED
+template<>
+class Algorithm<RESAMPLING> : public AlgorithmBaseTemplate<RESAMPLING>
+{
+public:
+    //override
+    std::string stageName() const { return "Resampler"; }
+
+private:
+    friend class AlgorithmBase;
+    static void _initialize();
+};
+
+END_NAMESPACE_Cornu
+
+#endif //RESAMPLER_H_INCLUDED

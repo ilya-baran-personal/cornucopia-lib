@@ -21,11 +21,10 @@
 
 #include "DemoUIWindow.h"
 #include "ui_DemoUIWindow.h"
-#include "ui_DebugWindow.h"
-#include "DebuggingImpl.h"
 #include "ParamWidget.h"
 #include "MainView.h"
 #include "Document.h"
+#include "DebugWindow.h"
 
 #include "libTest.h"
 
@@ -49,12 +48,7 @@ DemoUIWindow::DemoUIWindow()
     
     connect(paramWidget, SIGNAL(rerunClicked()), mainView->document(), SLOT(refitLast()));
 
-    //Initialize the debugging window
-    _debugWindow = new QMainWindow();
-    Ui::DebugWindow debugWindowUi;
-    debugWindowUi.setupUi(_debugWindow);
-
-    connect(debugWindowUi.actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    _debugWindow = new DebugWindow();
 
     //menus
     connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
@@ -64,12 +58,6 @@ DemoUIWindow::DemoUIWindow()
     connect(ui.actionInsert, SIGNAL(triggered()), mainView->document(), SLOT(insert()));
     connect(ui.actionSave, SIGNAL(triggered()), mainView->document(), SLOT(save()));
     connect(ui.actionShow_Debug_Window, SIGNAL(triggered()), _debugWindow, SLOT(show()));
-
-    connect(DebuggingImpl::get(), SIGNAL(print(QString)), debugWindowUi.debugText, SLOT(appendPlainText(QString)));
-
-    ScrollScene *scene = debugWindowUi.debugView->scene(); //the ScrollView created it
-    DebuggingImpl::get()->setScene(scene);
-    debugWindowUi.groupSelWidget->setScene(scene);
 
     _debugWindow->show();
 

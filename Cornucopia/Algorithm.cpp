@@ -23,6 +23,7 @@
 #include "Preprocessing.h"
 #include "CornerDetector.h"
 #include "Debugging.h"
+#include "Resampler.h"
 
 using namespace std;
 using namespace Eigen;
@@ -55,6 +56,7 @@ void AlgorithmBase::_initialize()
     Algorithm<SCALE_DETECTION>::_initialize();
     Algorithm<CURVE_CLOSING>::_initialize();
     Algorithm<CORNER_DETECTION>::_initialize();
+    Algorithm<RESAMPLING>::_initialize();
 
     _initializationFinished = true;
 }

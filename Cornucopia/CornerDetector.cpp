@@ -107,7 +107,7 @@ protected:
 
     double cornerScore(const Fitter &fitter, PolylineConstPtr cornerPoly, double cornerParam)
     {
-        double step = fitter.scaledParameter(Parameters::CORNER_SAMPLING_STEP);
+        double step = fitter.scaledParameter(Parameters::DENSE_SAMPLING_STEP);
 
         VectorC<Vector2d> resampled(0, NOT_CIRCULAR);
 

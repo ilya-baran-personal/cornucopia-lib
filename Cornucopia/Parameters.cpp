@@ -59,9 +59,13 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness threshold", 15.));
     _parameters.push_back(Parameter(MINIMUM_CORNER_SPACING, "Min corner spacing", 5.));
     _parameters.push_back(Parameter(CORNER_NEIGHBORHOOD, "Corner neighborhood", 15.));
-    _parameters.push_back(Parameter(CORNER_SAMPLING_STEP, "Corner sampling step", 1.));
+    _parameters.push_back(Parameter(DENSE_SAMPLING_STEP, "Dense sampling step", 1.));
     _parameters.push_back(Parameter(CORNER_SCALES, "Num corner scales (int)", 5.));
     _parameters.push_back(Parameter(CORNER_THRESHOLD, "Corner angle threshold", PI * 0.25));
+    _parameters.push_back(Parameter(MAX_SAMPLING_INTERVAL, "Maximum sampling interval", 50.));
+    _parameters.push_back(Parameter(CURVATURE_ESTIMATE_REGION, "Curvature estimate region", 20.));
+    _parameters.push_back(Parameter(POINTS_PER_CIRCLE, "Points per circle", 15.));
+    _parameters.push_back(Parameter(MAX_SAMPLE_RATE_SLOPE, "Max sample rate slope", 0.4));
 }
 
 void Parameters::_initializePresets()
