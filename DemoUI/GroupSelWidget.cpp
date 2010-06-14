@@ -65,9 +65,9 @@ void GroupSelWidget::sceneChanged()
     QList<QString> groups = groupSet.toList();
     qSort(groups);
 
-    QList<QWidget *> children = findChildren<QWidget *>();
-    for(int i = 0; i < (int)children.size(); ++i)
-        delete children[i];
+    for(int i = 0; i < (int)_checkBoxes.size(); ++i)
+        delete _checkBoxes[i];
+    _checkBoxes.clear();
 
     int childWidth = 0;
     for(int i = 0; i < (int)groups.size(); ++i) {
@@ -79,6 +79,7 @@ void GroupSelWidget::sceneChanged()
         new VisibilitySetter(box, _scene, groups[i]);
         layout()->addWidget(box);
         childWidth = max(childWidth, box->sizeHint().width());
+        _checkBoxes.push_back(box);
     }
 
     setMinimumWidth(150);

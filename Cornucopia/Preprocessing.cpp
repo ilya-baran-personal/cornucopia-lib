@@ -26,7 +26,7 @@
 #include "Line.h"
 #include <iostream>
 
-#include "Eigen/Geometry"
+#include <Eigen/Geometry>
 
 using namespace std;
 using namespace Eigen;
@@ -80,6 +80,117 @@ void Algorithm<SCALE_DETECTION>::_initialize()
     new NoScaleDetector();
 };
 
+//========================Preliminary Resampling=============================
+
+class DefaultPrelimResampling : public Algorithm<PRELIM_RESAMPLING>
+{
+public:
+    string name() const { return "Default"; }
+
+protected:
+    void _run(const Fitter &fitter, AlgorithmOutput<PRELIM_RESAMPLING> &out)
+    {
+        const VectorC<Vector2d> &pts = fitter.originalSketch()->pts();
+        VectorC<Vector2d> outPts(0, NOT_CIRCULAR);
+
+        const double radius = fitter.scaledParameter(Parameters::MIN_PRELIM_LENGTH);
+
+        vector<bool> keep = _markDouglasPeucker(pts, fitter.scaledParameter(Parameters::DP_CUTOFF));
+
+        outPts.push_back(pts[0]);
+        for(int idx = 1; idx < pts.size(); ++idx)
+        {
+            Vector2d curResampled = outPts.back();
+            Vector2d curPt = pts[idx];
+
+            double distSqToCur = (curPt - curResampled).squaredNorm();
+
+            if(idx + 1 == pts.size() || keep[idx])
+            {
+                if(distSqToCur > 1e-16)
+                    outPts.push_back(curPt);
+                continue;
+            }
+
+            if(distSqToCur < SQR(radius))
+                continue;
+
+            Vector2d prevPt = pts[idx - 1];
+            
+            ParametrizedLine<double, 2> line = ParametrizedLine<double, 2>::Through(prevPt, curPt);
+
+            Vector2d closestOnLine = line.projection(curResampled);
+            double distSqToLine = (curResampled - closestOnLine).squaredNorm();
+            if(distSqToLine < 1e-16)
+            {
+                outPts.push_back(curPt);
+                continue;
+            }
+            double y = sqrt(max(0., radius * radius - distSqToLine));
+            Vector2d newPt = closestOnLine + y * line.direction(); //y is positive, so this will find the correct point
+
+            outPts.push_back(newPt);
+            --idx;
+        }
+
+        out.output = new Polyline(outPts);
+        for(int i = 0; i < (int)outPts.size(); ++i)
+            Debugging::get()->drawPoint(outPts[i], Vector3d(0, 0, 1), "Prelim resampled");
+        Debugging::get()->drawCurve(out.output, Vector3d(0, 0, 1), "Prelim resampled curve");
+    }
+
+private:
+    vector<bool> _markDouglasPeucker(const VectorC<Vector2d> &pts, double cutoff)
+    {
+        vector<bool> out(pts.size(), false);
+        out.front() = out.back() = true;
+
+        _dpHelper(pts, out, cutoff, 0, pts.size());
+        return out;
+    }
+
+    void _dpHelper(const VectorC<Vector2d> &pts, vector<bool> &out, double cutoff, int start, int end)
+    {
+        Line cur(pts[start], pts[end - 1]);
+        double maxDist = cutoff;
+        int mid = -1;
+        for(int i = start; i < end; ++i)
+        {
+            double dist = (pts[i] - cur.pos(cur.project(pts[i]))).norm();
+            if(dist > maxDist)
+            {
+                maxDist = dist;
+                mid = i;
+            }
+        }
+        if(mid < 0)
+            return;
+        out[mid] = true;
+        _dpHelper(pts, out, cutoff, start, mid + 1);
+        _dpHelper(pts, out, cutoff, mid, end);
+    }
+};
+
+class NoPrelimResampling : public Algorithm<PRELIM_RESAMPLING>
+{
+public:
+    string name() const { return "None"; }
+
+protected:
+    void _run(const Fitter &fitter, AlgorithmOutput<PRELIM_RESAMPLING> &out)
+    {
+        out.output = fitter.originalSketch();
+    }
+};
+
+void Algorithm<PRELIM_RESAMPLING>::_initialize()
+{
+    new DefaultPrelimResampling();
+    new NoPrelimResampling();
+}
+
+//========================Curve Closer=============================
+
 class OldCurveCloser : public Algorithm<CURVE_CLOSING>
 {
 public:
@@ -88,11 +199,11 @@ public:
 protected:
     void _run(const Fitter &fitter, AlgorithmOutput<CURVE_CLOSING> &out)
     {
-        out.output = fitter.originalSketch();
+        out.output = fitter.output<PRELIM_RESAMPLING>()->output;
         
         const double tol = fitter.scaledParameter(Parameters::CLOSEDNESS_THRESHOLD);
         const double tolSq = SQR(tol);
-        const VectorC<Vector2d> &pts = fitter.originalSketch()->pts();
+        const VectorC<Vector2d> &pts = fitter.output<PRELIM_RESAMPLING>()->output->pts();
 
         if(pts.size() < 3)
             return; //definitely not closed

@@ -38,6 +38,12 @@ struct AlgorithmOutput<SCALE_DETECTION> : public AlgorithmOutputBase
 };
 
 template<>
+struct AlgorithmOutput<PRELIM_RESAMPLING> : public AlgorithmOutputBase
+{
+    PolylineConstPtr output;
+};
+
+template<>
 struct AlgorithmOutput<CURVE_CLOSING> : public AlgorithmOutputBase
 {
     PolylineConstPtr output;
@@ -49,6 +55,18 @@ class Algorithm<SCALE_DETECTION> : public AlgorithmBaseTemplate<SCALE_DETECTION>
 public:
     //override
     std::string stageName() const { return "Scale Detector"; }
+
+private:
+    friend class AlgorithmBase;
+    static void _initialize();
+};
+
+template<>
+class Algorithm<PRELIM_RESAMPLING> : public AlgorithmBaseTemplate<PRELIM_RESAMPLING>
+{
+public:
+    //override
+    std::string stageName() const { return "Preliminary Resampling"; }
 
 private:
     friend class AlgorithmBase;

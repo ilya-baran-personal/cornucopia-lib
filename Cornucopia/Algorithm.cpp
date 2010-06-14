@@ -24,6 +24,7 @@
 #include "CornerDetector.h"
 #include "Debugging.h"
 #include "Resampler.h"
+#include "PrimitiveFitter.h"
 
 using namespace std;
 using namespace Eigen;
@@ -54,9 +55,11 @@ void AlgorithmBase::_initialize()
         return;
 
     Algorithm<SCALE_DETECTION>::_initialize();
+    Algorithm<PRELIM_RESAMPLING>::_initialize();
     Algorithm<CURVE_CLOSING>::_initialize();
     Algorithm<CORNER_DETECTION>::_initialize();
     Algorithm<RESAMPLING>::_initialize();
+    Algorithm<PRIMITIVE_FITTING>::_initialize();
 
     _initializationFinished = true;
 }

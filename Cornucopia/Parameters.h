@@ -48,6 +48,8 @@ public:
         SMALL_CURVE_PIXELS,
         LARGE_CURVE_PIXELS,
         MAX_RESCALE,
+        MIN_PRELIM_LENGTH,
+        DP_CUTOFF,
         CLOSEDNESS_THRESHOLD,
         MINIMUM_CORNER_SPACING,
         CORNER_NEIGHBORHOOD,
@@ -57,7 +59,8 @@ public:
         MAX_SAMPLING_INTERVAL,
         CURVATURE_ESTIMATE_REGION,
         POINTS_PER_CIRCLE,
-        MAX_SAMPLE_RATE_SLOPE
+        MAX_SAMPLE_RATE_SLOPE,
+        ERROR_THRESHOLD
     };
 
     Parameters(const std::string &name = std::string());

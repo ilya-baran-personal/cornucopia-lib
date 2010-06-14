@@ -20,253 +20,117 @@
 */
 
 #include "PrimitiveFitter.h"
-#include "Line.h"
-#include "Arc.h"
-#include "Clothoid.h"
-#include "Fresnel.h"
-
-#include <Eigen/Eigenvalues>
+#include "Resampler.h"
+#include "Fitter.h"
+#include "Polyline.h"
+#include "PrimitiveFitUtils.h"
 
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
-void LineFitter::addPoint(const Vector2d &pt, double weight)
+class DefaultPrimitiveFitter : public Algorithm<PRIMITIVE_FITTING>
 {
-    ++_numPts;
-    _totWeight += weight;
+public:
+    string name() const { return "Default"; }
 
-    _lastPoint = pt;
-    if(_numPts == 1)
-        _firstPoint = pt;
-
-    _sum += weight * pt;
-    _squaredSum[0] += weight * SQR(pt[0]);
-    _squaredSum[1] += weight * SQR(pt[1]);
-    _crossSum += weight * pt[0] * pt[1];
-}
-
-LinePtr LineFitter::getCurve() const
-{
-    if(_numPts < 2)
-        return LinePtr();
-
-    Matrix2d cov = Matrix2d::Zero();
-    double factor = 1. / double(_totWeight);
-    cov(0, 0) = _squaredSum[0] - SQR(_sum[0]) * factor;
-    cov(1, 1) = _squaredSum[1] - SQR(_sum[1]) * factor;
-    cov(0, 1) = cov(1, 0) = _crossSum - _sum[0] * _sum[1] * factor;
-    cov *= factor;
-
-    SelfAdjointEigenSolver<Matrix2d> eigenSolver(cov);
-
-    Vector2d eigVs = eigenSolver.eigenvalues();
-    int idx = eigVs[0] > eigVs[1] ? 0 : 1;
-    Vector2d dir = eigenSolver.eigenvectors().col(idx).normalized();
-    Vector2d pt = _sum * factor;
-    Vector2d pt0 = pt + ((_firstPoint - pt).dot(dir)) * dir;
-    Vector2d pt1 = pt + ((_lastPoint - pt).dot(dir)) * dir;
-
-    return new Line(pt0, pt1);
-}
-
-void ArcFitter::addPoint(const Vector2d &pt, double weight)
-{
-    _pts.push_back(pt);
-
-    Vector3d pt3(pt[0] - _pts[0][0], pt[1] - _pts[0][1], (pt - _pts[0]).squaredNorm());
-
-    _totWeight += weight;
-    _sum += weight * pt3;
-    _squaredSum += weight * pt3 * pt3.transpose();
-}
-
-ArcPtr ArcFitter::getCurve() const
-{
-    if((int)_pts.size() < 2)
-        return ArcPtr();
-
-    double factor = 1. / _totWeight;
-    Vector3d pt = _sum * factor;
-    Matrix3d cov = factor * _squaredSum - pt * pt.transpose();
-
-    SelfAdjointEigenSolver<Matrix3d> eigenSolver(cov);
-    Vector3d eigVs = eigenSolver.eigenvalues();
-
-    int idx;
-    eigVs.minCoeff(&idx);
-
-    Vector3d dir = eigenSolver.eigenvectors().col(idx);
-    dir /= (1e-16 + dir[2]);
-
-    double dot = dir.dot(pt);
-    //circle equation is:
-    //dir[0] * x + dir[1] * y + (x^2+y^2) = dot
-    Vector2d center = -0.5 * Vector2d(dir[0], dir[1]);
-    double radius = sqrt(1e-16 + dot + center.squaredNorm());
-    center += _pts[0];
-
-    //TODO: convert code to use AngleUtils
-    //Now get the arc
-    Vector2d c[3] = { _pts[0], _pts[_pts.size() / 2], _pts.back() };
-    double angle[3];
-    for(int i = 0; i < 3; ++i) {
-        c[i] = (c[i] - center).normalized() * radius;
-        angle[i] = atan2(c[i][1], c[i][0]);
-    }
-    if(angle[2] < angle[0])
-        angle[2] += PI * 2.;
-    if(angle[1] < angle[0])
-        angle[1] += PI * 2.;
-    if(angle[1] <= angle[2]) { //OK--CCW arc
-        double a = angle[2] - angle[0];
-        return new Arc(c[0] + center, angle[0] + PI * 0.5, a * radius, 1. / radius);
-    }
-    else { //Backwards--CW arc
-        for(int i = 0; i < 3; ++i)
-            angle[i] = atan2(c[i][1], c[i][0]);
-        if(angle[0] <= angle[2])
-            angle[0] += PI * 2.;
-        if(angle[1] < angle[2])
-            angle[1] += PI * 2.;
-        assert(angle[1] <= angle[0]);
-        double a = angle[0] - angle[2];
-        return new Arc(c[0] + center, angle[0] - PI * 0.5, a * radius, -1. / radius);
-    }
-}
-
-void ClothoidFitter::addPoint(const Vector2d &pt)
-{
-    _pts.push_back(pt);
-
-    if((int)_pts.size() < 2)
-        return;
-
-    const Vector2d &prevPt = _pts[_pts.size() - 2];
-    double segmentLength = (pt - prevPt).norm();
-    _centerOfMass += (pt + prevPt) * (0.5 * segmentLength);
-
-    double angle = atan2(pt[1] - prevPt[1], pt[0] - prevPt[0]);
-    if(angle < _prevAngle) //make sure it's not far from the previous angle
-        angle += TWOPI * int(0.5 + (_prevAngle - angle) / TWOPI);
-    else
-        angle -= TWOPI * int(0.5 + (angle - _prevAngle) / TWOPI);
-    _prevAngle = angle;
-
-    double x0 = _totalLength;
-    double x1 = (_totalLength += segmentLength);
-
-    double y = angle;
-    double z = _angleIntegral - y * x0;
-    _rhs += _getRhs(x1, y, z) - _getRhs(x0, y, z);
-
-    _angleIntegral += segmentLength * angle;
-}
-
-ClothoidPtr ClothoidFitter::getCurve() const
-{
-    Matrix4d lhs;
-
-    lhs = _getLhs(_totalLength);
-
-    Vector4d abcd = lhs.inverse() * _rhs;
-    Vector3d abc = Vector3d(abcd[0] * 3, abcd[1] * 2, abcd[2]);
-
-    double startAngle = abc[2];
-    double startCurvature = abc[1];
-    double endCurvature = 2 * abc[0] * _totalLength + abc[1];
-
-    //now compute the center of mass of the clothoid at 0
-    double x, y;
-
-    if(fabs(abc[0]) > 1e-8) //if it's a real clothoid
+protected:
+    void _run(const Fitter &fitter, AlgorithmOutput<PRIMITIVE_FITTING> &out)
     {
-        //The following comes from the expression that Mathematica generates with:
-        //Integrate[Integrate[{Cos[a x^2 + b x + c], Sin[a x^2 + b x + c]}, {x, 0, t}], {t, 0, s}]/s
-        bool negative = false;
-        if(abc[0] < 0)
+        const VectorC<bool> &corners = fitter.output<RESAMPLING>()->corners;
+        PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
+        const VectorC<Vector2d> &pts = poly->pts();
+
+        const double errorThreshold = fitter.scaledParameter(Parameters::ERROR_THRESHOLD);
+
+        for(int i = 0; i < pts.size(); ++i) //iterate over start points
         {
-            negative = true;
-            abc = -abc;
-        }
-        double a = abc[0], b = abc[1], c = abc[2];
-        double s = _totalLength;
+            FitterBasePtr fitters[3];
+            fitters[0] = new LineFitter();
+            fitters[1] = new ArcFitter();
+            fitters[2] = new ClothoidFitter();
+            std::string typeNames[3] = { "Lines", "Arcs", "Clothoids" };
 
-        double invRtApi2 = 1. / sqrt(0.5 * PI * a);
-        
-        double f1s, f2s, f1c, f2c;
-        fresnelApprox(b * invRtApi2 * 0.5, &f1s, &f1c);
-        fresnelApprox((b + 2 * a * s) * invRtApi2 * 0.5, &f2s, &f2c);
+            for(int type = 0; type <= 2; ++type)
+            {
+                int fitSoFar = 0;
 
-        double disc = b * b / (4 * a) - c;
-        double sind = sin(disc), cosd = cos(disc);
+                bool needType = fitter.params().get(Parameters::ParameterType(Parameters::LINE_COST + type)) < Parameters::infinity;
 
-        y = (cos(c + s * (b + a * s)) - cos(c)) / (2. * a);
-        y -= (b + 2 * a * s) * PI * 0.25 * (cosd * (f1s - f2s) + sind * (f2c - f1c)) * invRtApi2 / a;
-        if(negative)
-            y = -y;
+                for(VectorC<Vector2d>::Circulator circ = pts.circulator(i); !circ.done(); ++circ)
+                {
+                    ++fitSoFar;
 
-        x = (sin(c) - sin(c + s * (b + a * s))) / (2. * a);
-        x += (b + 2 * a * s) * PI * 0.25 * (-sind * (f1s - f2s) + cosd * (f2c - f1c)) * invRtApi2 / a;
+                    if(!needType && (type == 2 || fitSoFar >= 3 + type)) //if we don't need primitives of this type
+                        break;
 
-        x /= s;
-        y /= s;
-    }
-    else
-    {
-        double b = abc[1], c = abc[2];
-        double s = _totalLength;
+                    fitters[type]->addPoint(*circ);
+                    if(fitSoFar >= 2 + type) //at least two points per line, etc.
+                    {
+                        CurvePrimitivePtr curve = fitters[type]->getPrimitive();
+                        Vector3d color(0, 0, 0);
+                        color[type] = 1;
+                        Debugging::get()->drawCurve(curve, color, typeNames[type]);
 
-        if(fabs(b) < 1e-8) //line
-        {
-            x = cos(c) * s * 0.5;
-            y = sin(c) * s * 0.5;
-        }
-        else //arc
-        {
-            double c1 = cos(c), s1 = sin(c);
-            double c2 = cos(c + b * s), s2 = sin(c + b * s);
+                        FitPrimitive fit;
+                        fit.curve = curve;
+                        fit.startIdx = i;
+                        fit.endIdx = circ.index();
+                        fit.error = computeError(fitter, curve, i, fit.endIdx);
 
-            x = (c1 - c2) / (b * b * s) - s1 / b;
-            y = (s1 - s2) / (b * b * s) + c1 / b;
+                        double length = poly->lengthFromTo(i, fit.endIdx);
+                        if(fit.error / length > errorThreshold * errorThreshold)
+                            break;
+
+                        out.primitives.push_back(fit);
+
+                        //TODO: different start and end curvatures
+                    }
+                    if(fitSoFar > 1 && corners[circ.index()])
+                        break;
+                }
+            }
         }
     }
 
-    return new Clothoid(Vector2d(_centerOfMass[0] / _totalLength - x, _centerOfMass[1] / _totalLength - y),
-                        startAngle, _totalLength, startCurvature, endCurvature);
-}
-
-Matrix4d ClothoidFitter::_getLhs(double x)
-{
-    double xp[8] = {1, x, 0, 0, 0, 0, 0, 0 }; //powers of totalLength
-    for(int i = 2; i < 8; ++i)
-        xp[i] = xp[i - 1] * x;
-
-    Matrix4d out;
-
-    for(int i = 0; i < 4; ++i) for(int j = 0; j < 4; ++j)
+    double computeError(const Fitter &fitter, CurvePrimitiveConstPtr curve, int from, int to)
     {
-        int p = 7 - i - j;
-        out(i, j) = (2. / double(p)) * xp[p];
+        PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
+        const VectorC<Vector2d> &pts = poly->pts();
+
+        double error = 0;
+
+        bool first = true;
+        for(VectorC<Vector2d>::Circulator circ = pts.circulator(from); ; ++circ)
+        {
+            bool last = circ.index() == to;
+
+            double dist = (curve->pos(curve->project(*circ)) - *circ).squaredNorm();
+
+            VectorC<Vector2d>::Circulator prev = circ;
+            if(!first)
+                --prev;
+
+            VectorC<Vector2d>::Circulator next = circ;
+            if(!last)
+                ++next;
+
+            double weight = poly->lengthFromTo(prev.index(), next.index()) * 0.5;
+
+            error += weight * dist;
+
+            first = false;
+            if(last)
+                break;
+        }
+
+        return error;
     }
+};
 
-    return out;
-}
-
-Vector4d ClothoidFitter::_getRhs(double x, double y, double z)
+void Algorithm<PRIMITIVE_FITTING>::_initialize()
 {
-    double xp[6] = {1, x, 0, 0, 0, 0 }; //powers of totalLength
-    for(int i = 2; i < 6; ++i)
-        xp[i] = xp[i - 1] * x;
-
-    Vector4d out;
-
-    out[0] = (2. / 5.) * y * xp[5] + 0.5 * z * xp[4];
-    out[1] = 0.5 * y * xp[4] + (2. / 3.) * z * xp[3];
-    out[2] = (2. / 3.) * y * xp[3] + z * xp[2];
-    out[3] = y * xp[2] + 2. * z * xp[1];
-
-    return out;
+    new DefaultPrimitiveFitter();
 }
 
 END_NAMESPACE_Cornu

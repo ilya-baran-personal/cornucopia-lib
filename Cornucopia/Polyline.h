@@ -48,6 +48,7 @@ public:
     int paramToIdx(double param, double *outParam = NULL) const;
     double idxToParam(int idx) const { return _lengths[idx]; }
     bool isParamValid(double param) const { return isClosed() || (param >= 0 && param <= _lengths.back()); }
+    double lengthFromTo(int fromIdx, int toIdx) const; //for closed polylines, toIdx can be smaller than fromIdx
 
     //Returns the curve trimmed between the input arguments, if possible, but at most
     //the length of the original curve.  Arguments can be negative and to can be smaller

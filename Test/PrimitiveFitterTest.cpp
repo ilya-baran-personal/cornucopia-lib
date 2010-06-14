@@ -21,7 +21,7 @@
 
 #include "Test.h"
 
-#include "PrimitiveFitter.h"
+#include "PrimitiveFitUtils.h"
 #include "Line.h"
 #include "Arc.h"
 #include "Clothoid.h"

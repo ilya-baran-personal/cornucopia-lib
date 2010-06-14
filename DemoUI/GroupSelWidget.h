@@ -44,8 +44,10 @@ private slots:
 private:
     ScrollScene *_scene;
     QSet<QString> _prevGroupSet;
+    QList<QCheckBox *> _checkBoxes;
 };
 
+//Essentially binds a group to a signal-slot call
 class VisibilitySetter : public QObject
 {
     Q_OBJECT

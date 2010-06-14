@@ -24,7 +24,7 @@
 #include "Preprocessing.h"
 #include "Polyline.h"
 #include "CornerDetector.h"
-#include "PrimitiveFitter.h"
+#include "PrimitiveFitUtils.h"
 #include "Arc.h"
 
 #include <iterator>

@@ -56,6 +56,8 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(SMALL_CURVE_PIXELS, "Small curve pixels", 200.));
     _parameters.push_back(Parameter(LARGE_CURVE_PIXELS, "Large curve pixels", 500.));
     _parameters.push_back(Parameter(MAX_RESCALE, "Max rescale", 2.));
+    _parameters.push_back(Parameter(MIN_PRELIM_LENGTH, "Min prelim length", 2.));
+    _parameters.push_back(Parameter(DP_CUTOFF, "Douglas-Peucker cutoff", 3.));
     _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness threshold", 15.));
     _parameters.push_back(Parameter(MINIMUM_CORNER_SPACING, "Min corner spacing", 5.));
     _parameters.push_back(Parameter(CORNER_NEIGHBORHOOD, "Corner neighborhood", 15.));
@@ -66,6 +68,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(CURVATURE_ESTIMATE_REGION, "Curvature estimate region", 20.));
     _parameters.push_back(Parameter(POINTS_PER_CIRCLE, "Points per circle", 15.));
     _parameters.push_back(Parameter(MAX_SAMPLE_RATE_SLOPE, "Max sample rate slope", 0.4));
+    _parameters.push_back(Parameter(ERROR_THRESHOLD, "Error Threshold", 5.));
 }
 
 void Parameters::_initializePresets()

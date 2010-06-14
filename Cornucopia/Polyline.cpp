@@ -90,6 +90,14 @@ double Polyline::project(const Vector2d &point) const
     return bestS;
 }
 
+double Polyline::lengthFromTo(int fromIdx, int toIdx) const
+{
+    double out = _lengths[toIdx] - _lengths[fromIdx];
+    if(toIdx < fromIdx)
+        out += _lengths.back();
+    return out;
+}
+
 PolylinePtr Polyline::trimmed(double from, double to) const
 {
     double len = length();
