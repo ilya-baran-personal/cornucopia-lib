@@ -133,6 +133,9 @@ public:
             double dist = (pts[i] - fit->pos(fit->project(pts[i]))).norm();
             CORNU_ASSERT_LT_MSG(dist, jiggle * sqrt(8.) * 2., "Point " << i << " too far");
         }
+
+        ClothoidPtr fitZero = fitter.getCurveWithZeroCurvature(fit->length() * 0.5);
+        CORNU_ASSERT_LT_MSG(fabs(fitZero->curvature(fit->length() * 0.5)), 1e-10, "Curvature not zero where expected");
     }
 };
 

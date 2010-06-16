@@ -68,7 +68,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(CURVATURE_ESTIMATE_REGION, "Curvature estimate region", 20.));
     _parameters.push_back(Parameter(POINTS_PER_CIRCLE, "Points per circle", 15.));
     _parameters.push_back(Parameter(MAX_SAMPLE_RATE_SLOPE, "Max sample rate slope", 0.4));
-    _parameters.push_back(Parameter(ERROR_THRESHOLD, "Error Threshold", 5.));
+    _parameters.push_back(Parameter(ERROR_THRESHOLD, "Error Threshold", 3.));
 }
 
 void Parameters::_initializePresets()

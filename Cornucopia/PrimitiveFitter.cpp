@@ -52,7 +52,7 @@ protected:
             fitters[1] = new ArcFitter();
             fitters[2] = new ClothoidFitter();
 
-            for(int type = 0; type <= 2; ++type)
+            for(int type = 0; type <= 2; ++type) //iterate over lines, arcs, clothoids
             {
                 int fitSoFar = 0;
 
