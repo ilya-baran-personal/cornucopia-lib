@@ -171,6 +171,29 @@ ClothoidPtr ClothoidFitter::getCurve() const
     lhs = _getLhs(_totalLength);
 
     Vector4d abcd = lhs.inverse() * _rhs;
+    return getClothoidWithParams(abcd);
+}
+
+ClothoidPtr ClothoidFitter::getCurveWithZeroCurvature(double param) const
+{
+    Matrix<double, 5, 5> lhs;
+    Matrix<double, 5, 1> rhs;
+
+    Vector4d constraint;
+    constraint << 6, 2, 0, 0; // second derivative of ax^3+bx^2+cx+d
+
+    //For constrained least squares,
+    //lhs is now [A^T A    C]
+    //           [ C^T     0]
+    lhs << _getLhs(_totalLength), constraint, constraint.transpose(), 0;
+    rhs << _rhs, 0;
+
+    Vector4d abcd = (lhs.inverse() * rhs).head<4>();
+    return getClothoidWithParams(abcd);
+}
+
+ClothoidPtr ClothoidFitter::getClothoidWithParams(const Eigen::Vector4d &abcd) const
+{
     Vector3d abc = Vector3d(abcd[0] * 3, abcd[1] * 2, abcd[2]);
 
     double startAngle = abc[2];

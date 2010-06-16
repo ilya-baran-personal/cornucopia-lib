@@ -42,6 +42,8 @@ protected:
         const VectorC<Vector2d> &pts = poly->pts();
 
         const double errorThreshold = fitter.scaledParameter(Parameters::ERROR_THRESHOLD);
+        std::string typeNames[3] = { "Lines", "Arcs", "Clothoids" };
+        bool inflectionAccounting = fitter.params().get(Parameters::INFLECTION_COST) > 0.;
 
         for(int i = 0; i < pts.size(); ++i) //iterate over start points
         {
@@ -49,7 +51,6 @@ protected:
             fitters[0] = new LineFitter();
             fitters[1] = new ArcFitter();
             fitters[2] = new ClothoidFitter();
-            std::string typeNames[3] = { "Lines", "Arcs", "Clothoids" };
 
             for(int type = 0; type <= 2; ++type)
             {
@@ -70,21 +71,58 @@ protected:
                         CurvePrimitivePtr curve = fitters[type]->getPrimitive();
                         Vector3d color(0, 0, 0);
                         color[type] = 1;
-                        Debugging::get()->drawCurve(curve, color, typeNames[type]);
 
                         FitPrimitive fit;
                         fit.curve = curve;
                         fit.startIdx = i;
                         fit.endIdx = circ.index();
                         fit.error = computeError(fitter, curve, i, fit.endIdx);
+                        fit.startCurvSign = (curve->startCurvature() >= 0) ? 1 : -1;
+                        fit.endCurvSign = (curve->endCurvature() >= 0) ? 1 : -1;
 
                         double length = poly->lengthFromTo(i, fit.endIdx);
                         if(fit.error / length > errorThreshold * errorThreshold)
                             break;
 
+                        Debugging::get()->drawCurve(curve, color, typeNames[type]);
                         out.primitives.push_back(fit);
 
-                        //TODO: different start and end curvatures
+                        if(type == 0 && inflectionAccounting) //line with "opposite" curvature
+                        {
+                            fit.startCurvSign = -fit.startCurvSign;
+                            fit.endCurvSign = -fit.endCurvSign;
+                            out.primitives.push_back(fit);
+                        }
+
+                        //if different start and end curvatures
+                        if(fit.startCurvSign != fit.endCurvSign && inflectionAccounting)
+                        {
+                            double start = poly->idxToParam(i);
+                            double end = poly->idxToParam(fit.endIdx);
+                            CurvePrimitivePtr startNoCurv = static_pointer_cast<ClothoidFitter>(fitters[2])->getCurveWithZeroCurvature(start);
+                            CurvePrimitivePtr endNoCurv = static_pointer_cast<ClothoidFitter>(fitters[2])->getCurveWithZeroCurvature(end);
+
+                            fit.curve = startNoCurv;
+                            fit.startCurvSign = fit.endCurvSign;
+                            fit.error = computeError(fitter, fit.curve, i, fit.endIdx);
+
+                            if(fit.error / length < errorThreshold * errorThreshold)
+                            {
+                                out.primitives.push_back(fit);
+                                Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
+                            }
+
+                            fit.curve = endNoCurv;
+                            fit.startCurvSign = -fit.startCurvSign;
+                            fit.endCurvSign = -fit.endCurvSign;
+                            fit.error = computeError(fitter, fit.curve, i, fit.endIdx);
+
+                            if(fit.error / length < errorThreshold * errorThreshold)
+                            {
+                                out.primitives.push_back(fit);
+                                Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
+                            }
+                        }
                     }
                     if(fitSoFar > 1 && corners[circ.index()])
                         break;

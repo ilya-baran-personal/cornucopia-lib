@@ -83,7 +83,7 @@ CurveSceneItem::CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen p
     }
     else
     {
-        for(double s = 0; s < curve->length(); s += 2.) //walk two pixels
+        for(double s = 0; s < curve->length(); s += 10.) //skip pixels
         {
              pt = curve->pos(s);
             _curveTess.push_back(QPointF(pt[0], pt[1]));

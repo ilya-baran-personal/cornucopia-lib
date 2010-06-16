@@ -35,6 +35,8 @@ struct FitPrimitive
     int startIdx;
     int endIdx;
     double error;
+    int startCurvSign;
+    int endCurvSign;
 };
 
 template<>

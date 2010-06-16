@@ -96,6 +96,7 @@ public:
                        _centerOfMass(_centerOfMass.Zero()), _rhs(_rhs.Zero()) {}
 
     ClothoidPtr getCurve() const;
+    ClothoidPtr getCurveWithZeroCurvature(double param) const;
 
     //overrides
     void addPoint(const Eigen::Vector2d &pt);
@@ -104,6 +105,8 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
+    ClothoidPtr getClothoidWithParams(const Eigen::Vector4d &abcd) const;
+
     static Eigen::Matrix4d _getLhs(double x);
     static Eigen::Vector4d _getRhs(double x, double y, double z);
 
