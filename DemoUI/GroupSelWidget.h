@@ -29,6 +29,7 @@
 
 class ScrollScene;
 class QCheckBox;
+class QPushButton;
 
 class GroupSelWidget : public QWidget
 {
@@ -40,11 +41,15 @@ public:
 
 private slots:
     void sceneChanged();
+    void selectAll();
+    void clearAll();
 
 private:
     ScrollScene *_scene;
     QSet<QString> _prevGroupSet;
     QList<QCheckBox *> _checkBoxes;
+    QPushButton *_selectAll;
+    QPushButton *_clearAll;
 };
 
 //Essentially binds a group to a signal-slot call

@@ -24,6 +24,7 @@
 
 #include <QCheckBox>
 #include <QLayout>
+#include <QPushButton>
 
 using namespace std;
 using namespace Eigen;
@@ -40,13 +41,24 @@ void VisibilitySetter::visibilityChanged(int state)
 }
 
 GroupSelWidget::GroupSelWidget(QWidget *parent)
-: QWidget(parent), _scene(NULL)
+    : QWidget(parent), _scene(NULL), _selectAll(NULL), _clearAll(NULL)
 {
 }
 
-
 void GroupSelWidget::setScene(ScrollScene *scene)
 {
+    if(_selectAll == NULL)
+    {
+        _selectAll = new QPushButton("Show All", this);
+        _clearAll = new QPushButton("Hide All", this);
+        _selectAll->setFixedWidth(_selectAll->width());
+        _clearAll->setFixedWidth(_selectAll->width());
+        layout()->addWidget(_selectAll);
+        layout()->addWidget(_clearAll);
+        connect(_selectAll, SIGNAL(pressed()), this, SLOT(selectAll()));
+        connect(_clearAll, SIGNAL(pressed()), this, SLOT(clearAll()));
+    }
+
     if(_scene)
         disconnect(_scene, SIGNAL(sceneChanged()), this, SLOT(sceneChanged()));
     _scene = scene;
@@ -86,6 +98,18 @@ void GroupSelWidget::sceneChanged()
 
     QWidget *scrollArea = parentWidget()->parentWidget()->parentWidget();
     scrollArea->setMinimumWidth(childWidth + 20);
+}
+
+void GroupSelWidget::selectAll()
+{
+    for(int i = 0; i < (int)_checkBoxes.size(); ++i)
+        _checkBoxes[i]->setCheckState(Qt::Checked);
+}
+
+void GroupSelWidget::clearAll()
+{
+    for(int i = 0; i < (int)_checkBoxes.size(); ++i)
+        _checkBoxes[i]->setCheckState(Qt::Unchecked);
 }
 
 #include "GroupSelWidget.moc"
