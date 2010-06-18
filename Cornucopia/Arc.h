@@ -55,6 +55,10 @@ public:
     CurvePrimitivePtr clone() const { ArcPtr out = new Arc(); out->setParams(_params); return out; }
     void derivativeAt(double s, ParamDer &out);
 
+    //arc specific--UNDEFINED if arc is flat
+    Vec center() const { return _center; }
+    double radius() const { return _radius; }
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 protected:
     //override

@@ -66,12 +66,7 @@ public:
 
         for(int i = 0; i < 200; ++i)
         {
-            ClothoidPtr clothoid = new Clothoid(Vector2d(0.5, 1), 0.3, drand(0.01, 3.), drand(-0.1, 0.1), drand(-0.1, 0.1));
-            double from = drand(-2., 2.);
-            double to = drand(-2., 2.);
-            if(from > to)
-                swap(from, to);
-            //ClothoidPtr clothoid = new Clothoid(Vector2d(0.0, 0), 0.0, (to - from) / PI, from, to);
+            ClothoidPtr clothoid = new Clothoid(Vector2d(0.5, 1), 0.3, drand(0.01, 3.), drand(-5.1, 5.1), drand(-5.1, 5.1));
             testProject(clothoid);
         }
 

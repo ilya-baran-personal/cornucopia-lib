@@ -76,6 +76,7 @@ protected:
                         fit.curve = curve;
                         fit.startIdx = i;
                         fit.endIdx = circ.index();
+                        fit.numPts = fitSoFar;
                         fit.error = computeError(fitter, curve, i, fit.endIdx);
                         fit.startCurvSign = (curve->startCurvature() >= 0) ? 1 : -1;
                         fit.endCurvSign = (curve->endCurvature() >= 0) ? 1 : -1;

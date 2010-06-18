@@ -25,6 +25,9 @@
 #include "Debugging.h"
 #include "Resampler.h"
 #include "PrimitiveFitter.h"
+#include "GraphConstructor.h"
+#include "PathFinder.h"
+#include "Combiner.h"
 
 using namespace std;
 using namespace Eigen;
@@ -60,6 +63,9 @@ void AlgorithmBase::_initialize()
     Algorithm<CORNER_DETECTION>::_initialize();
     Algorithm<RESAMPLING>::_initialize();
     Algorithm<PRIMITIVE_FITTING>::_initialize();
+    Algorithm<GRAPH_CONSTRUCTION>::_initialize();
+    Algorithm<PATH_FINDING>::_initialize();
+    Algorithm<COMBINING>::_initialize();
 
     _initializationFinished = true;
 }

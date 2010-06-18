@@ -34,6 +34,7 @@ struct FitPrimitive
     CurvePrimitivePtr curve;
     int startIdx;
     int endIdx;
+    int numPts;
     double error;
     int startCurvSign;
     int endCurvSign;

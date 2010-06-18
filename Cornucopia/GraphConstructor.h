@@ -1,5 +1,5 @@
 /*--
-    AngleUtils.h  
+    GraphConstructor.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,32 +19,51 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ANGLEUTILS_H_INCLUDED
-#define ANGLEUTILS_H_INCLUDED
+#ifndef GRAPHCONSTRUCTOR_H_INCLUDED
+#define GRAPHCONSTRUCTOR_H_INCLUDED
 
 #include "defs.h"
-
-#include <Eigen/Core>
+#include "Algorithm.h"
 
 NAMESPACE_Cornu
 
-/*
-    This class has a bunch of static methods for working with angles
-*/
-class AngleUtils
+struct Vertex
+{
+    int primitiveIdx;
+    bool source;
+    bool target;
+    double cost;
+
+    std::vector<int> edges; //edges that start at this vertex
+};
+
+struct Edge
+{
+    int startVtx;
+    int endVtx;
+    int continuity;
+    double cost; //includes the half the cost of the vertex behind and the vertex in front (full cost for source and target vertices).
+};
+
+template<>
+struct AlgorithmOutput<GRAPH_CONSTRUCTION> : public AlgorithmOutputBase
+{
+    std::vector<Vertex> vertices;
+    std::vector<Edge> edges;
+};
+
+template<>
+class Algorithm<GRAPH_CONSTRUCTION> : public AlgorithmBaseTemplate<GRAPH_CONSTRUCTION>
 {
 public:
-    //signed angle from (1, 0) to v
-    static double angle(const Eigen::Vector2d &v) { return atan2(v[1], v[0]); }
-    //signed angle from v1 to v2
-    static double angle(const Eigen::Vector2d &v1, const Eigen::Vector2d &v2) { return atan2(v1[0] * v2[1] - v1[1] * v2[0], v1.dot(v2)); }
+    //override
+    std::string stageName() const { return "Graph Constructor"; }
 
-    //These functions bring an angle into the range [0,2Pi] or [rangeStart, rangeStart+2Pi]
-    //They assume we're not too far on the negative side of the range
-    static double toRange(double angle) { return fmod(angle + 8 * PI, TWOPI); }
-    static double toRange(double angle, double rangeStart) { return fmod(angle + 16 * PI - rangeStart, TWOPI) + rangeStart; }
+private:
+    friend class AlgorithmBase;
+    static void _initialize();
 };
 
 END_NAMESPACE_Cornu
 
-#endif //ANGLEUTILS_H_INCLUDED
+#endif //GRAPHCONSTRUCTOR_H_INCLUDED
