@@ -213,23 +213,23 @@ void Clothoid::flip()
     _paramsChanged();
 }
 
-void Clothoid::derivativeAt(double s, ParamDer &out)
+void Clothoid::derivativeAt(double s, ParamDer &out) const
 {
-    out = ParamDer::Zero(6, 2);
-    out(X, 0) = 1;
-    out(Y, 1) = 1;
+    out = ParamDer::Zero(2, 6);
+    out(0, X) = 1;
+    out(1, Y) = 1;
 
     Vec diff = pos(s) - _startPos();
-    out(ANGLE, 0) = -diff[1];
-    out(ANGLE, 1) = diff[0];
+    out(0, ANGLE) = -diff[1];
+    out(1, ANGLE) = diff[0];
 
     //Now compute derivatives with respect to curvature and the curvature
     //derivative.  These were derived with Mathematica and limits.
     if(_flat)
     {
         Vec nsinCos = Vec(-sin(_params[ANGLE]), cos(_params[ANGLE]));
-        out.row(CURVATURE) = (0.5 * s * s) * nsinCos;
-        out.row(DCURVATURE) = (0.5 / 3. * s * s * s) * nsinCos;
+        out.col(CURVATURE) = (0.5 * s * s) * nsinCos;
+        out.col(DCURVATURE) = (0.5 / 3. * s * s * s) * nsinCos;
     }
     else if(_arc)
     {
@@ -239,10 +239,10 @@ void Clothoid::derivativeAt(double s, ParamDer &out)
         double cosStart = cos(_params[ANGLE]), sinStart = sin(_params[ANGLE]);
         double curvs = curv * s;
         Vec curvDer(curvs * cosCur + sinStart - sinCur, curvs * sinCur + cosCur - cosStart);
-        out.row(CURVATURE) = curvDer / (curv * curv);
+        out.col(CURVATURE) = curvDer / (curv * curv);
         Vec dcurvDer(cosStart + (curvs * curvs * 0.5 - 1.) * cosCur - curvs * sinCur,
             sinStart + (curvs * curvs * 0.5 - 1.) * sinCur + curvs * cosCur);
-        out.row(DCURVATURE) = dcurvDer / (curv * curv * curv);
+        out.col(DCURVATURE) = dcurvDer / (curv * curv * curv);
     }
     else //non-degenerate
     {
@@ -296,7 +296,7 @@ void Clothoid::derivativeAt(double s, ParamDer &out)
         result.col(0) += dmatdc * (cs - startcs);
         result.col(1) += dmatdd * (cs - startcs);
 
-        out.block<2, 2>(CURVATURE, 0) = result.transpose();
+        out.block<2, 2>(0, CURVATURE) = result;
     }
 }
 

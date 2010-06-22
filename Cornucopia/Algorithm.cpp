@@ -24,6 +24,7 @@
 #include "CornerDetector.h"
 #include "Debugging.h"
 #include "Resampler.h"
+#include "ErrorComputer.h"
 #include "PrimitiveFitter.h"
 #include "GraphConstructor.h"
 #include "PathFinder.h"
@@ -62,6 +63,7 @@ void AlgorithmBase::_initialize()
     Algorithm<CURVE_CLOSING>::_initialize();
     Algorithm<CORNER_DETECTION>::_initialize();
     Algorithm<RESAMPLING>::_initialize();
+    Algorithm<ERROR_COMPUTER>::_initialize();
     Algorithm<PRIMITIVE_FITTING>::_initialize();
     Algorithm<GRAPH_CONSTRUCTION>::_initialize();
     Algorithm<PATH_FINDING>::_initialize();

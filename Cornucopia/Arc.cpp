@@ -133,19 +133,19 @@ void Arc::flip()
     _paramsChanged();
 }
 
-void Arc::derivativeAt(double s, ParamDer &out)
+void Arc::derivativeAt(double s, ParamDer &out) const
 {
-    out = ParamDer::Zero(5, 2);
-    out(X, 0) = 1;
-    out(Y, 1) = 1;
+    out = ParamDer::Zero(2, 5);
+    out(0, X) = 1;
+    out(1, Y) = 1;
 
     Vec diff = pos(s) - _startPos();
-    out(ANGLE, 0) = -diff[1];
-    out(ANGLE, 1) = diff[0];
+    out(0, ANGLE) = -diff[1];
+    out(1, ANGLE) = diff[0];
 
     if(_flat)
     {
-        out.row(CURVATURE) = (0.5 * s * s) * Vec(-_tangent[1], _tangent[0]);
+        out.col(CURVATURE) = (0.5 * s * s) * Vec(-_tangent[1], _tangent[0]);
     }
     else
     {
@@ -155,8 +155,8 @@ void Arc::derivativeAt(double s, ParamDer &out)
         cosa = cos(angle);
         sina = sin(angle);
 
-        out(CURVATURE, 0) = (s * cosa + (_tangent[1] - sina) * _radius) * _radius;
-        out(CURVATURE, 1) = (s * sina - (_tangent[0] - cosa) * _radius) * _radius;
+        out(0, CURVATURE) = (s * cosa + (_tangent[1] - sina) * _radius) * _radius;
+        out(1, CURVATURE) = (s * sina - (_tangent[0] - cosa) * _radius) * _radius;
     }
 }
 

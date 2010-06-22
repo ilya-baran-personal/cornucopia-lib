@@ -68,8 +68,8 @@ public:
             Vector2d p0 = line->pos(s);
             Vector2d derV = (p1 - p0) / (2. * delta);
 
-            CORNU_ASSERT_LT_MSG((derV.transpose() - der.row(i)).norm(), delta, "-- Param = " << i \
-                << " numeric = " << derV.transpose() << " analytic = " << der.row(i));
+            CORNU_ASSERT_LT_MSG((derV - der.col(i)).norm(), delta, "-- Param = " << i \
+                << " numeric = " << derV.transpose() << " analytic = " << der.col(i).transpose());
         }        
     }
 
@@ -101,8 +101,8 @@ public:
                 Vector2d p0 = arc->pos(s);
                 Vector2d derV = (p1 - p0) / (2. * delta);
 
-                CORNU_ASSERT_LT_MSG((derV.transpose() - der.row(i)).norm(), delta, "-- Param = " << i \
-                    << " numeric = " << derV.transpose() << " analytic = " << der.row(i));
+                CORNU_ASSERT_LT_MSG((derV - der.col(i)).norm(), delta, "-- Param = " << i \
+                    << " numeric = " << derV.transpose() << " analytic = " << der.col(i).transpose());
             }
         }
     }
@@ -139,8 +139,8 @@ public:
                         Vector2d p0 = clothoid->pos(s);
                         Vector2d derV = (p1 - p0) / (2. * delta);
 
-                        CORNU_ASSERT_LT_MSG((derV.transpose() - der.row(i)).norm(), delta, "-- Param = " << i \
-                            << " numeric = " << derV.transpose() << " analytic = " << der.row(i));
+                        CORNU_ASSERT_LT_MSG((derV - der.col(i)).norm(), delta, "-- Param = " << i \
+                            << " numeric = " << derV.transpose() << " analytic = " << der.col(i).transpose());
                     }
                 }
             }

@@ -88,7 +88,8 @@ class CostEvaluator
 {
 public:
     CostEvaluator(const Fitter &fitter) :
-        _primitives(fitter.output<PRIMITIVE_FITTING>()->primitives)
+        _primitives(fitter.output<PRIMITIVE_FITTING>()->primitives),
+        _corners(fitter.output<RESAMPLING>()->corners)
     {
         for(int i = 0; i < 3; ++i)
         {
@@ -123,7 +124,10 @@ public:
         double out = 0.;
 
         //continuity
-        out += _continuityCost[continuity];
+        if(_corners[_primitives[p1].endIdx]) //no primitive spans a corner, so the start index is also there
+            out += ((continuity == 0) ? 0 : Parameters::infinity); //corners only have zero continuity edges
+        else
+            out += _continuityCost[continuity];
 
         //inflection
         if(continuity > 1 && _primitives[p1].endCurvSign != _primitives[p2].startCurvSign)
@@ -202,6 +206,7 @@ private:
 
     const vector<FitPrimitive> &_primitives;
     vector<PrimitiveCache> _primitiveCache;
+    const VectorC<bool> &_corners;
 
     double _curveCost[3];
     double _continuityCost[3];

@@ -36,7 +36,7 @@ class CurvePrimitive : public Curve
 {
 public:
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::AutoAlign, 6, 1> ParamVec;
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 2, Eigen::AutoAlign, 6, 2> ParamDer; //derivative of x and y w.r.t. parameters
+    typedef Eigen::Matrix<double, 2, Eigen::Dynamic, Eigen::AutoAlign, 2, 6> ParamDer; //derivative of x and y w.r.t. parameters
 
     enum PrimitiveType
     {
@@ -65,7 +65,7 @@ public:
     virtual CurvePrimitivePtr clone() const = 0;
 
     //derivative with respect to paramters
-    virtual void derivativeAt(double s, ParamDer &out) = 0;
+    virtual void derivativeAt(double s, ParamDer &out) const = 0;
 
     void setParams(const ParamVec &params) { _params = params; _paramsChanged(); }
     const ParamVec &params() const { return _params; }

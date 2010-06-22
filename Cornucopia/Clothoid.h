@@ -51,7 +51,7 @@ public:
     void trim(double sFrom, double sTo);
     void flip();
     CurvePrimitivePtr clone() const { ClothoidPtr out = new Clothoid(); out->setParams(_params); return out; }
-    void derivativeAt(double s, ParamDer &out);
+    void derivativeAt(double s, ParamDer &out) const;
 
     class _ClothoidProjector : public smart_base //internal singleton class
     {

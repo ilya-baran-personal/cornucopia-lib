@@ -105,7 +105,6 @@ public:
     Circulator beginCirculator() const { return Circulator(this, 0); }
     Circulator circulator(int idx) const { return Circulator(this, toLinearIdx(idx)); }
 
-private:
     int toLinearIdx(int idx) const
     {
         if(!_circular)
@@ -116,6 +115,14 @@ private:
         return out + size();
     }
 
+    int numElems(int from, int to) const //returns the number of elements between from (inclusive) and to (exclusive)
+    {
+        if(from > to)
+            to += size();
+        return to - from;
+    }
+
+private:
     CircularType _circular;
 };
 

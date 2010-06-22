@@ -24,6 +24,7 @@
 #include "Fitter.h"
 #include "Polyline.h"
 #include "PrimitiveFitUtils.h"
+#include "ErrorComputer.h"
 
 using namespace std;
 using namespace Eigen;
@@ -39,6 +40,8 @@ protected:
     {
         const VectorC<bool> &corners = fitter.output<RESAMPLING>()->corners;
         PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
+        ErrorComputerConstPtr errorComputer = fitter.output<ERROR_COMPUTER>()->errorComputer;
+
         const VectorC<Vector2d> &pts = poly->pts();
 
         const double errorThreshold = fitter.scaledParameter(Parameters::ERROR_THRESHOLD);
@@ -77,7 +80,7 @@ protected:
                         fit.startIdx = i;
                         fit.endIdx = circ.index();
                         fit.numPts = fitSoFar;
-                        fit.error = computeError(fitter, curve, i, fit.endIdx);
+                        fit.error = errorComputer->computeError(curve, i, fit.endIdx);
                         fit.startCurvSign = (curve->startCurvature() >= 0) ? 1 : -1;
                         fit.endCurvSign = (curve->endCurvature() >= 0) ? 1 : -1;
 
@@ -105,7 +108,7 @@ protected:
 
                             fit.curve = startNoCurv;
                             fit.startCurvSign = fit.endCurvSign;
-                            fit.error = computeError(fitter, fit.curve, i, fit.endIdx);
+                            fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
 
                             if(fit.error / length < errorThreshold * errorThreshold)
                             {
@@ -116,7 +119,7 @@ protected:
                             fit.curve = endNoCurv;
                             fit.startCurvSign = -fit.startCurvSign;
                             fit.endCurvSign = -fit.endCurvSign;
-                            fit.error = computeError(fitter, fit.curve, i, fit.endIdx);
+                            fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
 
                             if(fit.error / length < errorThreshold * errorThreshold)
                             {
@@ -130,40 +133,6 @@ protected:
                 }
             }
         }
-    }
-
-    double computeError(const Fitter &fitter, CurvePrimitiveConstPtr curve, int from, int to)
-    {
-        PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
-        const VectorC<Vector2d> &pts = poly->pts();
-
-        double error = 0;
-
-        bool first = true;
-        for(VectorC<Vector2d>::Circulator circ = pts.circulator(from); ; ++circ)
-        {
-            bool last = circ.index() == to;
-
-            double dist = (curve->pos(curve->project(*circ)) - *circ).squaredNorm();
-
-            VectorC<Vector2d>::Circulator prev = circ;
-            if(!first)
-                --prev;
-
-            VectorC<Vector2d>::Circulator next = circ;
-            if(!last)
-                ++next;
-
-            double weight = poly->lengthFromTo(prev.index(), next.index()) * 0.5;
-
-            error += weight * dist;
-
-            first = false;
-            if(last)
-                break;
-        }
-
-        return error;
     }
 };
 
