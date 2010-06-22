@@ -133,9 +133,9 @@ void Arc::flip()
     _paramsChanged();
 }
 
-void Arc::derivativeAt(double s, ParamDer &out) const
+void Arc::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
 {
-    out = ParamDer::Zero(2, 5);
+    outTan = out = ParamDer::Zero(2, 5);
     out(0, X) = 1;
     out(1, Y) = 1;
 
@@ -145,7 +145,9 @@ void Arc::derivativeAt(double s, ParamDer &out) const
 
     if(_flat)
     {
+        outTan.col(ANGLE) = Vec(-_tangent[1], _tangent[0]);
         out.col(CURVATURE) = (0.5 * s * s) * Vec(-_tangent[1], _tangent[0]);
+        outTan.col(CURVATURE) = s * Vec(-_tangent[1], _tangent[0]);
     }
     else
     {
@@ -155,8 +157,11 @@ void Arc::derivativeAt(double s, ParamDer &out) const
         cosa = cos(angle);
         sina = sin(angle);
 
+        outTan.col(ANGLE) = Vec(-sina, cosa);
         out(0, CURVATURE) = (s * cosa + (_tangent[1] - sina) * _radius) * _radius;
         out(1, CURVATURE) = (s * sina - (_tangent[0] - cosa) * _radius) * _radius;
+        outTan(0, CURVATURE) = -s * sina;
+        outTan(1, CURVATURE) = s * cosa;
     }
 }
 

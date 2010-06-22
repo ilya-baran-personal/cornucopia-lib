@@ -213,15 +213,22 @@ void Clothoid::flip()
     _paramsChanged();
 }
 
-void Clothoid::derivativeAt(double s, ParamDer &out) const
+void Clothoid::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
 {
-    out = ParamDer::Zero(2, 6);
+    outTan = out = ParamDer::Zero(2, 6);
     out(0, X) = 1;
     out(1, Y) = 1;
 
-    Vec diff = pos(s) - _startPos();
+    Vec pos, tangent;
+    eval(s, &pos, &tangent);
+
+    Vec diff = pos - _startPos();
     out(0, ANGLE) = -diff[1];
     out(1, ANGLE) = diff[0];
+
+    outTan.col(ANGLE) = Vec(-tangent[1], tangent[0]);
+    outTan.col(CURVATURE) = s * outTan.col(ANGLE);
+    outTan.col(DCURVATURE) = 0.5 * s * s * outTan.col(ANGLE);
 
     //Now compute derivatives with respect to curvature and the curvature
     //derivative.  These were derived with Mathematica and limits.
@@ -243,6 +250,8 @@ void Clothoid::derivativeAt(double s, ParamDer &out) const
         Vec dcurvDer(cosStart + (curvs * curvs * 0.5 - 1.) * cosCur - curvs * sinCur,
             sinStart + (curvs * curvs * 0.5 - 1.) * sinCur + curvs * cosCur);
         out.col(DCURVATURE) = dcurvDer / (curv * curv * curv);
+
+        //outTan.col(CURVATURE) = 
     }
     else //non-degenerate
     {

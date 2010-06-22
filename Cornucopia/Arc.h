@@ -53,7 +53,7 @@ public:
     void trim(double sFrom, double sTo);
     void flip();
     CurvePrimitivePtr clone() const { ArcPtr out = new Arc(); out->setParams(_params); return out; }
-    void derivativeAt(double s, ParamDer &out) const;
+    void derivativeAt(double s, ParamDer &out, ParamDer &outTan) const;
 
     //arc specific--UNDEFINED if arc is flat
     Vec center() const { return _center; }

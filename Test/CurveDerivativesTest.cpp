@@ -50,11 +50,11 @@ public:
 
         CORNU_ASSERT(line->isValid());
 
-        CurvePrimitive::ParamDer der;
+        CurvePrimitive::ParamDer der, tanDer;
         double s = 1.5;
         CurvePrimitive::ParamVec params = line->params();
 
-        line->derivativeAt(s, der);
+        line->derivativeAt(s, der, tanDer);
 
         double delta = 1e-6;
         for(int i = 0; i < (int)params.size(); ++i)
@@ -63,13 +63,18 @@ public:
             newParams[i] += delta;
             line->setParams(newParams);
             Vector2d p1 = line->pos(s);
+            Vector2d d1 = line->der(s);
             newParams[i] = params[i] - delta;
             line->setParams(newParams);
             Vector2d p0 = line->pos(s);
+            Vector2d d0 = line->der(s);
             Vector2d derV = (p1 - p0) / (2. * delta);
+            Vector2d tanDerV = (d1 - d0) / (2. * delta);
 
             CORNU_ASSERT_LT_MSG((derV - der.col(i)).norm(), delta, "-- Param = " << i \
                 << " numeric = " << derV.transpose() << " analytic = " << der.col(i).transpose());
+            CORNU_ASSERT_LT_MSG((tanDerV - tanDer.col(i)).norm(), delta, "-- Param = " << i \
+                << " numeric = " << tanDerV.transpose() << " analytic = " << tanDer.col(i).transpose());
         }        
     }
 
@@ -79,7 +84,7 @@ public:
 
         CORNU_ASSERT(arc->isValid());
 
-        CurvePrimitive::ParamDer der;
+        CurvePrimitive::ParamDer der, tanDer;
         double s = 1.5;
         for(double c = -.1; c < .1001; c += .01)
         {
@@ -87,7 +92,7 @@ public:
             params[CurvePrimitive::CURVATURE] = c;
             arc->setParams(params);
 
-            arc->derivativeAt(s, der);
+            arc->derivativeAt(s, der, tanDer);
 
             double delta = 5e-6;
             for(int i = 0; i < (int)params.size(); ++i)
@@ -96,13 +101,18 @@ public:
                 newParams[i] += delta;
                 arc->setParams(newParams);
                 Vector2d p1 = arc->pos(s);
+                Vector2d d1 = arc->der(s);
                 newParams[i] = params[i] - delta;
                 arc->setParams(newParams);
                 Vector2d p0 = arc->pos(s);
+                Vector2d d0 = arc->der(s);
                 Vector2d derV = (p1 - p0) / (2. * delta);
+                Vector2d tanDerV = (d1 - d0) / (2. * delta);
 
                 CORNU_ASSERT_LT_MSG((derV - der.col(i)).norm(), delta, "-- Param = " << i \
                     << " numeric = " << derV.transpose() << " analytic = " << der.col(i).transpose());
+                CORNU_ASSERT_LT_MSG((tanDerV - tanDer.col(i)).norm(), delta, "-- Param = " << i \
+                    << " numeric = " << tanDerV.transpose() << " analytic = " << tanDer.col(i).transpose());
             }
         }
     }
@@ -113,7 +123,7 @@ public:
 
         CORNU_ASSERT(clothoid->isValid());
 
-        CurvePrimitive::ParamDer der;
+        CurvePrimitive::ParamDer der, tanDer;
         for(double s = 0; s < 3.; s += 0.1)
         {
             for(double sc = -.1; sc < .1001; sc += .01)
@@ -125,7 +135,7 @@ public:
                     params[CurvePrimitive::DCURVATURE] = (ec - sc) / params[CurvePrimitive::LENGTH];
                     clothoid->setParams(params);
 
-                    clothoid->derivativeAt(s, der);
+                    clothoid->derivativeAt(s, der, tanDer);
 
                     double delta = 5e-6;
                     for(int i = 0; i < (int)params.size(); ++i)
@@ -134,13 +144,18 @@ public:
                         newParams[i] += delta;
                         clothoid->setParams(newParams);
                         Vector2d p1 = clothoid->pos(s);
+                        Vector2d d1 = clothoid->der(s);
                         newParams[i] = params[i] - delta;
                         clothoid->setParams(newParams);
                         Vector2d p0 = clothoid->pos(s);
+                        Vector2d d0 = clothoid->der(s);
                         Vector2d derV = (p1 - p0) / (2. * delta);
+                        Vector2d tanDerV = (d1 - d0) / (2. * delta);
 
                         CORNU_ASSERT_LT_MSG((derV - der.col(i)).norm(), delta, "-- Param = " << i \
                             << " numeric = " << derV.transpose() << " analytic = " << der.col(i).transpose());
+                        CORNU_ASSERT_LT_MSG((tanDerV - tanDer.col(i)).norm(), delta, "-- Param = " << i \
+                            << " numeric = " << tanDerV.transpose() << " analytic = " << tanDer.col(i).transpose());
                     }
                 }
             }

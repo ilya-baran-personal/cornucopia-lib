@@ -64,8 +64,8 @@ public:
     virtual void flip() = 0;
     virtual CurvePrimitivePtr clone() const = 0;
 
-    //derivative with respect to paramters
-    virtual void derivativeAt(double s, ParamDer &out) const = 0;
+    //derivative (of curve and its tangent vector) with respect to paramters
+    virtual void derivativeAt(double s, ParamDer &out, ParamDer &outTan) const = 0;
 
     void setParams(const ParamVec &params) { _params = params; _paramsChanged(); }
     const ParamVec &params() const { return _params; }

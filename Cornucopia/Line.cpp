@@ -87,13 +87,15 @@ void Line::flip()
     _params[Y] = newStart[1];
 }
 
-void Line::derivativeAt(double s, ParamDer &out) const
+void Line::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
 {
-    out = ParamDer::Zero(2, 4);
+    outTan = out = ParamDer::Zero(2, 4);
     out(0, X) = 1;
     out(1, Y) = 1;
     out(0, ANGLE) = -s * _der(1);
     out(1, ANGLE) = s * _der(0);
+    outTan(0, ANGLE) = -_der(1);
+    outTan(1, ANGLE) = _der(0);
 }
 
 END_NAMESPACE_Cornu

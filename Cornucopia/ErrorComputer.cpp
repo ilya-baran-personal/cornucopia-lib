@@ -85,14 +85,13 @@ public:
 
     void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to, VectorXd &outError, MatrixXd *outErrorDer) const
     {
-        outError.resize(_pts.numElems(from, to) + 1); //to is inclusive
-        CurvePrimitive::ParamDer der;
+        int numParams = curve->params().size();
+        int numOutputs = 2 * (_pts.numElems(from, to) + 1); //to is inclusive
+        outError.resize(numOutputs); 
         if(outErrorDer)
-        {
-            outErrorDer->resize(_pts.numElems(from, to) + 1, curve->params().size());
-            der.resize(2, curve->params().size());
-        }
-
+            outErrorDer->resize(numOutputs, numParams);
+         
+        CurvePrimitive::ParamDer der, tanDer;
         bool first = true;
         int vecIdx = 0;
         for(VectorC<Vector2d>::Circulator circ = _pts.circulator(from); ; ++circ, vecIdx += 2)
@@ -110,13 +109,28 @@ public:
                 weightRoot = _weightRoots.flatAt(idx);
 
             double s = curve->project(pt);
-            Vector2d err = (curve->pos(s) - pt) * weightRoot;
-            outError.segment<2>(vecIdx) = err;
+            Vector2d err = curve->pos(s) - pt;
+            outError.segment<2>(vecIdx) = err * weightRoot;
 
             if(outErrorDer)
             {
-                curve->derivativeAt(s, der);
-                outErrorDer->block(vecIdx, 0, 2, der.cols()) = der * weightRoot;
+                curve->derivativeAt(s, der, tanDer);
+                Vector2d tangent = curve->der(s);
+                RowVectorXd ds = RowVectorXd::Zero(numParams); 
+
+                const double tol = 1e-10;
+
+                if(s + tol >= curve->length())
+                    ds(CurvePrimitive::LENGTH) = 1.;
+                else if(s > tol)
+                {
+                    double dfds = 1. + curve->der2(s).dot(err);
+                    if(fabs(dfds) < tol)
+                        dfds = (dfds < 0. ? -tol : tol);
+                    ds = -(err.transpose() * tanDer + tangent.transpose() * der) / dfds;
+                }
+
+                outErrorDer->block(vecIdx, 0, 2, der.cols()) = (der + tangent * ds) * weightRoot;
             }
 
             first = false;
