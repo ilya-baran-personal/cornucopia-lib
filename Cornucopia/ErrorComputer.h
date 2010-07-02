@@ -33,8 +33,11 @@ class ErrorComputer : public smart_base
 {
 public:
     virtual ~ErrorComputer() {}
-    virtual double computeError(CurvePrimitiveConstPtr curve, int from, int to) const = 0;
-    virtual void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to, Eigen::VectorXd &outError, Eigen::MatrixXd *outErrorDer = NULL) const = 0;
+    virtual double computeError(CurvePrimitiveConstPtr curve, int from, int to,
+                                bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
+    virtual void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to,
+                                    Eigen::VectorXd &outError, Eigen::MatrixXd *outErrorDer = NULL,
+                                    bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
 };
 
 SMART_TYPEDEFS(ErrorComputer);

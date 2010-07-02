@@ -55,7 +55,8 @@ public:
         }
     }
 
-    double computeError(CurvePrimitiveConstPtr curve, int from, int to) const
+    double computeError(CurvePrimitiveConstPtr curve, int from, int to,
+                        bool firstToEndpoint, bool lastToEndpoint, bool reversed) const
     {
         double error = 0;
 
@@ -65,12 +66,24 @@ public:
             int idx = circ.index();
             bool last = (idx == to);
 
+            bool toFirstEndpoint = first && firstToEndpoint;
+            bool toLastEndpoint = last && lastToEndpoint;
+
             const Vector2d &pt = _pts.flatAt(idx);
-            double distSq = (curve->pos(curve->project(pt)) - pt).squaredNorm();
+
+            double s;
+            if(toLastEndpoint)
+                s = reversed ? 0 : curve->length();
+            else if(toFirstEndpoint)
+                s = reversed ? curve->length() : 0;
+            else
+                s = curve->project(pt);
+
+            double distSq = (curve->pos(s) - pt).squaredNorm();
             double weight = 0;
-            if(!first)
+            if(!toFirstEndpoint)
                 weight += _weightsLeft.flatAt(idx);
-            if(!last)
+            if(!toLastEndpoint)
                 weight += _weightsRight.flatAt(idx);
 
             error += weight * distSq;
@@ -83,7 +96,8 @@ public:
         return error;
     }
 
-    void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to, VectorXd &outError, MatrixXd *outErrorDer) const
+    void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to, VectorXd &outError, MatrixXd *outErrorDer,
+                            bool firstToEndpoint, bool lastToEndpoint, bool reversed) const
     {
         int numParams = curve->params().size();
         int numOutputs = 2 * (_pts.numElems(from, to) + 1); //to is inclusive
@@ -99,16 +113,26 @@ public:
             int idx = circ.index();
             bool last = (idx == to);
 
+            bool toFirstEndpoint = first && firstToEndpoint;
+            bool toLastEndpoint = last && lastToEndpoint;
+
             const Vector2d &pt = _pts.flatAt(idx);
             double weightRoot = 0;
-            if(first)
+            if(toFirstEndpoint)
                 weightRoot = _weightRightRoots.flatAt(idx);
-            else if(last)
+            else if(toLastEndpoint)
                 weightRoot = _weightLeftRoots.flatAt(idx);
             else
                 weightRoot = _weightRoots.flatAt(idx);
 
-            double s = curve->project(pt);
+            double s;
+            if(toLastEndpoint)
+                s = reversed ? 0 : curve->length();
+            else if(toFirstEndpoint)
+                s = reversed ? curve->length() : 0;
+            else
+                s = curve->project(pt);
+
             Vector2d err = curve->pos(s) - pt;
             outError.segment<2>(vecIdx) = err * weightRoot;
 

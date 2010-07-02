@@ -69,6 +69,8 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(POINTS_PER_CIRCLE, "Points per circle", 15.));
     _parameters.push_back(Parameter(MAX_SAMPLE_RATE_SLOPE, "Max sample rate slope", 0.4));
     _parameters.push_back(Parameter(ERROR_THRESHOLD, "Error Threshold", 3.));
+    _parameters.push_back(Parameter(TWO_CURVE_CURVATURE_ADJUST, "Two-Curve Adjustment Point", 2.));
+    _parameters.push_back(Parameter(TWO_CURVE_DAMPING, "Two-Curve Damping", 1.));
 }
 
 void Parameters::_initializePresets()

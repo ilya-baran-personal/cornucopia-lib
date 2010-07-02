@@ -56,7 +56,8 @@ void MainView::mouseReleaseEvent(QMouseEvent *e)
     if(e->button() == Qt::LeftButton)
     {
         scene()->clearGroups("currentlyDrawing");
-        _document->curveDrawn(new Cornu::Polyline(_pointsDrawn));
+        if(_pointsDrawn.size() > 1)
+            _document->curveDrawn(new Cornu::Polyline(_pointsDrawn));
         return;
     }
     ScrollView::mouseReleaseEvent(e);

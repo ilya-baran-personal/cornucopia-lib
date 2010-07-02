@@ -60,7 +60,9 @@ public:
         CURVATURE_ESTIMATE_REGION,
         POINTS_PER_CIRCLE,
         MAX_SAMPLE_RATE_SLOPE,
-        ERROR_THRESHOLD
+        ERROR_THRESHOLD,
+        TWO_CURVE_CURVATURE_ADJUST,
+        TWO_CURVE_DAMPING
     };
 
     Parameters(const std::string &name = std::string());

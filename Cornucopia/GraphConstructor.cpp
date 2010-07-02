@@ -26,6 +26,7 @@
 #include "Polyline.h"
 #include "CurvePrimitive.h"
 #include "Preprocessing.h"
+#include "TwoCurveCombine.h"
 
 using namespace std;
 using namespace Eigen;
@@ -227,6 +228,7 @@ protected:
         PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
         const VectorC<Vector2d> &pts = poly->pts();
         bool closed = poly->isClosed();
+        double totalErr = 0; //TMP
 
         CostEvaluator costEval(fitter);
 
@@ -271,7 +273,7 @@ protected:
                     if(curve2len <= offset)
                         continue;
 
-                    int maxType = max(primitives[i].curve->getType(), primitives[j].curve->getType());
+                    int maxType = max(primitives[i].curve->getType(), primitives[k].curve->getType());
                     if(maxType < continuity)
                         continue;
 
@@ -287,10 +289,16 @@ protected:
                         continue;
                     out.vertices[i].edges.push_back(out.edges.size());
                     out.edges.push_back(e);
+
+                    if(out.edges.size() % 51 != 150)
+                    {
+                        Combination c = twoCurveCombine(i, k, continuity, fitter);
+                        totalErr += c.error;
+                    }
                 }
             }
         }
-
+        Debugging::get()->printf("Total error = %lf", totalErr / 10000.); //TMP
         Debugging::get()->printf("Graph vertices = %d edges = %d", out.vertices.size(), out.edges.size());
     }
 };

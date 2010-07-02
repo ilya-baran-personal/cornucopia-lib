@@ -81,7 +81,7 @@ void Line::trim(double sFrom, double sTo)
 void Line::flip()
 {
     Vec newStart = endPos();
-    _params[ANGLE] = -_params[ANGLE];
+    _params[ANGLE] = PI + _params[ANGLE];
     _der = -_der;
     _params[X] = newStart[0];
     _params[Y] = newStart[1];

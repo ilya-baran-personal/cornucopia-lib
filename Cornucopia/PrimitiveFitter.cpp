@@ -103,11 +103,11 @@ protected:
                         {
                             double start = poly->idxToParam(i);
                             double end = poly->idxToParam(fit.endIdx);
-                            CurvePrimitivePtr startNoCurv = static_pointer_cast<ClothoidFitter>(fitters[2])->getCurveWithZeroCurvature(start);
-                            CurvePrimitivePtr endNoCurv = static_pointer_cast<ClothoidFitter>(fitters[2])->getCurveWithZeroCurvature(end);
+                            CurvePrimitivePtr startNoCurv = static_pointer_cast<ClothoidFitter>(fitters[2])->getCurveWithZeroCurvature(0);
+                            CurvePrimitivePtr endNoCurv = static_pointer_cast<ClothoidFitter>(fitters[2])->getCurveWithZeroCurvature(end - start);
 
                             fit.curve = startNoCurv;
-                            fit.startCurvSign = fit.endCurvSign;
+                            fit.startCurvSign = fit.endCurvSign = (startNoCurv->endCurvature() > 0. ? 1 : -1);
                             fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
 
                             if(fit.error / length < errorThreshold * errorThreshold)
@@ -117,8 +117,7 @@ protected:
                             }
 
                             fit.curve = endNoCurv;
-                            fit.startCurvSign = -fit.startCurvSign;
-                            fit.endCurvSign = -fit.endCurvSign;
+                            fit.startCurvSign = fit.endCurvSign = (endNoCurv->startCurvature() > 0. ? 1 : -1);
                             fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
 
                             if(fit.error / length < errorThreshold * errorThreshold)
