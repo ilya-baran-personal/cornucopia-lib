@@ -29,6 +29,7 @@
 #include "AngleUtils.h"
 #include "Solver.h"
 #include <map>
+#include <cstdio> //TMP
 #include <iostream> //TMP
 
 using namespace std;
@@ -215,10 +216,19 @@ public:
         }
     }
 
+    double computeError1() const
+    {
+        return _errorComputer->computeError(_c[0], _from[0], _to[0], true, _continuity == 0, true);
+    }
+
+    double computeError2() const
+    {
+        return _errorComputer->computeError(_c[1], _from[1], _to[1], _continuity == 0, true);
+    }
+
     double computeError() const
     {
-        return _errorComputer->computeError(_c[0], _from[0], _to[0], true, _continuity == 0, true) +
-               _errorComputer->computeError(_c[1], _from[1], _to[1], _continuity == 0, true);
+        return computeError1() + computeError2();
     }
 
     void computeErrorVector(VectorXd &outError, MatrixXd &outErrorDer) const
@@ -424,14 +434,16 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     TwoCurveProblem problem(combined);
     LSSolver solver(&problem, constraints);
     solver.setDefaultDamping(fitter.params().get(Parameters::TWO_CURVE_DAMPING));
+    solver.setMaxIter(5);
     x = solver.solve(x);
     combined.setParams(x);
 
     Debugging::get()->drawCurve(combined.getCurve(0), Vector3d(1, 0, 0), "Curves Final");
     Debugging::get()->drawCurve(combined.getCurve(1), Vector3d(0, 0, 1), "Curves Final");
 
-    out.error = combined.computeError();
-    //cout << "Err = " << out.error << endl;
+    out.err1 = combined.computeError1();
+    out.err2 = combined.computeError2();
+    //cout << "Err = " << (out.err1 + out.err2) << endl;
 
     return out;
 }

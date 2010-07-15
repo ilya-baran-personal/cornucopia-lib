@@ -21,6 +21,7 @@
 
 #include "AddTool.h"
 #include "ui_AddToolDialog.h"
+#include "FormatTool.h"
 #include "config.h"
 
 #include <QDialog>
@@ -113,6 +114,7 @@ void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString
             _addOneFile(cppTemplateFileName, sourceFileName, mapping);
     }
 
+
     //resize the file (and back) to update its modification date--hack, but I couldn't think of anything better
     QFile cmakeFile(cmakeListsFileName);
     int sz = cmakeFile.size();
@@ -156,6 +158,8 @@ bool AddTool::_addOneFile(QString templateName, QString targetName,
         toolError(QString("Couldn't hg add the file: ") + targetName);
         return false;
     }
+
+    FormatTool::formatFile(targetName);
 
     return true;
 }

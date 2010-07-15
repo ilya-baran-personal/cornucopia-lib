@@ -34,7 +34,8 @@ struct Combination
 {
     CurvePrimitivePtr c1;
     CurvePrimitivePtr c2;
-    double error;
+    double err1;
+    double err2;
 };
 
 Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter);

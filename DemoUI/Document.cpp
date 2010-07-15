@@ -26,6 +26,8 @@
 #include "Fitter.h"
 #include "ScrollScene.h"
 #include "SceneItem.h"
+#include "GraphConstructor.h"
+#include "Regression.h"
 
 #include <QFileDialog>
 #include <QFile>
@@ -56,6 +58,22 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
     fitter.setParams(sketch.params);
     fitter.run();
     
+    //see if it output a regression dataset and offer to save it
+    Cornu::DatasetPtr dataset = fitter.output<Cornu::GRAPH_CONSTRUCTION>()->dataset;
+    if(dataset)
+    {
+        Cornu::DataModelPtr model = new Cornu::DataModel(dataset);
+
+        QString fileName = QFileDialog::getSaveFileName(_view, "Save Dataset",
+                            "",
+                            "Cornu Dataset (*.cds)");
+
+        if(!fileName.isEmpty())
+        {
+            dataset->save(string(fileName.toAscii().constData(), fileName.length()));
+        }
+    }
+
     _view->scene()->addItem(new CurveSceneItem(fitter.finalOutput(), sketch.name));
 }
 

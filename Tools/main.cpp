@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     ToolsWindow *mw = new ToolsWindow();
+    mw->resize(400, 100);
     mw->show();
 
     int out = app.exec();

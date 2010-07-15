@@ -33,13 +33,14 @@ public:
     //override
     QString name() const { return QString("Format files"); }
 
+    static void formatFile(QString fileName);
+
 public slots:
     //override
     void execute();
 
 private:
     void _findAllCodeFiles(QString dir, QStringList &list);
-    void _formatFile(QString fileName);
 };
 
 

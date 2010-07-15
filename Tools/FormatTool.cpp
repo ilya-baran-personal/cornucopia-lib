@@ -68,7 +68,7 @@ void FormatTool::execute()
     _findAllCodeFiles(CORNUCOPIA_SOURCE_DIR, files);
 
     for(int i = 0; i < files.count(); ++i)
-        _formatFile(files[i]);
+        formatFile(files[i]);
 }
 
 void FormatTool::_findAllCodeFiles(QString dirName, QStringList &list)
@@ -92,7 +92,7 @@ void FormatTool::_findAllCodeFiles(QString dirName, QStringList &list)
         list.push_back(dirName + "/" + files[i]);
 }
 
-void FormatTool::_formatFile(QString fileName)
+void FormatTool::formatFile(QString fileName)
 {
     qDebug() << "Processing file:" << fileName;
 
@@ -180,6 +180,7 @@ void FormatTool::_formatFile(QString fileName)
 
         qDebug() << "Writing...";
         file.write(processed);
+        qDebug() << "Done.";
     }
 }
 

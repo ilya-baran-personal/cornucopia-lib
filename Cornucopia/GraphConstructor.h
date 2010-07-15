@@ -45,11 +45,14 @@ struct Edge
     double cost; //includes the half the cost of the vertex behind and the vertex in front (full cost for source and target vertices).
 };
 
+SMART_FORW_DECL(Dataset);
+
 template<>
 struct AlgorithmOutput<GRAPH_CONSTRUCTION> : public AlgorithmOutputBase
 {
     std::vector<Vertex> vertices;
     std::vector<Edge> edges;
+    DatasetPtr dataset; //only if the algorithm selected is dataset generation
 };
 
 template<>

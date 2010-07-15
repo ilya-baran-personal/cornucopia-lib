@@ -28,21 +28,32 @@ using namespace Eigen;
 NAMESPACE_Cornu
 
 LSSolver::LSSolver(LSProblem *problem, const vector<LSBoxConstraint> &constraints)
-: _problem(problem), _constraints(constraints)
+: _problem(problem), _constraints(constraints), _damping(1.), _maxIter(100)
 {
 };
 
 VectorXd LSSolver::solve(const VectorXd &guess)
 {
+    VectorXd best;
+    double bestError = 1e100;
     VectorXd x = guess;
     LSEvalData *evalData = _problem->createEvalData();
 
     set<LSBoxConstraint> activeSet = _clamp(x);
 
-    for(int iter = 0; iter < 5; ++iter)
+    for(int iter = 0; iter < _maxIter; ++iter)
     {
         _problem->eval(x, evalData);
         VectorXd delta;
+
+        double error = evalData->error();
+        if(error < bestError)
+        {
+            if(error < 1e-8)
+                return x;
+            bestError = error;
+            best = x;
+        }
 
         evalData->solveForDelta(_damping, delta, activeSet);
 
@@ -54,8 +65,13 @@ VectorXd LSSolver::solve(const VectorXd &guess)
         x += delta;
     }
 
+    if(_problem->error(x) < bestError)
+    {
+        best = x;
+    }
+
     delete evalData;
-    return x;
+    return best;
 }
 
 set<LSBoxConstraint> LSSolver::_clamp(VectorXd &x)
@@ -106,6 +122,40 @@ int LSSolver::_project(const VectorXd &from, VectorXd &delta)
     return closestConstraint;
 }
 
+bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt) const
+{
+    LSEvalData *evalData = _problem->createEvalData();
+    _problem->eval(pt, evalData);
+
+    MatrixXd exactDer = evalData->errVecDer();
+    MatrixXd numDer = exactDer;
+
+    double eps = 1e-6;
+    for(int i = 0; i < numDer.cols(); ++i)
+    {
+        VectorXd mod = pt;
+        mod[i] += eps;
+
+        _problem->eval(mod, evalData);
+        VectorXd plus = evalData->errVec();
+
+        mod[i] = pt[i] - eps;
+        _problem->eval(mod, evalData);
+        VectorXd minus = evalData->errVec();
+
+        numDer.col(i) = (plus - minus) / (2 * eps);
+    }
+
+    double err = (numDer - exactDer).norm();
+
+    //TODO: just print the error for now
+    Debugging::get()->printf("Error = %lf", err);
+
+    delete evalData;
+
+    return true;
+}
+
 void LSDenseEvalData::solveForDelta(double damping, VectorXd &out, set<LSBoxConstraint> &constraints)
 {
     int vars = _errDer.cols();
@@ -122,33 +172,40 @@ void LSDenseEvalData::solveForDelta(double damping, VectorXd &out, set<LSBoxCons
         for(set<LSBoxConstraint>::const_iterator it = constraints.begin(); it != constraints.end(); ++it)
             constraintIndices[it->index] = true;
 
-        MatrixXd lhs(_errDer.rows(), vars - (int)constraints.size());
-        int offs = 0;
-        for(int i = 0; i < vars; ++i)
+        if(vars > (int)constraints.size())
         {
-            if(constraintIndices[i])
+            MatrixXd lhs(_errDer.rows(), vars - (int)constraints.size());
+            int offs = 0;
+            for(int i = 0; i < vars; ++i)
             {
-                ++offs;
-                continue;
+                if(constraintIndices[i])
+                {
+                    ++offs;
+                    continue;
+                }
+                lhs.col(i - offs) = _errDer.col(i);
             }
-            lhs.col(i - offs) = _errDer.col(i);
-        }
 
-        LDLT<MatrixXd> ldlt(MatrixXd::Identity(lhs.cols(), lhs.cols()) * damping + lhs.transpose() * lhs);
-        VectorXd x = ldlt.solve(lhs.transpose() * rhs);
+            LDLT<MatrixXd> ldlt(MatrixXd::Identity(lhs.cols(), lhs.cols()) * damping + lhs.transpose() * lhs);
+            VectorXd x = ldlt.solve(lhs.transpose() * rhs);
             
-        out.resize(_errDer.cols());
-        offs = 0;
+            out.resize(_errDer.cols());
+            offs = 0;
 
-        for(int i = 0; i < vars; ++i)
-        {
-            if(constraintIndices[i])
+            for(int i = 0; i < vars; ++i)
             {
-                out[i] = 0.;
-                ++offs;
-                continue;
+                if(constraintIndices[i])
+                {
+                    out[i] = 0.;
+                    ++offs;
+                    continue;
+                }
+                out[i] = x[i - offs];
             }
-            out[i] = x[i - offs];
+        }
+        else //as many variables as constraints
+        {
+            out = VectorXd::Zero(_errDer.cols());
         }
 
         //check which constraints we don't need

@@ -46,6 +46,10 @@ public:
 
     virtual double error() const = 0;
     virtual void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints) = 0;
+
+    //debugging functions for derivative check
+    virtual Eigen::VectorXd errVec() const { return Eigen::VectorXd(); }
+    virtual Eigen::MatrixXd errVecDer() const { return Eigen::MatrixXd(); }
 };
 
 class LSProblem
@@ -65,6 +69,9 @@ public:
 
     Eigen::VectorXd solve(const Eigen::VectorXd &guess);
     void setDefaultDamping(double damping) { _damping = damping; }
+    void setMaxIter(int maxIter) { _maxIter = maxIter; }
+
+    bool verifyDerivatives(const Eigen::VectorXd &pt) const;
 
 private:
     int _project(const Eigen::VectorXd &from, Eigen::VectorXd &x); //returns the index of the constraint
@@ -73,6 +80,7 @@ private:
     LSProblem *_problem;
     std::vector<LSBoxConstraint> _constraints;
     double _damping;
+    int _maxIter;
 };
 
 class LSDenseEvalData : public LSEvalData
@@ -81,6 +89,8 @@ public:
     //overrides
     double error() const { return _err.squaredNorm(); }
     void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints);
+    Eigen::VectorXd errVec() const { return _err; }
+    Eigen::MatrixXd errVecDer() const { return _errDer; }
 
     Eigen::VectorXd &errVectorRef() { return _err; }
     Eigen::MatrixXd &errDerRef() { return _errDer; }

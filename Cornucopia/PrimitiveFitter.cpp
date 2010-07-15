@@ -25,17 +25,88 @@
 #include "Polyline.h"
 #include "PrimitiveFitUtils.h"
 #include "ErrorComputer.h"
+#include "Solver.h"
 
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
+class OneCurveProblem : public LSProblem
+{
+public:
+    OneCurveProblem(const FitPrimitive &primitive, ErrorComputerConstPtr errorComputer)
+        : _primitive(primitive), _errorComputer(errorComputer)  {}
+
+    //overrides
+    double error(const VectorXd &x)
+    {
+        setParams(x);
+        return _errorComputer->computeError(_primitive.curve, _primitive.startIdx, _primitive.endIdx);
+    }
+
+    LSEvalData *createEvalData()
+    {
+        return new LSDenseEvalData();
+    }
+    void eval(const VectorXd &x, LSEvalData *data)
+    {
+        LSDenseEvalData *curveData = static_cast<LSDenseEvalData *>(data);
+        setParams(x);
+        MatrixXd &errDer = curveData->errDerRef();
+        _errorComputer->computeErrorVector(_primitive.curve, _primitive.startIdx, _primitive.endIdx,
+                                           curveData->errVectorRef(), &errDer);
+
+        if(_primitive.curve->getType() == CurvePrimitive::CLOTHOID)
+        {
+            double invLength = 1. / x(CurvePrimitive::LENGTH);
+            errDer.col(CurvePrimitive::DCURVATURE) *= invLength;
+
+            //compute the derivative with respect to curvature and length as well.
+            errDer.col(CurvePrimitive::CURVATURE) -= errDer.col(CurvePrimitive::DCURVATURE);
+            double dcurvature = (x(CurvePrimitive::DCURVATURE) - x(CurvePrimitive::CURVATURE)) * invLength;
+            errDer.col(CurvePrimitive::LENGTH) -= errDer.col(CurvePrimitive::DCURVATURE) * dcurvature;
+        }
+    }
+
+    VectorXd params() const
+    {
+        if(_primitive.curve->getType() != CurvePrimitive::CLOTHOID)
+            return _primitive.curve->params();
+        VectorXd out = _primitive.curve->params();
+        out(CurvePrimitive::DCURVATURE) = out(CurvePrimitive::CURVATURE) + out(CurvePrimitive::LENGTH) * out(CurvePrimitive::DCURVATURE);
+        return out;
+    }
+
+    void setParams(const VectorXd &x)
+    {
+        if(_primitive.curve->getType() != CurvePrimitive::CLOTHOID)
+        {
+            _primitive.curve->setParams(x);
+            return;
+        }
+
+        VectorXd xm = x;
+        xm(CurvePrimitive::DCURVATURE) = (xm(CurvePrimitive::DCURVATURE) - xm(CurvePrimitive::CURVATURE)) / xm(CurvePrimitive::LENGTH);
+        _primitive.curve->setParams(xm);
+    }
+
+private:
+    FitPrimitive _primitive;
+    ErrorComputerConstPtr _errorComputer;
+};
+
 class DefaultPrimitiveFitter : public Algorithm<PRIMITIVE_FITTING>
 {
 public:
-    string name() const { return "Default"; }
+    DefaultPrimitiveFitter(bool adjust) : _adjust(adjust) {}
+
+    string name() const { return _adjust ? "Adjust" : "Default"; }
+
+private:
+    bool _adjust;
 
 protected:
+
     void _run(const Fitter &fitter, AlgorithmOutput<PRIMITIVE_FITTING> &out)
     {
         const VectorC<bool> &corners = fitter.output<RESAMPLING>()->corners;
@@ -80,9 +151,13 @@ protected:
                         fit.startIdx = i;
                         fit.endIdx = circ.index();
                         fit.numPts = fitSoFar;
-                        fit.error = errorComputer->computeError(curve, i, fit.endIdx);
                         fit.startCurvSign = (curve->startCurvature() >= 0) ? 1 : -1;
                         fit.endCurvSign = (curve->endCurvature() >= 0) ? 1 : -1;
+
+                        if(_adjust)
+                            adjustPrimitive(fit, fitter);
+
+                        fit.error = errorComputer->computeError(curve, i, fit.endIdx);
 
                         double length = poly->lengthFromTo(i, fit.endIdx);
                         if(fit.error / length > errorThreshold * errorThreshold)
@@ -108,6 +183,10 @@ protected:
 
                             fit.curve = startNoCurv;
                             fit.startCurvSign = fit.endCurvSign = (startNoCurv->endCurvature() > 0. ? 1 : -1);
+
+                            if(_adjust)
+                                adjustPrimitive(fit, fitter);
+
                             fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
 
                             if(fit.error / length < errorThreshold * errorThreshold)
@@ -118,6 +197,10 @@ protected:
 
                             fit.curve = endNoCurv;
                             fit.startCurvSign = fit.endCurvSign = (endNoCurv->startCurvature() > 0. ? 1 : -1);
+
+                            if(_adjust)
+                                adjustPrimitive(fit, fitter);
+
                             fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
 
                             if(fit.error / length < errorThreshold * errorThreshold)
@@ -133,11 +216,39 @@ protected:
             }
         }
     }
+
+    void adjustPrimitive(const FitPrimitive &primitive, const Fitter &fitter)
+    {
+        ErrorComputerConstPtr errorComputer = fitter.output<ERROR_COMPUTER>()->errorComputer;
+        bool inflectionAccounting = fitter.params().get(Parameters::INFLECTION_COST) > 0.;
+
+        vector<LSBoxConstraint> constraints;
+
+        //minimum length constraint
+        constraints.push_back(LSBoxConstraint(CurvePrimitive::LENGTH, primitive.curve->length() * 0.5, 1));
+
+        //curvature sign constraints
+        if(inflectionAccounting)
+        {
+            if(primitive.curve->getType() >= CurvePrimitive::ARC)
+                constraints.push_back(LSBoxConstraint(CurvePrimitive::CURVATURE, 0., primitive.startCurvSign));
+            if(primitive.curve->getType() == CurvePrimitive::CLOTHOID)
+                constraints.push_back(LSBoxConstraint(CurvePrimitive::DCURVATURE, 0., primitive.endCurvSign));
+        }
+
+        //solve
+        OneCurveProblem problem(primitive, errorComputer);
+        LSSolver solver(&problem, constraints);
+        solver.setDefaultDamping(fitter.params().get(Parameters::TWO_CURVE_DAMPING));
+        solver.setMaxIter(1);
+        problem.setParams(solver.solve(problem.params()));
+    }
 };
 
 void Algorithm<PRIMITIVE_FITTING>::_initialize()
 {
-    new DefaultPrimitiveFitter();
+    new DefaultPrimitiveFitter(false);
+    new DefaultPrimitiveFitter(true);
 }
 
 END_NAMESPACE_Cornu

@@ -1,5 +1,5 @@
 /*--
-    ToolsWindow.cpp  
+    RegressionTool.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (ibaran@mit.edu)
@@ -19,27 +19,24 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "ToolsWindow.h"
-#include "AddTool.h"
-#include "FormatTool.h"
-#include "RegressionTool.h"
+#ifndef REGRESSIONTOOL_H_INCLUDED
+#define REGRESSIONTOOL_H_INCLUDED
 
-#include <QAction>
-#include <QMenuBar>
+#include "Tool.h"
 
-ToolsWindow::ToolsWindow()
+class RegressionTool : public Tool
 {
-    addTool(new AddTool(this));
-    addTool(new FormatTool(this));
-    addTool(new RegressionTool(this));
-}
+    Q_OBJECT
+public:
+    RegressionTool(QWidget *parent) : Tool(parent) {}
 
-void ToolsWindow::addTool(Tool *tool)
-{
-    QAction *action = new QAction(tool->name(), this);
-    connect(action, SIGNAL(triggered()), tool, SLOT(execute()));
+    //override
+    QString name() const { return QString("Generate Regression File..."); }
 
-    menuBar()->addAction(action);
-}
+public slots:
+    //override
+    void execute();
+};
 
-#include "ToolsWindow.moc"
+
+#endif //REGRESSIONTOOL_H_INCLUDED
