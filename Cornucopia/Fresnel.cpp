@@ -37,7 +37,7 @@ NAMESPACE_Cornu
 template<typename Scalar>
 static Scalar polevl( const Scalar &x, const Matrix<Scalar, Dynamic, 1> &coefVec ) //regular
 {
-    int i = coefVec.size() - 1;
+    int i = (int)coefVec.size() - 1;
     const Scalar *coef = &(coefVec[0]);
     Scalar ans = *coef++;
 
@@ -52,7 +52,7 @@ static Scalar polevl( const Scalar &x, const Matrix<Scalar, Dynamic, 1> &coefVec
 template<typename Scalar>
 static Scalar p1evl( const Scalar &x, const Matrix<Scalar, Dynamic, 1> &coefVec ) //leading coef is 1
 {
-    int i = coefVec.size() - 1;
+    int i = (int)coefVec.size() - 1;
     const Scalar *coef = &(coefVec[0]);
 
     Scalar ans = x + *coef++;
@@ -334,7 +334,7 @@ void fresnel(const VectorXd &t, VectorXd *s, VectorXd *c)
 template<typename Packet>
 static Packet vecpolevl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
 {
-    int i = coefVec.size() - 1;
+    int i = (int)coefVec.size() - 1;
     const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
     Packet ans = ei_pset1(*coef++);
 
@@ -349,7 +349,7 @@ static Packet vecpolevl( const Packet &x, const Matrix<typename ei_unpacket_trai
 template<typename Packet>
 static Packet vecp1evl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
 {
-    int i = coefVec.size() - 1;
+    int i = (int)coefVec.size() - 1;
     const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
     Packet ans = ei_padd(x, ei_pset1(*coef++));
 
@@ -423,7 +423,7 @@ void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
 
     t = ei_pdiv(ei_pset1(float(1. / PI)), x);
     cc = ei_padd(ei_pset1(float(0.5)), ei_pmul(t, ei_psub(ei_pmul(f, s), ei_pmul(g, c))));
-    ss = ei_psub(ei_pset1(float(0.5)), ei_pmul(t, ei_psub(ei_pmul(f, c), ei_pmul(g, s))));
+    ss = ei_psub(ei_pset1(float(0.5)), ei_pmul(t, ei_padd(ei_pmul(f, c), ei_pmul(g, s))));
 
     *ssa = packetTransferSign(ss, xxa);
     *cca = packetTransferSign(cc, xxa);

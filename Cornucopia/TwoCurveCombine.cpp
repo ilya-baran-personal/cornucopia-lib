@@ -254,8 +254,8 @@ public:
         for(int i = 0; i < (int)_mapping.size(); ++i)
         {
             const MappingElement &elem = _mapping[i];
-            int offset = elem.curveIdx ? err[0].size() : 0;
-            int colSize = err[elem.curveIdx].size();
+            MatrixXd::Index offset = elem.curveIdx ? err[0].size() : 0;
+            MatrixXd::Index colSize = err[elem.curveIdx].size();
 
             switch(elem.type)
             {

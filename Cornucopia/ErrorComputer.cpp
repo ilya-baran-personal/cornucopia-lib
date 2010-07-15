@@ -99,7 +99,7 @@ public:
     void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to, VectorXd &outError, MatrixXd *outErrorDer,
                             bool firstToEndpoint, bool lastToEndpoint, bool reversed) const
     {
-        int numParams = curve->params().size();
+        int numParams = (int)curve->params().size();
         int numOutputs = 2 * (_pts.numElems(from, to) + 1); //to is inclusive
         outError.resize(numOutputs); 
         if(outErrorDer)

@@ -65,7 +65,7 @@ void Dataset::save(const string &filename) const
     if(!os.is_open())
         return;
 
-    int count = _data.size();
+    int count = (int)_data.size();
     os.write((char *)&count, sizeof(int));
     os.write((char *)&(_data[0]), count * sizeof(_data[0]));
 }
@@ -76,7 +76,7 @@ void Dataset::load(const string &filename) //appends to existing data
     if(!is.is_open())
         return;
 
-    int origSize = _data.size();
+    int origSize = (int)_data.size();
     int count = 0;
     is.read((char *)&count, sizeof(int));
     _data.resize(origSize + count);
@@ -195,7 +195,7 @@ private:
 
 void DataModel::_computeCoefs(const vector<pair<IndependentValue, double> > &pts, int start, int cnt)
 {
-    int dim = pts[start].first.featureVector().size();
+    int dim = (int)pts[start].first.featureVector().size();
     int id = pts[start].first.discreteId();
 
     MatrixXd lhs = MatrixXd::Identity(dim,  dim) * 0.01;

@@ -323,7 +323,7 @@ protected:
                     e.cost += out.vertices[k].cost * (out.vertices[k].target ? 1. : 0.5);
                     if(e.cost >= Parameters::infinity)
                         continue;
-                    out.vertices[i].edges.push_back(out.edges.size());
+                    out.vertices[i].edges.push_back((int)out.edges.size());
                     out.edges.push_back(e);
                 }
             }

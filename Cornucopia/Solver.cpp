@@ -158,7 +158,7 @@ bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt) const
 
 void LSDenseEvalData::solveForDelta(double damping, VectorXd &out, set<LSBoxConstraint> &constraints)
 {
-    int vars = _errDer.cols();
+    int vars = (int)_errDer.cols();
     if(constraints.empty())
     {
         LDLT<MatrixXd> ldlt(MatrixXd::Identity(vars, vars) * damping + _errDer.transpose() * _errDer);

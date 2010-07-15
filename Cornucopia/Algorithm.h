@@ -72,7 +72,7 @@ public:
     virtual std::string stageName() const = 0;
     virtual AlgorithmOutputBasePtr run(const Fitter &) = 0;
 
-    static int numAlgorithmsForStage(AlgorithmStage stage) { return _getAlgorithms()[stage].size(); }
+    static int numAlgorithmsForStage(AlgorithmStage stage) { return (int)_getAlgorithms()[stage].size(); }
     static AlgorithmBase *get(AlgorithmStage stage, int algorithm) { return _getAlgorithms()[stage][algorithm]; }
 
 protected:

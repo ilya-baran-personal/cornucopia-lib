@@ -94,7 +94,7 @@ ArcPtr ArcFitter::getCurve() const
     SelfAdjointEigenSolver<Matrix3d> eigenSolver(cov);
     Vector3d eigVs = eigenSolver.eigenvalues();
 
-    int idx;
+    Vector3d::Index idx;
     eigVs.minCoeff(&idx);
 
     Vector3d dir = eigenSolver.eigenvectors().col(idx);

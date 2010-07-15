@@ -73,7 +73,7 @@ public:
     void setCircular(CircularType circular) { _circular = circular; }
 
     //returns the size for iteration where at each iteration we access elements i, i+1, ..., i+offset
-    int endIdx(int offset) const { return _circular ? Base::size() : std::max(0, size() - offset); }
+    int endIdx(int offset) const { return _circular ? (int)Base::size() : std::max(0, (int)size() - offset); }
 
     class Circulator
     {
