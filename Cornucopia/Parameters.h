@@ -62,7 +62,8 @@ public:
         MAX_SAMPLE_RATE_SLOPE,
         ERROR_THRESHOLD,
         TWO_CURVE_CURVATURE_ADJUST,
-        TWO_CURVE_DAMPING
+        CURVE_ADJUST_DAMPING,
+        REDUCE_GRAPH_EVERY
     };
 
     Parameters(const std::string &name = std::string());

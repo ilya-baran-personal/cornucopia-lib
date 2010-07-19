@@ -233,11 +233,12 @@ public:
 
     void computeErrorVector(VectorXd &outError, MatrixXd &outErrorDer) const
     {
+#if 0
         char name[100];
         sprintf(name, "Curves %d", const_cast<CombinedCurve *>(this)->_evalCount++);
         Debugging::get()->drawCurve(_c[0], Vector3d(1, 0, 0), name);
         Debugging::get()->drawCurve(_c[1], Vector3d(0, 0, 1), name);
-
+#endif
         VectorXd err[2];
         MatrixXd errDer[2];
 
@@ -374,8 +375,10 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     out.c1 = primitives[p1].curve->clone();
     out.c2 = primitives[p2].curve->clone();
 
+#if 0
     Debugging::get()->drawCurve(out.c1, Vector3d(1, 0, 0), "Curves Orig");
     Debugging::get()->drawCurve(out.c2, Vector3d(0, 0, 1), "Curves Orig");
+#endif
 
     //trim c1 and c2
     Vector2d trimPt = 0.5 * (out.c1->endPos() + out.c2->startPos());
@@ -433,13 +436,15 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
 
     TwoCurveProblem problem(combined);
     LSSolver solver(&problem, constraints);
-    solver.setDefaultDamping(fitter.params().get(Parameters::TWO_CURVE_DAMPING));
+    solver.setDefaultDamping(fitter.params().get(Parameters::CURVE_ADJUST_DAMPING));
     solver.setMaxIter(5);
     x = solver.solve(x);
     combined.setParams(x);
 
+#if 0
     Debugging::get()->drawCurve(combined.getCurve(0), Vector3d(1, 0, 0), "Curves Final");
     Debugging::get()->drawCurve(combined.getCurve(1), Vector3d(0, 0, 1), "Curves Final");
+#endif
 
     out.err1 = combined.computeError1();
     out.err2 = combined.computeError2();

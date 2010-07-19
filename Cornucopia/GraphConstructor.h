@@ -41,17 +41,21 @@ struct Edge
 {
     int startVtx;
     int endVtx;
-    int continuity;
+    int continuity; //continuity = -1 for a dummy edge from a vertex to itself
     double cost; //includes the half the cost of the vertex behind and the vertex in front (full cost for source and target vertices).
+
+    double validatedCost(const Fitter &fitter) const;
 };
 
 SMART_FORW_DECL(Dataset);
+SMART_FORW_DECL(CostEvaluator);
 
 template<>
 struct AlgorithmOutput<GRAPH_CONSTRUCTION> : public AlgorithmOutputBase
 {
     std::vector<Vertex> vertices;
     std::vector<Edge> edges;
+    CostEvaluatorPtr costEvaluator;
     DatasetPtr dataset; //only if the algorithm selected is dataset generation
 };
 

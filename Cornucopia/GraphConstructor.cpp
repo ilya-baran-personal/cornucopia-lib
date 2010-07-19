@@ -32,7 +32,7 @@
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
-    
+
 struct PrimitiveCacheData
 {
     double x, y, angle, curvature;
@@ -86,7 +86,7 @@ private:
     PrimitiveCacheData _startData[3], _endData[3];
 };
 
-class CostEvaluator
+class CostEvaluator : public smart_base
 {
 public:
     CostEvaluator(const Fitter &fitter) :
@@ -122,7 +122,7 @@ public:
         return out;
     }
 
-    double edgeCost(int p1, int p2, int continuity) const
+    double edgeCost(int p1, int p2, int continuity, double error1 = -1., double error2 = -1.) const
     {
         double out = 0.;
 
@@ -139,11 +139,19 @@ public:
         //error
         double err1 = _primitives[p1].error;
         double err2 = _primitives[p2].error;
-        double extra1, extra2;
-        _getExtraError(p1, p2, continuity, extra1, extra2);
+        if(error1 < 0.) //we need to predict the error
+        {
+            double extra1, extra2;
+            _getExtraError(p1, p2, continuity, extra1, extra2);
         
-        out += _errorCost(extra1 + err1) - _errorCost(err1);
-        out += _errorCost(extra2 + err2) - _errorCost(err2);
+            out += _errorCost(extra1 + err1) - _errorCost(err1);
+            out += _errorCost(extra2 + err2) - _errorCost(err2);
+        }
+        else //the error has been passed in
+        {
+            out += max(0., _errorCost(error1) - _errorCost(err1));
+            out += max(0., _errorCost(error2) - _errorCost(err2));
+        }
 
         return out;
     }
@@ -174,7 +182,7 @@ public:
 private:
     double _errorCost(double error) const
     {
-        return _errorCostFactor * (error * _lengthScale); //simple for now
+        return _errorCostFactor * (error * _lengthScale) / 100.; //simple for now
     }
 
     void _getExtraError(int p1, int p2, int continuity, double &outExtra1, double &outExtra2) const
@@ -188,14 +196,14 @@ private:
         outExtra2 = diffs[0] * 0.5 + len2 * diffs[1] * 0.25 + SQR(len2) * diffs[2] * 0.125;
 #else
         IndependentValue indep = independentValue(p1, p2, continuity, false);
-        outExtra1 = _dataModel->get(indep);
+        outExtra1 = max(0., _dataModel->get(indep));
 
         //reverse
         swap(indep.type[0], indep.type[1]);
         swap(indep.length[0], indep.length[1]);
         swap(indep.startCurvSign[0], indep.startCurvSign[1]);
         swap(indep.endCurvSign[0], indep.endCurvSign[1]);
-        outExtra2 = _dataModel->get(indep);
+        outExtra2 = max(0., _dataModel->get(indep));
 #endif
     }
 
@@ -266,7 +274,7 @@ protected:
         const VectorC<Vector2d> &pts = poly->pts();
         bool closed = poly->isClosed();
 
-        CostEvaluator costEval(fitter);
+        out.costEvaluator = new CostEvaluator(fitter);
 
         //create vertices
         out.vertices.resize(primitives.size());
@@ -280,7 +288,17 @@ protected:
                 out.vertices[i].target = (primitives[i].endIdx + 1 == pts.size());
             }
 
-            out.vertices[i].cost = costEval.vertexCost(i);
+            out.vertices[i].cost = out.costEvaluator->vertexCost(i);
+
+            if(out.vertices[i].source && out.vertices[i].target) //one primitive over the entire curve--create dummy edge
+            {
+                Edge e;
+                e.continuity = -1;
+                e.startVtx = e.endVtx = i;
+                e.cost = out.vertices[i].cost;
+                out.vertices[i].edges.push_back((int)out.edges.size());
+                out.edges.push_back(e);
+            }
         }
 
         //create edges
@@ -318,7 +336,7 @@ protected:
                     e.continuity = continuity;
                     e.startVtx = i;
                     e.endVtx = k;
-                    e.cost = costEval.edgeCost(i, k, continuity);
+                    e.cost = out.costEvaluator->edgeCost(i, k, continuity);
                     e.cost += out.vertices[i].cost * (out.vertices[i].source ? 1. : 0.5);
                     e.cost += out.vertices[k].cost * (out.vertices[k].target ? 1. : 0.5);
                     if(e.cost >= Parameters::infinity)
@@ -344,22 +362,35 @@ protected:
         DefaultGraphConstructor::_run(fitter, out);
         out.dataset = new Dataset();
 
-        CostEvaluator costEval(fitter);
-
         for(int i = 0; i < (int)out.edges.size(); ++i)
         {
             const Edge &e = out.edges[i];
+            if(e.continuity < 0)
+                continue; //dummy edge
 
             Combination comb = twoCurveCombine(e.startVtx, e.endVtx, e.continuity, fitter);
 
             double errDiff1 = (sqrt(comb.err1) - sqrt(primitives[e.startVtx].error)) * sqrt(primitives[e.startVtx].curve->length());
             double errDiff2 = (sqrt(comb.err2) - sqrt(primitives[e.endVtx].error)) * sqrt(primitives[e.endVtx].curve->length());
 
-            out.dataset->addPoint(costEval.independentValue(e.startVtx, e.endVtx, e.continuity, false), errDiff1);
-            out.dataset->addPoint(costEval.independentValue(e.startVtx, e.endVtx, e.continuity, true), errDiff2);
+            out.dataset->addPoint(out.costEvaluator->independentValue(e.startVtx, e.endVtx, e.continuity, false), errDiff1);
+            out.dataset->addPoint(out.costEvaluator->independentValue(e.startVtx, e.endVtx, e.continuity, true), errDiff2);
         }
     }
 };
+
+double Edge::validatedCost(const Fitter &fitter) const
+{
+    if(continuity < 0) //dummy edge
+        return cost;
+
+    Combination comb = twoCurveCombine(startVtx, endVtx, continuity, fitter);
+
+    double newCost = fitter.output<GRAPH_CONSTRUCTION>()->costEvaluator->edgeCost(startVtx, endVtx, continuity, comb.err1, comb.err2);
+
+    //only increase cost
+    return max(newCost, cost);
+}
 
 void Algorithm<GRAPH_CONSTRUCTION>::_initialize()
 {

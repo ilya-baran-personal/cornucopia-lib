@@ -45,7 +45,7 @@ DebuggingImpl *DebuggingImpl::get()
 
 void DebuggingImpl::printf(const char *fmt, ...)
 {
-    const int sz = 200; //we don't need terribly long debug strings
+    const int sz = 5000; //we don't need terribly long debug strings
     char buffer[sz];
 
     va_list ap;

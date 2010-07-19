@@ -30,6 +30,7 @@ NAMESPACE_Cornu
 template<>
 struct AlgorithmOutput<PATH_FINDING> : public AlgorithmOutputBase
 {
+    std::vector<int> path; //list of edges
 };
 
 template<>

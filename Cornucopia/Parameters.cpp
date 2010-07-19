@@ -48,7 +48,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(G0_COST, "G0 cost", 0., 50., 999.));
     _parameters.push_back(Parameter(G1_COST, "G1 cost", 0., 50., 999.));
     _parameters.push_back(Parameter(G2_COST, "G2 cost", 0., 50., 0.));
-    _parameters.push_back(Parameter(ERROR_COST, "Error cost", 0., 10., 2.));
+    _parameters.push_back(Parameter(ERROR_COST, "Error cost", 0., 10., 1.));
     _parameters.push_back(Parameter(INFLECTION_COST, "Inflection cost", 0., 20., 10.));
 
     _parameters.push_back(Parameter(INTERNAL_PARAMETERS_MARKER, "NOT A PARAMETER", 0., 0., 0.));
@@ -70,7 +70,8 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(MAX_SAMPLE_RATE_SLOPE, "Max sample rate slope", 0.4));
     _parameters.push_back(Parameter(ERROR_THRESHOLD, "Error Threshold", 3.));
     _parameters.push_back(Parameter(TWO_CURVE_CURVATURE_ADJUST, "Two-Curve Adjustment Point", 2.));
-    _parameters.push_back(Parameter(TWO_CURVE_DAMPING, "Two-Curve Damping", 1.));
+    _parameters.push_back(Parameter(CURVE_ADJUST_DAMPING, "Curve Adjust Damping", 1.));
+    _parameters.push_back(Parameter(REDUCE_GRAPH_EVERY, "Reduce Graph Every", 10.));
 }
 
 void Parameters::_initializePresets()

@@ -200,6 +200,7 @@ protected:
     void _run(const Fitter &fitter, AlgorithmOutput<CURVE_CLOSING> &out)
     {
         out.output = fitter.output<PRELIM_RESAMPLING>()->output;
+        out.closed = false;
         
         const double tol = fitter.scaledParameter(Parameters::CLOSEDNESS_THRESHOLD);
         const double tolSq = SQR(tol);
@@ -254,6 +255,7 @@ protected:
         if(minDistSq == tolSq)
             return;
         //if we are here, curve is closed
+        out.closed = true;
 
         //close and adjust curve
         VectorC<Vector2d>::Base newPts = pts;

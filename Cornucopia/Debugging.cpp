@@ -20,6 +20,7 @@
 */
 
 #include "Debugging.h"
+#include "CurvePrimitive.h"
 
 using namespace std;
 using namespace Eigen;
@@ -31,6 +32,15 @@ void Debugging::set(Debugging *debugging)
 {
     delete _currentDebugging;
     _currentDebugging = debugging;
+}
+
+void Debugging::drawPrimitive(CurvePrimitiveConstPtr curve, const std::string &group, int idx, double thickness)
+{
+    Color color = Color::Zero();
+    double val = (idx & 1) ? 0.7 : 1.;
+    color[curve->getType()] = val;
+
+    drawCurve(curve, color, group, thickness);
 }
 
 END_NAMESPACE_Cornu

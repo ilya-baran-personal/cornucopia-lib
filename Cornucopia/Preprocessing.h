@@ -47,6 +47,7 @@ template<>
 struct AlgorithmOutput<CURVE_CLOSING> : public AlgorithmOutputBase
 {
     PolylineConstPtr output;
+    bool closed;
 };
 
 template<>

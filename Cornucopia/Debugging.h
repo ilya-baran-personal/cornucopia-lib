@@ -31,6 +31,7 @@
 NAMESPACE_Cornu
 
 SMART_FORW_DECL(Curve);
+SMART_FORW_DECL(CurvePrimitive);
 
 //This class does nothing by default
 class Debugging
@@ -61,6 +62,9 @@ public:
     virtual void drawPoint(const Vector2d &/*pos*/, const Color &/*color*/, const std::string &/*group*/ = "") {}
     virtual void drawLine(const Vector2d &/*p1*/, const Vector2d &/*p2*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1, LineStyle /*style*/ = SOLID) {}
     virtual void drawCurve(CurveConstPtr /*curve*/, const Color &/*color*/, const std::string &/*group*/ = "", double /*thickness*/ = 1, LineStyle /*style*/ = SOLID) {}
+
+    //utility function that picks the right color
+    void drawPrimitive(CurvePrimitiveConstPtr curve, const std::string &group, int idx = 0, double thickness = 1.);
 
 protected:
     Debugging() {}

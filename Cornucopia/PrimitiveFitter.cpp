@@ -239,7 +239,7 @@ protected:
         //solve
         OneCurveProblem problem(primitive, errorComputer);
         LSSolver solver(&problem, constraints);
-        solver.setDefaultDamping(fitter.params().get(Parameters::TWO_CURVE_DAMPING));
+        solver.setDefaultDamping(fitter.params().get(Parameters::CURVE_ADJUST_DAMPING));
         solver.setMaxIter(1);
         problem.setParams(solver.solve(problem.params()));
     }
