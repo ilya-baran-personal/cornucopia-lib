@@ -182,12 +182,13 @@ public:
 private:
     double _errorCost(double error) const
     {
-        return _errorCostFactor * (error * _lengthScale) / 100.; //simple for now
+        return _errorCostFactor * (error * SQR(_lengthScale)); //simple for now
     }
 
     void _getExtraError(int p1, int p2, int continuity, double &outExtra1, double &outExtra2) const
     {
-#if 0   //Dumb method
+        outExtra1 = outExtra2 = 0.;  return;
+#if 1   //Dumb method
         Vector3d diffs = _getDiffs(p1, p2, continuity);
         double len1 = _primitives[p1].curve->length();
         double len2 = _primitives[p2].curve->length();

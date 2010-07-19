@@ -29,10 +29,10 @@ using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
-class DefaultErrorComputer : public ErrorComputer
+class L2ErrorComputer : public ErrorComputer
 {
 public:
-    DefaultErrorComputer(const Fitter &fitter)
+    L2ErrorComputer(const Fitter &fitter)
         : _pts(fitter.output<RESAMPLING>()->output->pts())
     {
         PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
@@ -163,26 +163,81 @@ public:
         }
     }
 
-private:
+    double computeErrorForCost(CurvePrimitiveConstPtr curve, int from, int to,
+                               bool firstToEndpoint, bool lastToEndpoint, bool reversed) const
+    {
+        return computeError(curve, from, to, firstToEndpoint, lastToEndpoint, reversed) / curve->length();
+    }
+
+protected:
     const VectorC<Vector2d> &_pts;
     VectorC<double> _weightsLeft, _weightsRight, _weightLeftRoots, _weightRightRoots, _weightRoots;
 };
 
-class DefaultErrorComputerCreator : public Algorithm<ERROR_COMPUTER>
+class LInfErrorComputer : public L2ErrorComputer
 {
 public:
-    string name() const { return "Default"; }
+    LInfErrorComputer(const Fitter &fitter)
+        : L2ErrorComputer(fitter) {}
+
+    double computeErrorForCost(CurvePrimitiveConstPtr curve, int from, int to,
+                               bool firstToEndpoint, bool lastToEndpoint, bool reversed) const
+    {
+        double error = 0;
+
+        bool first = true;
+        for(VectorC<Vector2d>::Circulator circ = _pts.circulator(from); ; ++circ)
+        {
+            int idx = circ.index();
+            bool last = (idx == to);
+
+            bool toFirstEndpoint = first && firstToEndpoint;
+            bool toLastEndpoint = last && lastToEndpoint;
+
+            const Vector2d &pt = _pts.flatAt(idx);
+
+            double s;
+            if(toLastEndpoint)
+                s = reversed ? 0 : curve->length();
+            else if(toFirstEndpoint)
+                s = reversed ? curve->length() : 0;
+            else
+                s = curve->project(pt);
+
+            double distSq = (curve->pos(s) - pt).squaredNorm();
+
+            error = max(error, distSq);
+
+            first = false;
+            if(last)
+                break;
+        }
+
+        return error;
+    }    
+};
+
+class ErrorComputerCreator : public Algorithm<ERROR_COMPUTER>
+{
+public:
+    ErrorComputerCreator(bool lInf = true)
+        : _lInf(lInf) {}
+
+    string name() const { return _lInf ? "L-Infinity" : "L2"; }
 
 protected:
     void _run(const Fitter &fitter, AlgorithmOutput<ERROR_COMPUTER> &out)
     {
-        out.errorComputer = new DefaultErrorComputer(fitter);
+        out.errorComputer = _lInf ? new LInfErrorComputer(fitter) : new L2ErrorComputer(fitter);
     }
+private:
+    bool _lInf;
 };
 
 void Algorithm<ERROR_COMPUTER>::_initialize()
 {
-    new DefaultErrorComputerCreator();
+    new ErrorComputerCreator(true);
+    new ErrorComputerCreator(false);
 }
 
 

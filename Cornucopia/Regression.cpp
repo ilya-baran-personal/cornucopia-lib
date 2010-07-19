@@ -44,12 +44,12 @@ int IndependentValue::discreteId() const
 
 IndependentValue::FeatureVector IndependentValue::featureVector() const
 {
-    FeatureVector out(4 + continuity);
+    FeatureVector out(2 + continuity);
 
     int idx = 0;
     out[idx++] = 1.;
-    out[idx++] = length[0];
-    out[idx++] = length[1];
+    //out[idx++] = length[0];
+    //out[idx++] = length[1];
     out[idx++] = diffs[0];
     if(continuity >= 1)
         out[idx++] = diffs[1] * length[0];
@@ -93,13 +93,13 @@ DataModel::DataModel(DatasetConstPtr data)
     if(pts.empty())
         return;
 
-    double totalErr = 0, totalLen = 0;
+    double totalErr = 0, totalNum = 0;
     for(int i = 0; i < (int)pts.size(); ++i)
     {
         totalErr += pts[i].second;
-        totalLen += pts[i].first.length[0];
+        totalNum += 1.;
     }
-    cout << "avg err before filter = " << totalErr / totalLen << "\n";
+    cout << "avg err before filter = " << totalErr / totalNum << "\n";
 
     //filter
     vector<int> toRemove;
@@ -108,7 +108,7 @@ DataModel::DataModel(DatasetConstPtr data)
         double err = pts[i].second;
         double len = pts[i].first.length[0];
         
-        if(fabs(err) > len * 3.) //average squared error more than 3 pixels
+        if(fabs(err) > 3.) //average squared error more than 3 pixels
             toRemove.push_back(i);
     }
     int offs = 0;
@@ -135,13 +135,13 @@ DataModel::DataModel(DatasetConstPtr data)
         }
     }
 
-    totalErr = 0, totalLen = 0;
+    totalErr = 0, totalNum = 0;
     for(int i = 0; i < (int)pts.size(); ++i)
     {
         totalErr += pts[i].second;
-        totalLen += pts[i].first.length[0];
+        totalNum += 1.;
     }
-    cout << "avg err after filter = " << totalErr / totalLen << "\n";
+    cout << "avg err after filter = " << totalErr / totalNum << "\n";
 
 
     _coefs.resize(1 + pts.back().first.discreteId());

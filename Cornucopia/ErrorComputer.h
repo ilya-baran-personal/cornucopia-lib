@@ -38,6 +38,8 @@ public:
     virtual void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to,
                                     Eigen::VectorXd &outError, Eigen::MatrixXd *outErrorDer = NULL,
                                     bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
+    virtual double computeErrorForCost(CurvePrimitiveConstPtr curve, int from, int to,
+                                       bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
 };
 
 SMART_TYPEDEFS(ErrorComputer);

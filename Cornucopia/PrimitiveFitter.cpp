@@ -157,10 +157,10 @@ protected:
                         if(_adjust)
                             adjustPrimitive(fit, fitter);
 
-                        fit.error = errorComputer->computeError(curve, i, fit.endIdx);
+                        fit.error = errorComputer->computeErrorForCost(curve, i, fit.endIdx);
 
                         double length = poly->lengthFromTo(i, fit.endIdx);
-                        if(fit.error / length > errorThreshold * errorThreshold)
+                        if(fit.error > errorThreshold * errorThreshold)
                             break;
 
                         Debugging::get()->drawCurve(curve, color, typeNames[type]);
@@ -187,9 +187,9 @@ protected:
                             if(_adjust)
                                 adjustPrimitive(fit, fitter);
 
-                            fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
+                            fit.error = errorComputer->computeErrorForCost(fit.curve, i, fit.endIdx);
 
-                            if(fit.error / length < errorThreshold * errorThreshold)
+                            if(fit.error < errorThreshold * errorThreshold)
                             {
                                 out.primitives.push_back(fit);
                                 Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
@@ -201,9 +201,9 @@ protected:
                             if(_adjust)
                                 adjustPrimitive(fit, fitter);
 
-                            fit.error = errorComputer->computeError(fit.curve, i, fit.endIdx);
+                            fit.error = errorComputer->computeErrorForCost(fit.curve, i, fit.endIdx);
 
-                            if(fit.error / length < errorThreshold * errorThreshold)
+                            if(fit.error < errorThreshold * errorThreshold)
                             {
                                 out.primitives.push_back(fit);
                                 Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);

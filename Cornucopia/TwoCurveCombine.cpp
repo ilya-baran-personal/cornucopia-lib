@@ -216,19 +216,20 @@ public:
         }
     }
 
-    double computeError1() const
+    double computeError1ForCost() const
     {
-        return _errorComputer->computeError(_c[0], _from[0], _to[0], true, _continuity == 0, true);
+        return _errorComputer->computeErrorForCost(_c[0], _from[0], _to[0], true, _continuity == 0, true);
     }
 
-    double computeError2() const
+    double computeError2ForCost() const
     {
-        return _errorComputer->computeError(_c[1], _from[1], _to[1], _continuity == 0, true);
+        return _errorComputer->computeErrorForCost(_c[1], _from[1], _to[1], _continuity == 0, true);
     }
 
     double computeError() const
     {
-        return computeError1() + computeError2();
+        return _errorComputer->computeError(_c[0], _from[0], _to[0], true, _continuity == 0, true) +
+               _errorComputer->computeError(_c[1], _from[1], _to[1], _continuity == 0, true);
     }
 
     void computeErrorVector(VectorXd &outError, MatrixXd &outErrorDer) const
@@ -446,8 +447,8 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     Debugging::get()->drawCurve(combined.getCurve(1), Vector3d(0, 0, 1), "Curves Final");
 #endif
 
-    out.err1 = combined.computeError1();
-    out.err2 = combined.computeError2();
+    out.err1 = combined.computeError1ForCost();
+    out.err2 = combined.computeError1ForCost();
     //cout << "Err = " << (out.err1 + out.err2) << endl;
 
     return out;
