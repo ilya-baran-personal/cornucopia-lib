@@ -309,6 +309,44 @@ void Clothoid::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
     }
 }
 
+void Clothoid::derivativeAtEnd(int continuity, EndDer &out) const
+{
+    out = EndDer::Zero(2 + continuity, 6);
+
+    ParamDer pDer, dummy;
+    derivativeAt(_length(), pDer, dummy);
+    Vector2d endTan;
+    eval(_length(), NULL, &endTan);
+
+    out.block(0, 0, 2, 6) = pDer;
+    out.col(LENGTH).head<2>() = endTan;
+
+    if(continuity >= 1)
+    {
+        out(2, ANGLE) = 1.;
+        out(2, LENGTH) = _params[CURVATURE] + _params[LENGTH] * _params[DCURVATURE];
+        out(2, CURVATURE) = _params[LENGTH];
+        out(2, DCURVATURE) = 0.5 * SQR(_params[LENGTH]);
+    }
+
+    if(continuity == 2)
+    {
+        out(3, CURVATURE) = 1.;
+        out(3, LENGTH) = _params[DCURVATURE];
+        out(3, DCURVATURE) = _params[LENGTH];
+    }
+}
+
+void Clothoid::toEndCurvatureDerivative(MatrixXd &der) const
+{
+    double invLength = 1. / _params[LENGTH];
+    der.col(DCURVATURE) *= invLength;
+
+    //compute the derivative with respect to curvature and length as well.
+    der.col(CURVATURE) -= der.col(DCURVATURE);
+    der.col(LENGTH) -= der.col(DCURVATURE) * _params(DCURVATURE);
+}
+
 END_NAMESPACE_Cornu
 
 

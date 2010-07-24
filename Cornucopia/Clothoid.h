@@ -44,7 +44,7 @@ public:
     double curvature(double s) const;
 
     double startCurvature() const { return _params[CURVATURE]; }
-    double endCurvature() const { return _params[CURVATURE] + _params[LENGTH]* _params[DCURVATURE]; }
+    double endCurvature() const { return _params[CURVATURE] + _params[LENGTH] * _params[DCURVATURE]; }
 
     PrimitiveType getType() const { return CLOTHOID; }
 
@@ -52,6 +52,9 @@ public:
     void flip();
     CurvePrimitivePtr clone() const { ClothoidPtr out = new Clothoid(); out->setParams(_params); return out; }
     void derivativeAt(double s, ParamDer &out, ParamDer &outTan) const;
+    void derivativeAtEnd(int continuity, EndDer &out) const;
+
+    void toEndCurvatureDerivative(Eigen::MatrixXd &der) const;
 
     class _ClothoidProjector : public smart_base //internal singleton class
     {

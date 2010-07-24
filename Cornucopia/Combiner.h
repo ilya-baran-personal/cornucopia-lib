@@ -24,12 +24,15 @@
 
 #include "defs.h"
 #include "Algorithm.h"
+#include "VectorC.h"
+#include "CurvePrimitive.h"
 
 NAMESPACE_Cornu
 
 template<>
 struct AlgorithmOutput<COMBINING> : public AlgorithmOutputBase
 {
+    VectorC<CurvePrimitiveConstPtr> output;
 };
 
 template<>

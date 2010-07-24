@@ -38,7 +38,7 @@ public:
         : _primitive(primitive), _errorComputer(errorComputer)  {}
 
     //overrides
-    double error(const VectorXd &x)
+    double error(const VectorXd &x, LSEvalData *)
     {
         setParams(x);
         return _errorComputer->computeError(_primitive.curve, _primitive.startIdx, _primitive.endIdx);
@@ -56,16 +56,7 @@ public:
         _errorComputer->computeErrorVector(_primitive.curve, _primitive.startIdx, _primitive.endIdx,
                                            curveData->errVectorRef(), &errDer);
 
-        if(_primitive.curve->getType() == CurvePrimitive::CLOTHOID)
-        {
-            double invLength = 1. / x(CurvePrimitive::LENGTH);
-            errDer.col(CurvePrimitive::DCURVATURE) *= invLength;
-
-            //compute the derivative with respect to curvature and length as well.
-            errDer.col(CurvePrimitive::CURVATURE) -= errDer.col(CurvePrimitive::DCURVATURE);
-            double dcurvature = (x(CurvePrimitive::DCURVATURE) - x(CurvePrimitive::CURVATURE)) * invLength;
-            errDer.col(CurvePrimitive::LENGTH) -= errDer.col(CurvePrimitive::DCURVATURE) * dcurvature;
-        }
+        _primitive.curve->toEndCurvatureDerivative(errDer);
     }
 
     VectorXd params() const

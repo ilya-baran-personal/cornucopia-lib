@@ -57,7 +57,7 @@ class LSProblem
 public:
     virtual ~LSProblem() {}
 
-    virtual double error(const Eigen::VectorXd &x) = 0;
+    virtual double error(const Eigen::VectorXd &x, LSEvalData *data) { eval(x, data); return data->error(); }
     virtual LSEvalData *createEvalData() = 0;
     virtual void eval(const Eigen::VectorXd &x, LSEvalData *data) = 0;
 };

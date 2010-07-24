@@ -57,6 +57,7 @@ public:
     void flip();
     CurvePrimitivePtr clone() const { LinePtr out = new Line(); out->setParams(_params); return out; }
     void derivativeAt(double s, ParamDer &out, ParamDer &outTan) const;
+    void derivativeAtEnd(int continuity, EndDer &out) const;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 protected:

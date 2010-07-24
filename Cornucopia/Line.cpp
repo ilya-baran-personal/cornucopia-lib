@@ -98,6 +98,19 @@ void Line::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
     outTan(1, ANGLE) = _der(0);
 }
 
+void Line::derivativeAtEnd(int continuity, EndDer &out) const
+{
+    out = EndDer::Zero(2 + continuity, 4);
+    out(0, X) = 1;
+    out(1, Y) = 1;
+    out(0, LENGTH) = _der(0);
+    out(1, LENGTH) = _der(1);
+    out(0, ANGLE) = -_length() * _der(1);
+    out(1, ANGLE) = _length() * _der(0);
+    if(continuity >= 1)
+        out(2, ANGLE) = 1.;
+}
+
 END_NAMESPACE_Cornu
 
 

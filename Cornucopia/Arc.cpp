@@ -165,6 +165,29 @@ void Arc::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
     }
 }
 
+void Arc::derivativeAtEnd(int continuity, EndDer &out) const
+{
+    out = EndDer::Zero(2 + continuity, 5);
+
+    ParamDer pDer, dummy;
+    derivativeAt(_length(), pDer, dummy);
+    Vector2d endTan;
+    eval(_length(), NULL, &endTan);
+
+    out.block(0, 0, 2, 5) = pDer;
+    out.col(LENGTH).head<2>() = endTan;
+
+    if(continuity >= 1)
+    {
+        out(2, ANGLE) = 1.;
+        out(2, LENGTH) = _params[CURVATURE];
+        out(2, CURVATURE) = _params[LENGTH];
+    }
+
+    if(continuity == 2)
+        out(3, CURVATURE) = 1.;
+}
+
 Arc::Arc(const Vec &start, const Vec &mid, const Vec &end)
 {
     _params.resize(numParams());

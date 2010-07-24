@@ -35,7 +35,7 @@ NAMESPACE_Cornu
 struct PathFindingVertexData
 {
     PathFindingVertexData()
-        : distance(0.), finished(false), prevEdge(-1), source(false), target(false)
+        : distance(0.), finished(false), prevEdge(-1), source(false), target(false), numIncoming(0), numOutgoing(0)
     {
     }
 
@@ -44,6 +44,7 @@ struct PathFindingVertexData
     int prevEdge;
     bool source;
     bool target;
+    int numIncoming, numOutgoing;
 };
 
 class PathFindingEdgeData
@@ -95,6 +96,11 @@ public:
         _eData.reserve(edges.size());
         for(size_t i = 0; i < edges.size(); ++i)
             _eData.push_back(PathFindingEdgeData(&(edges[i])));
+
+        for(size_t i = 0; i < vertices.size(); ++i)
+            _vData[i].numOutgoing = vertices[i].edges.size();
+        for(size_t i = 0; i < edges.size(); ++i)
+            _vData[edges[i].endVtx].numIncoming++;
     }
 
     vector<int> shortestPath(const Fitter &fitter)
@@ -137,14 +143,16 @@ public:
 
     vector<int> shortestCycle(const Fitter &fitter)
     {
-        //start with the vertex that has the cheapest edge
+        //start with the vertex that has an edge both cheap and with very connected vertices
         double minEdgeCost = Parameters::infinity;
         int bestEdge = 0;
+
         for(size_t i = 0; i < _eData.size(); ++i)
         {
-            if(_eData[i].cost() < minEdgeCost)
+            double cost = _eData[i].cost() - double(_vData[_edges[i].startVtx].numIncoming) * _vData[_edges[i].endVtx].numOutgoing;
+            if(cost < minEdgeCost)
             {
-                minEdgeCost = _eData[i].cost();
+                minEdgeCost = cost;
                 bestEdge = i;
             }
         }
@@ -165,6 +173,9 @@ public:
                     _reduceForCycle(sources[0]);
 
                 sp = _shortestPath(sources);
+
+                if(sp.empty()) //should not happen
+                    return sp;
 
                 bool done = true;
                 for(int j = 0; j < (int)sp.size(); ++j)
@@ -403,6 +414,8 @@ protected:
         }
         if(shortestPath.size() > 0 && graph->edges[shortestPath[0]].continuity != -1)
             Debugging::get()->drawPrimitive(primitives[graph->edges[shortestPath.back()].endVtx].curve, "Path", shortestPath.size());
+
+        out.path = shortestPath;
     }
 };
 

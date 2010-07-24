@@ -318,14 +318,14 @@ protected:
                 int startIdx = endIdx - offset;
                 if(!closed && startIdx < 0)
                     continue;
-                if(curve1len <= offset) //if the first curve is already too short
+                if(curve1len <= offset * 2) //if the first curve is already too short
                     continue;
 
                 for(int j = 0; j < (int)curvesStartingAt[startIdx].size(); ++j)
                 {
                     int k = curvesStartingAt[startIdx][j]; //index of the second primitive
                     int curve2len = primitives[k].numPts - 1;
-                    if(curve2len <= offset)
+                    if(curve2len <= offset * 2)
                         continue;
 
                     int maxType = max(primitives[i].curve->getType(), primitives[k].curve->getType());

@@ -62,6 +62,8 @@ OneParamWidget::OneParamWidget(ParamWidget *paramWidget, QWidget *parent, const 
         _ui->verticalLayout->setContentsMargins(margins);
     }
 
+    if(param.defaultVal == Cornu::Parameters::infinity)
+        setValue(param.min); //make sure the parameter UI has a default non-infinite value
     setValue(param.defaultVal);
 
     new ParameterSetter(paramWidget, this);

@@ -45,8 +45,8 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(LINE_COST, "Line cost", 0., 20., 7.5));
     _parameters.push_back(Parameter(ARC_COST, "Arc cost", 0., 30., 9.));
     _parameters.push_back(Parameter(CLOTHOID_COST, "Clothoid cost", 0., 50., 15.));
-    _parameters.push_back(Parameter(G0_COST, "G0 cost", 0., 50., 999.));
-    _parameters.push_back(Parameter(G1_COST, "G1 cost", 0., 50., 999.));
+    _parameters.push_back(Parameter(G0_COST, "G0 cost", 0., 50., infinity));
+    _parameters.push_back(Parameter(G1_COST, "G1 cost", 0., 50., infinity));
     _parameters.push_back(Parameter(G2_COST, "G2 cost", 0., 50., 0.));
     _parameters.push_back(Parameter(ERROR_COST, "Error cost", 0., 10., 1.));
     _parameters.push_back(Parameter(INFLECTION_COST, "Inflection cost", 0., 20., 10.));
@@ -104,7 +104,6 @@ void Parameters::_initializePresets()
     linesarcs.set(LINE_COST, 8.);
     linesarcs.set(ARC_COST, 12.);
     linesarcs.set(CLOTHOID_COST, infinity);
-    linesarcs.set(G0_COST, infinity);
     linesarcs.set(G1_COST, 0.);
     linesarcs.set(G2_COST, infinity);
     _presets.push_back(linesarcs);

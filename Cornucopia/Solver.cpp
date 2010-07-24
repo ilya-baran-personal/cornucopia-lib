@@ -47,6 +47,7 @@ VectorXd LSSolver::solve(const VectorXd &guess)
         VectorXd delta;
 
         double error = evalData->error();
+        //printf("Iter = %d, error = %lf\n", iter, error);
         if(error < bestError)
         {
             if(error < 1e-8)
@@ -65,7 +66,9 @@ VectorXd LSSolver::solve(const VectorXd &guess)
         x += delta;
     }
 
-    if(_problem->error(x) < bestError)
+    double error = _problem->error(x, evalData);
+    //printf("Final error = %lf\n", error);
+    if(error < bestError)
     {
         best = x;
     }
@@ -149,7 +152,12 @@ bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt) const
     double err = (numDer - exactDer).norm();
 
     //TODO: just print the error for now
-    Debugging::get()->printf("Error = %lf", err);
+    Debugging::get()->printf("Derivative Error = %lf", err);
+
+    for(int i = 0; i < numDer.cols(); ++i)
+        Debugging::get()->printf("Col %d err = %lf", i, (numDer.col(i) - exactDer.col(i)).norm());
+    for(int i = 0; i < numDer.rows(); ++i)
+        Debugging::get()->printf("Row %d err = %lf", i, (numDer.row(i) - exactDer.row(i)).norm());
 
     delete evalData;
 

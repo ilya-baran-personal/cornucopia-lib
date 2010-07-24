@@ -37,6 +37,7 @@ class CurvePrimitive : public Curve
 public:
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::AutoAlign, 6, 1> ParamVec;
     typedef Eigen::Matrix<double, 2, Eigen::Dynamic, Eigen::AutoAlign, 2, 6> ParamDer; //derivative of x and y w.r.t. parameters
+    typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::AutoAlign, 4, 6> EndDer; //derivative of x, y, angle, curvature w.r.t. parameters
 
     enum PrimitiveType
     {
@@ -66,6 +67,10 @@ public:
 
     //derivative (of curve and its tangent vector) with respect to paramters
     virtual void derivativeAt(double s, ParamDer &out, ParamDer &outTan) const = 0;
+    virtual void derivativeAtEnd(int continuity, EndDer &out) const = 0; //continuity: 0 = position, 1 = +angle, 2 = +curvature
+
+    //for clothoids, converts derivative w.r.t. dcurvature into der w.r.t. end curvature
+    virtual void toEndCurvatureDerivative(Eigen::MatrixXd &) const {} 
 
     void setParams(const ParamVec &params) { _params = params; _paramsChanged(); }
     const ParamVec &params() const { return _params; }

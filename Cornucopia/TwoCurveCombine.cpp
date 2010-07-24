@@ -247,6 +247,9 @@ public:
         _errorComputer->computeErrorVector(_c[0], _from[0], _to[0], err[0], errDer + 0, true, _continuity == 0, true);
         _errorComputer->computeErrorVector(_c[1], _from[1], _to[1], err[1], errDer + 1, _continuity == 0, true);
 
+        _c[0]->toEndCurvatureDerivative(errDer[0]);
+        _c[1]->toEndCurvatureDerivative(errDer[1]);
+
         outError.resize(err[0].size() + err[1].size());
         outError.segment(0, err[0].size()) = err[0];
         outError.segment(err[0].size(), err[1].size()) = err[1];
@@ -263,6 +266,7 @@ public:
             {
             case MappingElement::Normal:    
             case MappingElement::PlusPi:
+            case MappingElement::EndCurvature:
                 outErrorDer.col(elem.paramIdx).segment(offset, colSize) += errDer[elem.curveIdx].col(elem.parameter);
                 break;
             case MappingElement::Negative:
@@ -270,22 +274,6 @@ public:
                 break;
             case MappingElement::Zero:
                 break;
-            case MappingElement::EndCurvature:
-                {
-                    double invLength = 1. / _c[elem.curveIdx]->length();
-                    outErrorDer.col(elem.paramIdx).segment(offset, colSize) += errDer[elem.curveIdx].col(elem.parameter) * invLength;
-                    //compute the derivative with respect to curvature and length as well.
-                    const MappingElement &curvatureElement = _mapping[_getMappingIndex(elem.curveIdx, CurvePrimitive::CURVATURE)];
-                    const MappingElement &lengthElement = _mapping[_getMappingIndex(elem.curveIdx, CurvePrimitive::LENGTH)];
-
-                    outErrorDer.col(curvatureElement.paramIdx).segment(offset, colSize) -= errDer[elem.curveIdx].col(elem.parameter)
-                        * (curvatureElement.type == MappingElement::Normal ? invLength : -invLength);
-
-                    outErrorDer.col(lengthElement.paramIdx).segment(offset, colSize) -= errDer[elem.curveIdx].col(elem.parameter) *
-                        (_c[elem.curveIdx]->params()[CurvePrimitive::DCURVATURE] * invLength);
-
-                    break;
-                }
             }
         }
     }
@@ -344,7 +332,7 @@ public:
     TwoCurveProblem(CombinedCurve &curves) : _curves(curves) {}
 
     //overrides
-    double error(const Eigen::VectorXd &x)
+    double error(const Eigen::VectorXd &x, LSEvalData *)
     {
         _curves.setParams(x);
         return _curves.computeError();
