@@ -41,10 +41,10 @@ VectorXd LSSolver::solve(const VectorXd &guess)
 
     set<LSBoxConstraint> activeSet = _clamp(x);
 
+    VectorXd delta;
     for(int iter = 0; iter < _maxIter; ++iter)
     {
         _problem->eval(x, evalData);
-        VectorXd delta;
 
         double error = evalData->error();
         //printf("Iter = %d, error = %lf\n", iter, error);
@@ -58,12 +58,29 @@ VectorXd LSSolver::solve(const VectorXd &guess)
 
         evalData->solveForDelta(_damping, delta, activeSet);
 
+        if(delta.squaredNorm() < 1e-14)
+            break;
+
         int newConstraint = _project(x, delta);
 
         if(newConstraint != -1)
             activeSet.insert(_constraints[newConstraint]);
 
         x += delta;
+
+        int halvings = 0;
+        while(_problem->error(x, evalData) > error && delta.squaredNorm() > 1e-8)
+        {
+            printf("Halving\n");
+            delta *= 0.5;
+            x -= delta;
+            ++halvings;
+        }
+        if(halvings > 0) //halve again -- won't hurt and may actually help
+        {
+            delta *= 0.5;
+            x -= delta;
+        }
     }
 
     double error = _problem->error(x, evalData);

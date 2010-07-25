@@ -43,7 +43,7 @@ class MulticurveDenseEvalData : public LSEvalData
 {
 public:
     //overrides
-    double error() const { return _err.squaredNorm() + 1000. * _con.squaredNorm(); }
+    double error() const { return /*_err.squaredNorm() + 1e5 */ _con.squaredNorm(); }
 
     void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints)
     {
@@ -168,6 +168,24 @@ public:
         }
     }
 
+    vector<LSBoxConstraint> getConstraints() const
+    {
+        vector<LSBoxConstraint> out;
+
+        int curVar = 0;
+        for(int i = 0; i < _curves.size(); ++i)
+        {
+            //length must be at least half initial
+            out.push_back(LSBoxConstraint(curVar + CurvePrimitive::LENGTH, _curves[i]->length() * 0.5, 1));
+
+            //TODO: inflections
+
+            curVar += _curves[i]->numParams();
+        }
+
+        return out;
+    }
+
     int _iter;
     LSEvalData *createEvalData() { return new MulticurveDenseEvalData(); }
     void eval(const Eigen::VectorXd &x, LSEvalData *data)
@@ -176,7 +194,7 @@ public:
         MulticurveDenseEvalData *evalData = static_cast<MulticurveDenseEvalData *>(data);
         _evalError(evalData);
         _evalConstraints(evalData);
-        printf("Con err = %lf\n", evalData->conVectorRef().norm()); 
+        printf("Err: obj = %lf con = %lf\n", evalData->errVectorRef().norm(), evalData->conVectorRef().norm()); 
     }
 
     void setParams(const Eigen::VectorXd &x)
@@ -200,7 +218,7 @@ public:
         char name[100];
         sprintf(name, "Out%d", _iter);
         for(int i = 0; i < _curves.size(); ++i)
-            Debugging::get()->drawPrimitive(_curves[i], name, i);
+            Debugging::get()->drawPrimitive(_curves[i], name, i, 2.);
         ++_iter;
     }
 
@@ -370,10 +388,10 @@ protected:
         }
 
         MulticurveProblem problem(fitter);
-        vector<LSBoxConstraint> constraints;
+        vector<LSBoxConstraint> constraints = problem.getConstraints();
         LSSolver solver(&problem, constraints);
         solver.setDefaultDamping(1.);
-        solver.setMaxIter(8);
+        solver.setMaxIter(100);
 
         //solver.verifyDerivatives(problem.params());
         VectorXd result = solver.solve(problem.params());

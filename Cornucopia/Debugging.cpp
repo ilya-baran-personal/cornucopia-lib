@@ -36,7 +36,7 @@ void Debugging::set(Debugging *debugging)
 
 void Debugging::drawPrimitive(CurvePrimitiveConstPtr curve, const std::string &group, int idx, double thickness)
 {
-    Color color = Color::Zero();
+    Color color = Color::Ones() * ((idx & 1) ? 0 : 0.5);
     double val = (idx & 1) ? 0.7 : 1.;
     color[curve->getType()] = val;
 
