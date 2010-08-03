@@ -54,6 +54,10 @@ public:
             _type[i] = _c[i]->getType();
             _from[i] = p[i].startIdx;
             _to[i] = p[i].endIdx;
+            _angleWeight[i] = _c[i]->length();
+            _curvatureWeight[i] = _c[i]->length() * _c[i]->length();
+            _origEndAngle[i] = _c[i]->endAngle();
+            _origEndCurvature[i] = _c[i]->endCurvature();
         }
 
         //adjust the curves to enforce continuity
@@ -216,14 +220,14 @@ public:
         }
     }
 
-    double computeError1ForCost() const
+    double computeErrorForCost(int idx) const
     {
-        return _errorComputer->computeErrorForCost(_c[0], _from[0], _to[0], true, _continuity == 0, true);
-    }
-
-    double computeError2ForCost() const
-    {
-        return _errorComputer->computeErrorForCost(_c[1], _from[1], _to[1], _continuity == 0, true);
+        double endCost = SQR(_angleWeight[idx] * AngleUtils::toRange(_c[idx]->endAngle() - _origEndAngle[idx], -PI));
+        endCost += SQR(_curvatureWeight[idx] * (_c[idx]->endCurvature() - _origEndCurvature[idx]));
+        bool firstToEndpoint = (idx == 0 || _continuity == 0);
+        bool lastToEndpoint = (idx == 1 || _continuity == 0);
+        bool reverse = (idx == 0);
+        return endCost + _errorComputer->computeErrorForCost(_c[idx], _from[idx], _to[idx], firstToEndpoint, lastToEndpoint, reverse);
     }
 
     double computeError() const
@@ -246,6 +250,24 @@ public:
         //perhaps it should be whether that point is a corner, rather than continuity
         _errorComputer->computeErrorVector(_c[0], _from[0], _to[0], err[0], errDer + 0, true, _continuity == 0, true);
         _errorComputer->computeErrorVector(_c[1], _from[1], _to[1], err[1], errDer + 1, _continuity == 0, true);
+
+#if 1
+        CurvePrimitive::EndDer endDer;
+        for(int c = 0; c < 2; ++c)
+        {
+            int offs = err[c].size();
+            err[c].conservativeResize(offs + 2);
+            errDer[c].conservativeResize(offs + 2, NoChange);
+
+            err[c][offs] = _angleWeight[c] * AngleUtils::toRange(_c[c]->endAngle() - _origEndAngle[c], -PI);
+            err[c][offs + 1] = _curvatureWeight[c] * (_c[c]->endCurvature() - _origEndCurvature[c]);
+            
+            _c[c]->derivativeAtEnd(2, endDer);
+            endDer.row(2) *= _angleWeight[c];
+            endDer.row(3) *= _curvatureWeight[c];
+            errDer[c].block(offs, 0, 2, errDer[c].cols()) = endDer.block(2, 0, 2, errDer[c].cols());
+        }
+#endif
 
         _c[0]->toEndCurvatureDerivative(errDer[0]);
         _c[1]->toEndCurvatureDerivative(errDer[1]);
@@ -324,6 +346,10 @@ private:
     ErrorComputerConstPtr _errorComputer;
     int _continuity;
     int _evalCount;
+    double _angleWeight[2];
+    double _curvatureWeight[2];
+    double _origEndAngle[2];
+    double _origEndCurvature[2];
 };
 
 class TwoCurveProblem : public LSProblem
@@ -427,6 +453,7 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     LSSolver solver(&problem, constraints);
     solver.setDefaultDamping(fitter.params().get(Parameters::CURVE_ADJUST_DAMPING));
     solver.setMaxIter(5);
+    //solver.verifyDerivatives(x);
     x = solver.solve(x);
     combined.setParams(x);
 
@@ -435,8 +462,8 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     Debugging::get()->drawCurve(combined.getCurve(1), Vector3d(0, 0, 1), "Curves Final");
 #endif
 
-    out.err1 = combined.computeError1ForCost();
-    out.err2 = combined.computeError1ForCost();
+    out.err1 = combined.computeErrorForCost(0);
+    out.err2 = combined.computeErrorForCost(1);
     //cout << "Err = " << (out.err1 + out.err2) << endl;
 
     return out;

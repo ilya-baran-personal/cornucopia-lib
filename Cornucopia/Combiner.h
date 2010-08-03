@@ -29,10 +29,12 @@
 
 NAMESPACE_Cornu
 
+SMART_FORW_DECL(PrimitiveSequence);
+
 template<>
 struct AlgorithmOutput<COMBINING> : public AlgorithmOutputBase
 {
-    VectorC<CurvePrimitiveConstPtr> output;
+    PrimitiveSequenceConstPtr output;
 };
 
 template<>

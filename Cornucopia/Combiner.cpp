@@ -22,6 +22,7 @@
 #include "Combiner.h"
 #include "GraphConstructor.h"
 #include "PrimitiveFitter.h"
+#include "PrimitiveSequence.h"
 #include "PathFinder.h"
 #include "Preprocessing.h"
 #include "Resampler.h"
@@ -127,6 +128,7 @@ public:
         const vector<int> &path = fitter.output<PATH_FINDING>()->path;
         _errorComputer = fitter.output<ERROR_COMPUTER>()->errorComputer;
         _closed = fitter.output<CURVE_CLOSING>()->closed;
+        _inflectionAccounting = fitter.params().get(Parameters::INFLECTION_COST) > 0.;
 
         for(int i = 0; i < (int)path.size(); ++i)
         {
@@ -178,7 +180,44 @@ public:
             //length must be at least half initial
             out.push_back(LSBoxConstraint(curVar + CurvePrimitive::LENGTH, _curves[i]->length() * 0.5, 1));
 
-            //TODO: inflections
+            //inflections
+            int primIdx = _primIdcs[i];
+            Debugging::get()->printf("idx = %d Type = %d, startSign = %d, endSign = %d", i, _curves[i]->getType(), _primitives[primIdx].startCurvSign, _primitives[primIdx].endCurvSign);
+            if(_inflectionAccounting && _curves[i]->getType() >= CurvePrimitive::ARC)
+            {
+                int pi = _curves.toLinearIdx(i - 1);
+                int ni = _curves.toLinearIdx(i + 1);
+                bool c2toPrev = (pi >= 0 && _continuities[pi] == 2);
+                bool c2toNext = (ni < _curves.size() && _continuities[i] == 2);
+                bool line2Prev = c2toPrev && _curves[pi]->getType() == CurvePrimitive::LINE;
+                bool line2Next = c2toNext && _curves[ni]->getType() == CurvePrimitive::LINE;
+
+                int startSign = _primitives[primIdx].startCurvSign;
+                int endSign = _primitives[primIdx].endCurvSign;
+
+                if(!c2toPrev || (endSign == _primitives[_primIdcs[pi]].startCurvSign && startSign == endSign && !line2Prev))
+                    out.push_back(LSBoxConstraint(curVar + CurvePrimitive::CURVATURE, 0., startSign));
+                
+                if(c2toPrev && c2toNext && startSign != endSign) //constrain the "easier one" of the endpoints
+                {
+                    double startViolation = -_curves[i]->startCurvature() * startSign;
+                    double endViolation = -_curves[i]->endCurvature() * endSign;
+
+                    //if we're C2 with a line, don't constrain that curvature
+                    if(line2Prev)
+                        startViolation = Parameters::infinity;
+                    if(line2Next)
+                        endViolation = Parameters::infinity;
+
+                    if(startViolation < endViolation)
+                        out.push_back(LSBoxConstraint(curVar + CurvePrimitive::CURVATURE, 0., startSign));
+                    else
+                        out.push_back(LSBoxConstraint(curVar + CurvePrimitive::DCURVATURE, 0., endSign));
+                }
+
+                if(!c2toNext && _curves[i]->getType() == CurvePrimitive::CLOTHOID)
+                    out.push_back(LSBoxConstraint(curVar + CurvePrimitive::DCURVATURE, 0., endSign));
+            }
 
             curVar += _curves[i]->numParams();
         }
@@ -215,10 +254,14 @@ public:
             curIdx += _curves[i]->numParams();
         }
 
-        char name[100];
-        sprintf(name, "Out%d", _iter);
-        for(int i = 0; i < _curves.size(); ++i)
-            Debugging::get()->drawPrimitive(_curves[i], name, i, 2.);
+        if(_iter % 100 == 99)
+        {
+            char name[100];
+            sprintf(name, "Out%d", _iter);
+            for(int i = 0; i < _curves.size(); ++i)
+                Debugging::get()->drawPrimitive(_curves[i], name, i, 2.);
+        }
+
         ++_iter;
     }
 
@@ -354,10 +397,11 @@ private:
     VectorC<CurvePrimitivePtr> _curves;
     const vector<FitPrimitive> &_primitives;
     vector<int> _primIdcs;
-    vector<int> _continuities;
+    vector<int> _continuities; //continuity[i] is between curves i and i + 1
     vector<pair<int, int> > _curveRanges;
     bool _closed;
     ErrorComputerConstPtr _errorComputer;
+    bool _inflectionAccounting;
 };
 
 class DefaultCombiner : public Algorithm<COMBINING>
@@ -379,10 +423,9 @@ protected:
         //if a single primitive
         if(graph->edges[path[0]].continuity == -1)
         {
-            out.output = VectorC<CurvePrimitiveConstPtr>(1, NOT_CIRCULAR);
-            out.output[0] = primitives[graph->edges[path[0]].startVtx].curve;
-
-            Debugging::get()->drawPrimitive(out.output[0], "Final Result", 0, 2.);
+            VectorC<CurvePrimitiveConstPtr> outV(1, NOT_CIRCULAR);
+            outV[0] = primitives[graph->edges[path[0]].startVtx].curve;
+            out.output = new PrimitiveSequence(outV);
 
             return; //no combining necessary
         }
@@ -391,13 +434,17 @@ protected:
         vector<LSBoxConstraint> constraints = problem.getConstraints();
         LSSolver solver(&problem, constraints);
         solver.setDefaultDamping(1.);
-        solver.setMaxIter(100);
+        solver.setMaxIter(15);
 
         //solver.verifyDerivatives(problem.params());
         VectorXd result = solver.solve(problem.params());
+        //solver.verifyDerivatives(result, 1e-5);
+        //solver.verifyDerivatives(result, 1e-6);
+        //solver.verifyDerivatives(result, 1e-7);
+        //solver.verifyDerivatives(result, 1e-8);
         problem.setParams(result);
 
-        out.output = problem.curves();
+        out.output = new PrimitiveSequence(problem.curves());
     }
 };
 

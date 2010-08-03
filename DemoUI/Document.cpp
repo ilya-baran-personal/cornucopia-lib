@@ -28,6 +28,7 @@
 #include "SceneItem.h"
 #include "GraphConstructor.h"
 #include "Regression.h"
+#include "PrimitiveSequence.h"
 
 #include <QFileDialog>
 #include <QFile>
@@ -74,7 +75,8 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
         }
     }
 
-    _view->scene()->addItem(new CurveSceneItem(fitter.finalOutput(), sketch.name));
+    if(fitter.finalOutput())
+        _view->scene()->addItem(new CurveSceneItem(fitter.finalOutput(), sketch.name));
 }
 
 void Document::refitLast()

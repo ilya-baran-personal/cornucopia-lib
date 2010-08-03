@@ -29,6 +29,7 @@
 NAMESPACE_Cornu
 
 SMART_FORW_DECL(Polyline);
+SMART_FORW_DECL(PrimitiveSequence);
 
 class Fitter
 {
@@ -49,7 +50,7 @@ public:
 
     void run();
 
-    CurveConstPtr finalOutput() const;
+    PrimitiveSequenceConstPtr finalOutput() const;
 
     double scaledParameter(Parameters::ParameterType param) const;
 

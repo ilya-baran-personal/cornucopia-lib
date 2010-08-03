@@ -23,6 +23,8 @@
 #include "Preprocessing.h"
 #include "Polyline.h"
 #include "Resampler.h"
+#include "Combiner.h"
+#include "PrimitiveSequence.h"
 
 using namespace std;
 using namespace Eigen;
@@ -47,6 +49,27 @@ void Fitter::run()
         }
     }
     Debugging::get()->elapsedTime("Total");
+
+    if(Debugging::get()->isDebuggingOn() && finalOutput())
+    {
+        // Now output some the final curve and a normal field for debugging
+        PrimitiveSequenceConstPtr out = finalOutput();
+        Debugging::get()->drawCurve(out, Vector3d(0, 0, 0), "Final Result");
+        for(int i = 0; i < out->primitives().size(); ++i)
+            Debugging::get()->drawPrimitive(out->primitives()[i], "Final Result Color", i, 3.);
+
+        const double stepSize = 5.; //TODO: param
+        const double scale = 5000.;
+        double step = out->length() / (int(1 + out->length() / stepSize));
+        for(double x = 0; x < out->length() + step * 0.5; x += step)
+        {
+            Vector2d pos, der, der2;
+            out->eval(x, &pos, &der, &der2);
+            Vector2d norm(-der[1], der[0]);
+            double length = norm.dot(der2) * scale;
+            Debugging::get()->drawLine(pos, pos - norm * length, Vector3d(1, 0, 0), "Normal Field");
+        }
+    }
 }
 
 void Fitter::_runStage(AlgorithmStage stage)
@@ -65,9 +88,9 @@ double Fitter::scaledParameter(Parameters::ParameterType param) const
     return _params.get(param) * output<SCALE_DETECTION>()->scale * _params.get(Parameters::PIXEL_SIZE);
 }
 
-CurveConstPtr Fitter::finalOutput() const
+PrimitiveSequenceConstPtr Fitter::finalOutput() const
 {
-    return output<RESAMPLING>()->output; //TODO
+    return output<COMBINING>()->output;
 }
 
 END_NAMESPACE_Cornu

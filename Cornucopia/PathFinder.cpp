@@ -200,7 +200,7 @@ public:
     }
 
 private:
-    static const int _maxIter = 1000;
+    static const int _maxIter = 10000;
 
     void _reduceForPath(const vector<int> &sourceVertices)
     {

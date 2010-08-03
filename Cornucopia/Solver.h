@@ -71,10 +71,10 @@ public:
     void setDefaultDamping(double damping) { _damping = damping; }
     void setMaxIter(int maxIter) { _maxIter = maxIter; }
 
-    bool verifyDerivatives(const Eigen::VectorXd &pt) const;
+    bool verifyDerivatives(const Eigen::VectorXd &pt, double eps = 1e-6) const;
 
 private:
-    int _project(const Eigen::VectorXd &from, Eigen::VectorXd &x); //returns the index of the constraint
+    int _project(const Eigen::VectorXd &from, Eigen::VectorXd &x, const std::set<LSBoxConstraint> &activeSet); //returns the index of the constraint
     std::set<LSBoxConstraint> _clamp(Eigen::VectorXd &x);
 
     LSProblem *_problem;

@@ -38,6 +38,8 @@ public:
     static DebuggingImpl *get();
 
     //overrides
+    bool isDebuggingOn() const { return true; }
+
     void printf(const char *fmt, ...);
 
     void startTiming(const std::string &description);

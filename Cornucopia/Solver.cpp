@@ -56,12 +56,13 @@ VectorXd LSSolver::solve(const VectorXd &guess)
             best = x;
         }
 
+        set<LSBoxConstraint> prevActiveSet = activeSet;
         evalData->solveForDelta(_damping, delta, activeSet);
 
         if(delta.squaredNorm() < 1e-14)
             break;
 
-        int newConstraint = _project(x, delta);
+        int newConstraint = _project(x, delta, prevActiveSet);
 
         if(newConstraint != -1)
             activeSet.insert(_constraints[newConstraint]);
@@ -110,7 +111,7 @@ set<LSBoxConstraint> LSSolver::_clamp(VectorXd &x)
     return out;
 }
 
-int LSSolver::_project(const VectorXd &from, VectorXd &delta)
+int LSSolver::_project(const VectorXd &from, VectorXd &delta, const set<LSBoxConstraint> &activeSet)
 {
     int closestConstraint = -1;
     double minScale = 1.;
@@ -118,9 +119,9 @@ int LSSolver::_project(const VectorXd &from, VectorXd &delta)
     for(int i = 0; i < (int)_constraints.size(); ++i)
     {
         const LSBoxConstraint &c = _constraints[i];
-        if(fabs(delta[c.index]) < 1e-16)
-            continue; //not enough of a change to project
-
+        if(activeSet.count(c))
+            continue; //already constrained
+        
         double scale = (c.value - from[c.index]) / delta[c.index];
 
         if((from[c.index] + delta[c.index] - c.value) * c.sign >= 0.)
@@ -142,7 +143,7 @@ int LSSolver::_project(const VectorXd &from, VectorXd &delta)
     return closestConstraint;
 }
 
-bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt) const
+bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt, double eps) const
 {
     LSEvalData *evalData = _problem->createEvalData();
     _problem->eval(pt, evalData);
@@ -150,7 +151,6 @@ bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt) const
     MatrixXd exactDer = evalData->errVecDer();
     MatrixXd numDer = exactDer;
 
-    double eps = 1e-6;
     for(int i = 0; i < numDer.cols(); ++i)
     {
         VectorXd mod = pt;
@@ -170,12 +170,12 @@ bool LSSolver::verifyDerivatives(const Eigen::VectorXd &pt) const
 
     //TODO: just print the error for now
     Debugging::get()->printf("Derivative Error = %lf", err);
-
+#if 0
     for(int i = 0; i < numDer.cols(); ++i)
         Debugging::get()->printf("Col %d err = %lf", i, (numDer.col(i) - exactDer.col(i)).norm());
     for(int i = 0; i < numDer.rows(); ++i)
         Debugging::get()->printf("Row %d err = %lf", i, (numDer.row(i) - exactDer.row(i)).norm());
-
+#endif
     delete evalData;
 
     return true;

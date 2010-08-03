@@ -51,6 +51,8 @@ public:
 
     virtual ~Debugging() {}
 
+    virtual bool isDebuggingOn() const { return false; }
+
     virtual void printf(const char * /*fmt*/, ...) {}
 
     virtual void startTiming(const std::string &/*description*/) {}
