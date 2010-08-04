@@ -54,21 +54,12 @@ void Fitter::run()
     {
         // Now output some the final curve and a normal field for debugging
         PrimitiveSequenceConstPtr out = finalOutput();
-        Debugging::get()->drawCurve(out, Vector3d(0, 0, 0), "Final Result");
         for(int i = 0; i < out->primitives().size(); ++i)
-            Debugging::get()->drawPrimitive(out->primitives()[i], "Final Result Color", i, 3.);
-
-        const double stepSize = 5.; //TODO: param
-        const double scale = 5000.;
-        double step = out->length() / (int(1 + out->length() / stepSize));
-        for(double x = 0; x < out->length() + step * 0.5; x += step)
         {
-            Vector2d pos, der, der2;
-            out->eval(x, &pos, &der, &der2);
-            Vector2d norm(-der[1], der[0]);
-            double length = norm.dot(der2) * scale;
-            Debugging::get()->drawLine(pos, pos - norm * length, Vector3d(1, 0, 0), "Normal Field");
+            Debugging::get()->drawPrimitive(out->primitives()[i], "Final Result Color", i, 3.);
+            Debugging::get()->drawCurve(out->primitives()[i], Vector3d(0, 0, 0), "Final Result");
         }
+        Debugging::get()->drawCurvatureField(out, Vector3d(1, 0, 0), "Normal Field");
     }
 }
 

@@ -187,9 +187,12 @@ private:
 
     void _getExtraError(int p1, int p2, int continuity, double &outExtra1, double &outExtra2) const
     {
-        outExtra1 = outExtra2 = 0.;  return;
+        //outExtra1 = outExtra2 = 0.;  return;
 #if 1   //Dumb method
         Vector3d diffs = _getDiffs(p1, p2, continuity);
+        for(int i = continuity + 1; i < 3; ++i)
+            diffs[i] = 0.; //don't count more than necessary
+
         double len1 = _primitives[p1].curve->length();
         double len2 = _primitives[p2].curve->length();
 

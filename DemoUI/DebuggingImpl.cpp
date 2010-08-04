@@ -22,6 +22,7 @@
 #include "DebuggingImpl.h"
 #include "ScrollScene.h"
 #include "SceneItem.h"
+#include "Curve.h"
 
 #include <ctime>
 #include <cstdarg>
@@ -108,6 +109,26 @@ void DebuggingImpl::drawCurve(Cornu::CurveConstPtr curve, const Color &color, co
 {
     if(_scene)
         _scene->addItem(new CurveSceneItem(curve, group.c_str(), _toQPen(color, thickness, style)));
+}
+
+void DebuggingImpl::drawCurvatureField(Cornu::CurveConstPtr curve, const Color &color, const std::string &group, double thickness, LineStyle style)
+{
+    if(!_scene)
+        return;
+
+    const double stepSize = 5.;
+    const double scale = 3000.;
+
+    double step = curve->length() / (int(1 + curve->length() / stepSize));
+
+    for(double x = 0; x < curve->length() + step * 0.5; x += step)
+    {
+        Vector2d pos, der, der2;
+        curve->eval(x, &pos, &der, &der2);
+        Vector2d norm(-der[1], der[0]);
+        double length = norm.dot(der2) * scale;
+        _scene->addItem(new LineSceneItem(pos, pos - norm * length, group.c_str(), _toQPen(color, thickness, style)));
+    }
 }
 
 QPen DebuggingImpl::_toQPen(const Color &color, double thickness, LineStyle style)

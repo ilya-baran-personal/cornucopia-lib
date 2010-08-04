@@ -70,6 +70,8 @@ public:
     Eigen::VectorXd solve(const Eigen::VectorXd &guess);
     void setDefaultDamping(double damping) { _damping = damping; }
     void setMaxIter(int maxIter) { _maxIter = maxIter; }
+    void setIncreaseDampingAfter(int iter) { _increaseDampingAfter = iter; }
+    void setDampingIncreaseFactor(double factor) { _dampingIncreaseFactor = factor; }
 
     bool verifyDerivatives(const Eigen::VectorXd &pt, double eps = 1e-6) const;
 
@@ -81,6 +83,8 @@ private:
     std::vector<LSBoxConstraint> _constraints;
     double _damping;
     int _maxIter;
+    int _increaseDampingAfter;
+    double _dampingIncreaseFactor;
 };
 
 class LSDenseEvalData : public LSEvalData

@@ -63,7 +63,8 @@ public:
         ERROR_THRESHOLD,
         TWO_CURVE_CURVATURE_ADJUST,
         CURVE_ADJUST_DAMPING,
-        REDUCE_GRAPH_EVERY
+        REDUCE_GRAPH_EVERY,
+        COMBINE_DAMPING
     };
 
     Parameters(const std::string &name = std::string());

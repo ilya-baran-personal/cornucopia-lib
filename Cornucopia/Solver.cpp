@@ -28,7 +28,8 @@ using namespace Eigen;
 NAMESPACE_Cornu
 
 LSSolver::LSSolver(LSProblem *problem, const vector<LSBoxConstraint> &constraints)
-: _problem(problem), _constraints(constraints), _damping(1.), _maxIter(100)
+: _problem(problem), _constraints(constraints), _damping(1.), _maxIter(100),
+  _increaseDampingAfter(0), _dampingIncreaseFactor(1.)
 {
 };
 
@@ -42,18 +43,22 @@ VectorXd LSSolver::solve(const VectorXd &guess)
     set<LSBoxConstraint> activeSet = _clamp(x);
 
     VectorXd delta;
-    for(int iter = 0; iter < _maxIter; ++iter)
+    int iter;
+    for(iter = 0; iter < _maxIter; ++iter)
     {
+        if(iter > _increaseDampingAfter)
+            _damping *= _dampingIncreaseFactor;
         _problem->eval(x, evalData);
 
         double error = evalData->error();
         //printf("Iter = %d, error = %lf\n", iter, error);
         if(error < bestError)
         {
-            if(error < 1e-8)
-                return x;
             bestError = error;
             best = x;
+
+            if(error < 1e-10)
+                break;
         }
 
         set<LSBoxConstraint> prevActiveSet = activeSet;
@@ -72,7 +77,6 @@ VectorXd LSSolver::solve(const VectorXd &guess)
         int halvings = 0;
         while(_problem->error(x, evalData) > error && delta.squaredNorm() > 1e-8)
         {
-            printf("Halving\n");
             delta *= 0.5;
             x -= delta;
             ++halvings;
@@ -85,7 +89,8 @@ VectorXd LSSolver::solve(const VectorXd &guess)
     }
 
     double error = _problem->error(x, evalData);
-    //printf("Final error = %lf\n", error);
+    if(iter > 5)
+        Debugging::get()->printf("After %d iterations, error = %lf", iter, sqrt(error));
     if(error < bestError)
     {
         best = x;

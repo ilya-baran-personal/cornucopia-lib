@@ -32,6 +32,7 @@
 #include "Fitter.h"
 
 #include <iterator>
+#include <iostream> //TODO: tmp
 
 #include <Eigen/LU>
 #include <Eigen/Cholesky>
@@ -44,7 +45,7 @@ class MulticurveDenseEvalData : public LSEvalData
 {
 public:
     //overrides
-    double error() const { return /*_err.squaredNorm() + 1e5 */ _con.squaredNorm(); }
+    double error() const { return _con.squaredNorm(); }
 
     void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints)
     {
@@ -71,9 +72,11 @@ public:
 
         out = result.segment(0, vars);
 
+#if 0
         printf("Solve err = %lf\n", (lhs * result - rhs).norm());
         if(_conDer.size() > 0)
             printf("Con Solve err = %lf\n", (_conDer * out + _con).norm());
+#endif
 
         //check which constraints we don't need
         cnt = 0;
@@ -83,7 +86,97 @@ public:
             ++next;
             if(result(vars + _conDer.rows() + cnt) * it->sign > 0)
             {
-                printf("Unsetting constraint on variable at index %d\n", it->index);
+                //printf("Unsetting constraint on variable at index %d\n", it->index);
+                constraints.erase(it);
+            }
+            it = next;
+        }
+    }
+
+    //for derivative verification, combine error and constraints
+    VectorXd errVec() const
+    {
+        VectorXd out(_err.size() + _con.size());
+        out << _err, _con;
+        return out;
+    }
+
+    MatrixXd errVecDer() const
+    {
+        MatrixXd out(_err.size() + _con.size(), _errDer.cols());
+        out << _errDer, _conDer;
+        return out;
+    }
+
+    VectorXd &errVectorRef() { return _err; }
+    MatrixXd &errDerRef() { return _errDer; }
+
+    VectorXd &conVectorRef() { return _con; }
+    MatrixXd &conDerRef() { return _conDer; }
+
+private:
+    Eigen::VectorXd _err;
+    Eigen::MatrixXd _errDer;
+    Eigen::VectorXd _con;
+    Eigen::MatrixXd _conDer;
+};
+
+class MulticurveSparseEvalData : public LSEvalData
+{
+public:
+    //typedef Matrix<double, Dynamic, Dynamic, 0, 6, 6> BlockType;
+
+    //overrides
+    double error() const { return _con.squaredNorm(); }
+
+    void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints)
+    {
+        int vars = (int)_errDer.cols();
+        int cons = (int)_con.size() + constraints.size();
+
+        int size = vars + cons;
+        VectorXd rhs = VectorXd::Zero(size);
+        rhs.segment(0, vars) = -_errDer.transpose() * _err;
+        rhs.segment(vars, _con.size()) = -_con;
+
+        MatrixXd ATA = _errDer.transpose() * _errDer + damping * MatrixXd::Identity(vars, vars);
+
+        MatrixXd C = MatrixXd::Zero(cons, vars);
+        C.block(0, 0, _con.size(), vars) = _conDer;
+
+        int cnt = 0;
+        for(set<LSBoxConstraint>::const_iterator it = constraints.begin(); it != constraints.end(); ++it, ++cnt)
+            C(_conDer.rows() + cnt, it->index) = 1.;
+
+        LLT<MatrixXd> CholATA(ATA);
+        MatrixXd K = CholATA.matrixL().solve(C.transpose());
+        LLT<MatrixXd> CholK(K.transpose() * K);
+
+        VectorXd mid(size), result(size);
+
+        //solve for mid
+        mid.segment(0, vars) = CholATA.matrixL().solve(rhs.segment(0, vars));
+        mid.segment(vars, cons) = CholK.matrixL().solve(rhs.segment(vars, cons) - K.adjoint() * mid.segment(0, vars));
+
+        //solve for result
+        result.segment(vars, cons) = -CholK.matrixU().solve(mid.segment(vars, cons));
+        result.segment(0, vars) = CholATA.matrixU().solve(mid.segment(0, vars) - K * result.segment(vars, cons));
+
+        out = result.segment(0, vars);
+#if 0
+        if(_conDer.size() > 0)
+            printf("Con Solve err = %lf\n", (_conDer * out + _con).norm());
+#endif
+
+        //check which constraints we don't need
+        cnt = 0;
+        for(set<LSBoxConstraint>::iterator it = constraints.begin(); it != constraints.end(); ++cnt)
+        {
+            set<LSBoxConstraint>::iterator next = it;
+            ++next;
+            if(result(vars + _conDer.rows() + cnt) * it->sign > 0)
+            {
+                //printf("Unsetting constraint on variable at index %d\n", it->index);
                 constraints.erase(it);
             }
             it = next;
@@ -182,7 +275,7 @@ public:
 
             //inflections
             int primIdx = _primIdcs[i];
-            Debugging::get()->printf("idx = %d Type = %d, startSign = %d, endSign = %d", i, _curves[i]->getType(), _primitives[primIdx].startCurvSign, _primitives[primIdx].endCurvSign);
+            //Debugging::get()->printf("idx = %d Type = %d, startSign = %d, endSign = %d", i, _curves[i]->getType(), _primitives[primIdx].startCurvSign, _primitives[primIdx].endCurvSign);
             if(_inflectionAccounting && _curves[i]->getType() >= CurvePrimitive::ARC)
             {
                 int pi = _curves.toLinearIdx(i - 1);
@@ -225,15 +318,21 @@ public:
         return out;
     }
 
+#if 1
+    typedef MulticurveSparseEvalData EvalDataType;
+#else
+    typedef MulticurveDenseEvalData EvalDataType;
+#endif
+
     int _iter;
-    LSEvalData *createEvalData() { return new MulticurveDenseEvalData(); }
+    LSEvalData *createEvalData() { return new EvalDataType(); }
     void eval(const Eigen::VectorXd &x, LSEvalData *data)
     {
         setParams(x);
-        MulticurveDenseEvalData *evalData = static_cast<MulticurveDenseEvalData *>(data);
+        EvalDataType *evalData = static_cast<EvalDataType *>(data);
         _evalError(evalData);
         _evalConstraints(evalData);
-        printf("Err: obj = %lf con = %lf\n", evalData->errVectorRef().norm(), evalData->conVectorRef().norm()); 
+        //printf("Err: obj = %lf con = %lf\n", evalData->errVectorRef().norm(), evalData->conVectorRef().norm()); 
     }
 
     void setParams(const Eigen::VectorXd &x)
@@ -300,7 +399,7 @@ public:
     }
 
 private:
-    void _evalError(MulticurveDenseEvalData *evalData)
+    void _evalError(EvalDataType *evalData)
     {
         VectorXd &outErr = evalData->errVectorRef();
         MatrixXd &outErrDer = evalData->errDerRef();
@@ -339,7 +438,7 @@ private:
         }
     }
 
-    void _evalConstraints(MulticurveDenseEvalData *evalData)
+    void _evalConstraints(EvalDataType *evalData)
     {
         VectorXd &outCon = evalData->conVectorRef();
         MatrixXd &outConDer = evalData->conDerRef();
@@ -433,15 +532,12 @@ protected:
         MulticurveProblem problem(fitter);
         vector<LSBoxConstraint> constraints = problem.getConstraints();
         LSSolver solver(&problem, constraints);
-        solver.setDefaultDamping(1.);
-        solver.setMaxIter(15);
+        solver.setDefaultDamping(fitter.params().get(Parameters::COMBINE_DAMPING));
+        solver.setMaxIter(20);
+        solver.setIncreaseDampingAfter(5);
+        solver.setDampingIncreaseFactor(1.5);
 
-        //solver.verifyDerivatives(problem.params());
         VectorXd result = solver.solve(problem.params());
-        //solver.verifyDerivatives(result, 1e-5);
-        //solver.verifyDerivatives(result, 1e-6);
-        //solver.verifyDerivatives(result, 1e-7);
-        //solver.verifyDerivatives(result, 1e-8);
         problem.setParams(result);
 
         out.output = new PrimitiveSequence(problem.curves());

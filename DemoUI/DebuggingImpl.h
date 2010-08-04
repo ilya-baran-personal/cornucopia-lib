@@ -50,6 +50,7 @@ public:
     void drawPoint(const Vector2d &pos, const Color &color, const std::string &group = "");
     void drawLine(const Vector2d &p1, const Vector2d &p2, const Color &color, const std::string &group = "", double thickness = 1, LineStyle style = SOLID);
     void drawCurve(Cornu::CurveConstPtr curve, const Color &color, const std::string &group = "", double thickness = 1, LineStyle style = SOLID);
+    void drawCurvatureField(Cornu::CurveConstPtr curve, const Color &color, const std::string &group = "", double thickness = 1, LineStyle style = SOLID);
 
     //not overrides
     void setScene(ScrollScene *scene) { _scene = scene; }
