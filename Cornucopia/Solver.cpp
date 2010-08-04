@@ -21,7 +21,7 @@
 
 #include "Solver.h"
 #include <Eigen/Cholesky>
-#include <iostream> //TMP
+#include <iostream> //TODO: TMP
 
 using namespace std;
 using namespace Eigen;
@@ -77,6 +77,7 @@ VectorXd LSSolver::solve(const VectorXd &guess)
         int halvings = 0;
         while(_problem->error(x, evalData) > error && delta.squaredNorm() > 1e-8)
         {
+            //printf("Halving\n");
             delta *= 0.5;
             x -= delta;
             ++halvings;

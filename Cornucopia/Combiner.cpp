@@ -33,6 +33,7 @@
 
 #include <iterator>
 #include <iostream> //TODO: tmp
+#include <cstdio>
 
 #include <Eigen/LU>
 #include <Eigen/Cholesky>
@@ -40,6 +41,8 @@
 using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
+
+#define SPARSE 1
 
 class MulticurveDenseEvalData : public LSEvalData
 {
@@ -124,22 +127,29 @@ private:
 class MulticurveSparseEvalData : public LSEvalData
 {
 public:
-    //typedef Matrix<double, Dynamic, Dynamic, 0, 6, 6> BlockType;
+    typedef Matrix<double, Dynamic, Dynamic, 0, 6, 6> BlockType;
+    typedef vector<BlockType, aligned_allocator<BlockType> > BlockVectorType;
+    typedef LLT<BlockType> BlockCholType;
+    typedef vector<BlockCholType, aligned_allocator<BlockCholType> > BlockCholVectorType;
 
     //overrides
     double error() const { return _con.squaredNorm(); }
 
     void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints)
     {
-        int vars = (int)_errDer.cols();
+        _computeIndices();
+
+        int vars = _blockIndices.back();
         int cons = (int)_con.size() + constraints.size();
 
         int size = vars + cons;
         VectorXd rhs = VectorXd::Zero(size);
-        rhs.segment(0, vars) = -_errDer.transpose() * _err;
+        rhs.segment(0, vars) = _err;
         rhs.segment(vars, _con.size()) = -_con;
 
-        MatrixXd ATA = _errDer.transpose() * _errDer + damping * MatrixXd::Identity(vars, vars);
+        BlockCholVectorType cholBlocks(_errDerBlocks.size());
+        for(int i = 0; i < (int)cholBlocks.size(); ++i)
+            cholBlocks[i] = BlockCholType(_errDerBlocks[i] + damping * MatrixXd::Identity(_blockSizes[i], _blockSizes[i]));
 
         MatrixXd C = MatrixXd::Zero(cons, vars);
         C.block(0, 0, _con.size(), vars) = _conDer;
@@ -148,19 +158,19 @@ public:
         for(set<LSBoxConstraint>::const_iterator it = constraints.begin(); it != constraints.end(); ++it, ++cnt)
             C(_conDer.rows() + cnt, it->index) = 1.;
 
-        LLT<MatrixXd> CholATA(ATA);
-        MatrixXd K = CholATA.matrixL().solve(C.transpose());
+        MatrixXd K(C.cols(), C.rows());
+        _solveCholL(K, cholBlocks, C.transpose());
         LLT<MatrixXd> CholK(K.transpose() * K);
 
         VectorXd mid(size), result(size);
 
         //solve for mid
-        mid.segment(0, vars) = CholATA.matrixL().solve(rhs.segment(0, vars));
+        _solveCholL(mid.segment(0, vars), cholBlocks, rhs.segment(0, vars));
         mid.segment(vars, cons) = CholK.matrixL().solve(rhs.segment(vars, cons) - K.adjoint() * mid.segment(0, vars));
 
         //solve for result
         result.segment(vars, cons) = -CholK.matrixU().solve(mid.segment(vars, cons));
-        result.segment(0, vars) = CholATA.matrixU().solve(mid.segment(0, vars) - K * result.segment(vars, cons));
+        _solveCholU(result.segment(0, vars), cholBlocks, mid.segment(0, vars) - K * result.segment(vars, cons));
 
         out = result.segment(0, vars);
 #if 0
@@ -183,30 +193,54 @@ public:
         }
     }
 
-    //for derivative verification, combine error and constraints
-    VectorXd errVec() const
-    {
-        VectorXd out(_err.size() + _con.size());
-        out << _err, _con;
-        return out;
-    }
-
-    MatrixXd errVecDer() const
-    {
-        MatrixXd out(_err.size() + _con.size(), _errDer.cols());
-        out << _errDer, _conDer;
-        return out;
-    }
-
     VectorXd &errVectorRef() { return _err; }
-    MatrixXd &errDerRef() { return _errDer; }
+    BlockVectorType &errDerBlocksRef() { return _errDerBlocks; }
 
     VectorXd &conVectorRef() { return _con; }
     MatrixXd &conDerRef() { return _conDer; }
 
 private:
+    void _computeIndices()
+    {
+        _blockIndices.resize(_errDerBlocks.size() + 1);
+        _blockSizes.resize(_errDerBlocks.size());
+        _blockIndices[0] = 0;
+
+        for(int i = 0; i < (int)_errDerBlocks.size(); ++i)
+        {
+            _blockSizes[i] = _errDerBlocks[i].rows();
+            _blockIndices[i + 1] = _blockIndices[i] + _blockSizes[i];
+        }
+    }
+
+    MatrixXd _blocksToMatrix(const BlockVectorType &blocks)
+    {
+        int sz = _blockIndices.back();
+        MatrixXd out = MatrixXd::Zero(sz, sz);
+
+        for(int i = 0; i < (int)blocks.size(); ++i)
+            out.block(_blockIndices[i], _blockIndices[i], _blockSizes[i], _blockSizes[i]) = blocks[i];
+
+        return out;
+    }
+
+    template<class M1, class M2> void _solveCholL(M1 &out, const BlockCholVectorType &chols, const M2 &rhs)
+    {
+        for(int i = 0; i < (int)chols.size(); ++i)
+            out.block(_blockIndices[i], 0, _blockSizes[i], out.cols()) =
+                chols[i].matrixL().solve(rhs.block(_blockIndices[i], 0, _blockSizes[i], rhs.cols()));
+    }
+    template<class M1, class M2> void _solveCholU(M1 &out, const BlockCholVectorType &chols, const M2 &rhs)
+    {
+        for(int i = 0; i < (int)chols.size(); ++i)
+            out.block(_blockIndices[i], 0, _blockSizes[i], out.cols()) =
+                chols[i].matrixU().solve(rhs.block(_blockIndices[i], 0, _blockSizes[i], rhs.cols()));
+    }
+
+    vector<int> _blockIndices, _blockSizes;
+    BlockVectorType _errDerBlocks;
+
     Eigen::VectorXd _err;
-    Eigen::MatrixXd _errDer;
     Eigen::VectorXd _con;
     Eigen::MatrixXd _conDer;
 };
@@ -232,10 +266,10 @@ public:
             _primIdcs.push_back(graph->edges[path.back()].endVtx);
         
         _curves = VectorC<CurvePrimitivePtr>(_primIdcs.size(), _closed ? CIRCULAR : NOT_CIRCULAR);
+        _curveRanges = VectorC<pair<int, int> >(_primIdcs.size(), _curves.circular());
         for(int i = 0; i < (int)_primIdcs.size(); ++i)
         {
-            //TODO: make _curveRanges a VectorC and get rid of ni below
-            _curveRanges.push_back(make_pair(_primitives[_primIdcs[i]].startIdx, _primitives[_primIdcs[i]].endIdx));
+            _curveRanges[i] = make_pair(_primitives[_primIdcs[i]].startIdx, _primitives[_primIdcs[i]].endIdx);
             _curves[i] = _primitives[_primIdcs[i]].curve->clone();
         }
 
@@ -245,19 +279,18 @@ public:
         {
             if(_continuities[i] == 0)
                 continue;
-            int ni = (i + 1) % _primIdcs.size();
 
             //trim
-            Vector2d trimPt = 0.5 * (_curves[i]->endPos() + _curves[ni]->startPos());
+            Vector2d trimPt = 0.5 * (_curves[i]->endPos() + _curves[i + 1]->startPos());
             _curves[i]->trim(0, _curves[i]->project(trimPt));
-            _curves[ni]->trim(_curves[ni]->project(trimPt), _curves[ni]->length());
+            _curves[i + 1]->trim(_curves[i + 1]->project(trimPt), _curves[i + 1]->length());
 
             //the ranges over which error is computed should not overlap
             if(_continuities[i] == 1)
-                swap(_curveRanges[i].second, _curveRanges[ni].first); //they overlap by 1 originally
+                swap(_curveRanges[i].second, _curveRanges[i + 1].first); //they overlap by 1 originally
             if(_continuities[i] == 2) //they overlap by 2
             {
-                _curveRanges[ni].first = (_curveRanges[ni].first + 2) % sampledPts;
+                _curveRanges[i + 1].first = (_curveRanges[i + 1].first + 2) % sampledPts;
                 _curveRanges[i].second = (_curveRanges[i].second + sampledPts - 2) % sampledPts;
             }
         }
@@ -318,7 +351,7 @@ public:
         return out;
     }
 
-#if 1
+#if SPARSE
     typedef MulticurveSparseEvalData EvalDataType;
 #else
     typedef MulticurveDenseEvalData EvalDataType;
@@ -353,7 +386,7 @@ public:
             curIdx += _curves[i]->numParams();
         }
 
-        if(_iter % 100 == 99)
+        if(false)
         {
             char name[100];
             sprintf(name, "Out%d", _iter);
@@ -398,12 +431,25 @@ public:
         return out;
     }
 
+    double objective() const
+    {
+        double out = 0;
+
+        for(int i = 0; i < (int)_curves.size(); ++i)
+        {
+            int csz = (int)_continuities.size();
+            bool firstCorner = (!_closed && i == 0) || (_continuities[(i + csz - 1) % csz] == 0);
+            bool lastCorner = (!_closed && i + 1 == (int)_curves.size()) || (_continuities[i] == 0);
+
+            out += _errorComputer->computeError(_curves[i], _curveRanges[i].first, _curveRanges[i].second, firstCorner, lastCorner);
+        }
+
+        return out;
+    }
+
 private:
     void _evalError(EvalDataType *evalData)
     {
-        VectorXd &outErr = evalData->errVectorRef();
-        MatrixXd &outErrDer = evalData->errDerRef();
-
         vector<VectorXd> errVecs(_curves.size());
         vector<MatrixXd> errVecDers(_curves.size());
 
@@ -423,16 +469,30 @@ private:
             numVar += _curves[i]->numParams();
         }
 
+        VectorXd &outErr = evalData->errVectorRef();
+
+#if SPARSE
+        EvalDataType::BlockVectorType &outErrDerBlocks = evalData->errDerBlocksRef();
+        outErrDerBlocks.resize(_curves.size());
+        outErr = VectorXd::Zero(numVar);
+#else
         outErr = VectorXd::Zero(numErr);
+        MatrixXd &outErrDer = evalData->errDerRef();
         outErrDer = MatrixXd::Zero(numErr, numVar);
+#endif
 
         int curErr = 0, curVar = 0;
         for(int i = 0; i < (int)_curves.size(); ++i)
         {
             int nErr = errVecs[i].size();
             int nVar = errVecDers[i].cols();
-            outErr.segment(curErr, nErr) = errVecs[i];
+#if SPARSE
+            outErrDerBlocks[i] = errVecDers[i].transpose() * errVecDers[i];
+            outErr.segment(curVar, nVar) = -errVecDers[i].transpose() * errVecs[i];
+#else
             outErrDer.block(curErr, curVar, nErr, nVar) = errVecDers[i];
+            outErr.segment(curErr, nErr) = errVecs[i];
+#endif
             curErr += nErr;
             curVar += nVar;
         }
@@ -497,7 +557,7 @@ private:
     const vector<FitPrimitive> &_primitives;
     vector<int> _primIdcs;
     vector<int> _continuities; //continuity[i] is between curves i and i + 1
-    vector<pair<int, int> > _curveRanges;
+    VectorC<pair<int, int> > _curveRanges;
     bool _closed;
     ErrorComputerConstPtr _errorComputer;
     bool _inflectionAccounting;
@@ -539,6 +599,7 @@ protected:
 
         VectorXd result = solver.solve(problem.params());
         problem.setParams(result);
+        Debugging::get()->printf("Final objective = %lf", sqrt(problem.objective()));
 
         out.output = new PrimitiveSequence(problem.curves());
     }

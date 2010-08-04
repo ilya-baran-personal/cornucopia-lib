@@ -72,7 +72,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(TWO_CURVE_CURVATURE_ADJUST, "Two-Curve Adjustment Point", 2.));
     _parameters.push_back(Parameter(CURVE_ADJUST_DAMPING, "Curve Adjust Damping", 1.));
     _parameters.push_back(Parameter(REDUCE_GRAPH_EVERY, "Reduce Graph Every", 10.));
-    _parameters.push_back(Parameter(COMBINE_DAMPING, "Combine Damping", 1.));
+    _parameters.push_back(Parameter(COMBINE_DAMPING, "Combine Damping", 2.));
 }
 
 void Parameters::_initializePresets()
@@ -87,6 +87,15 @@ void Parameters::_initializePresets()
     //default
     Parameters defaultParams("Default (G2)");
     _presets.push_back(defaultParams);
+
+    //Accurate
+    Parameters accurate = defaultParams;
+    accurate._name = "Accurate (G2)";
+    accurate.set(ERROR_COST, 5.);
+    accurate.set(CURVATURE_ESTIMATE_REGION, 10.);
+    accurate.set(POINTS_PER_CIRCLE, 30.);
+    accurate.set(ERROR_THRESHOLD, 2.);
+    _presets.push_back(accurate);
 
     //polyline
     Parameters polyline = defaultParams;
