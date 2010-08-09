@@ -162,7 +162,7 @@ double Clothoid::project(const Vec &point) const
     {
         Vector2d tangent(cos(_params[ANGLE]), sin(_params[ANGLE]));
         Vec toCenter(-tangent[1], tangent[0]);
-        Vector2d center = _startPos() + toCenter / _params[CURVATURE];;
+        Vector2d center = _startPos() + toCenter / _params[CURVATURE];
         double angleDiff = _length() * _params[CURVATURE];
 
         double projAngle = atan2(point[1] - center[1], point[0] - center[0]);
@@ -250,8 +250,6 @@ void Clothoid::derivativeAt(double s, ParamDer &out, ParamDer &outTan) const
         Vec dcurvDer(cosStart + (curvs * curvs * 0.5 - 1.) * cosCur - curvs * sinCur,
             sinStart + (curvs * curvs * 0.5 - 1.) * sinCur + curvs * cosCur);
         out.col(DCURVATURE) = dcurvDer / (curv * curv * curv);
-
-        //outTan.col(CURVATURE) = 
     }
     else //non-degenerate
     {

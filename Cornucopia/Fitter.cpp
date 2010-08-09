@@ -58,8 +58,8 @@ void Fitter::run()
         {
             Debugging::get()->drawPrimitive(out->primitives()[i], "Final Result Color", i, 3.);
             Debugging::get()->drawCurve(out->primitives()[i], Vector3d(0, 0, 0), "Final Result");
+            Debugging::get()->drawCurvatureField(out->primitives()[i], Vector3d(1, 0, 0), "Normal Field");
         }
-        Debugging::get()->drawCurvatureField(out, Vector3d(1, 0, 0), "Normal Field");
     }
 }
 

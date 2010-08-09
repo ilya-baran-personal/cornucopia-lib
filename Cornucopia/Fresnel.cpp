@@ -33,7 +33,7 @@ using namespace std;
 using namespace Eigen;
 NAMESPACE_Cornu
 
-typedef float PSETParam;
+typedef Packet4f PSETParam;
 
 //Polynomial evaluation routines
 template<typename Scalar>

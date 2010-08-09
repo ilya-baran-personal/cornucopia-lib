@@ -49,7 +49,8 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(G1_COST, "G1 cost", 0., 50., infinity));
     _parameters.push_back(Parameter(G2_COST, "G2 cost", 0., 50., 0.));
     _parameters.push_back(Parameter(ERROR_COST, "Error cost", 0., 10., 1.));
-    _parameters.push_back(Parameter(INFLECTION_COST, "Inflection cost", 0., 20., 10.));
+    _parameters.push_back(Parameter(SHORTNESS_COST, "Shortness cost", 0., 10., 2.));
+    _parameters.push_back(Parameter(INFLECTION_COST, "Inflection cost", 0., 100., 20.));
 
     _parameters.push_back(Parameter(INTERNAL_PARAMETERS_MARKER, "NOT A PARAMETER", 0., 0., 0.));
     _parameters.push_back(Parameter(PIXEL_SIZE, "Pixel size", 1.));
@@ -69,6 +70,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(POINTS_PER_CIRCLE, "Points per circle", 20.));
     _parameters.push_back(Parameter(MAX_SAMPLE_RATE_SLOPE, "Max sample rate slope", 0.4));
     _parameters.push_back(Parameter(ERROR_THRESHOLD, "Error Threshold", 4.));
+    _parameters.push_back(Parameter(SHORTNESS_THRESHOLD, "Shortness Threshold", 50.));
     _parameters.push_back(Parameter(TWO_CURVE_CURVATURE_ADJUST, "Two-Curve Adjustment Point", 2.));
     _parameters.push_back(Parameter(CURVE_ADJUST_DAMPING, "Curve Adjust Damping", 1.));
     _parameters.push_back(Parameter(REDUCE_GRAPH_EVERY, "Reduce Graph Every", 10.));
@@ -106,6 +108,7 @@ void Parameters::_initializePresets()
     polyline.set(G0_COST, 0.);
     polyline.set(G1_COST, infinity);
     polyline.set(G2_COST, infinity);
+    polyline.set(SHORTNESS_COST, 0);
     _presets.push_back(polyline);
 
     //lines and arcs
@@ -116,6 +119,7 @@ void Parameters::_initializePresets()
     linesarcs.set(CLOTHOID_COST, infinity);
     linesarcs.set(G1_COST, 0.);
     linesarcs.set(G2_COST, infinity);
+    linesarcs.set(SHORTNESS_COST, 0);
     _presets.push_back(linesarcs);
 
     //Clothoid only

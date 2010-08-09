@@ -45,6 +45,7 @@ struct PathFindingVertexData
     bool source;
     bool target;
     int numIncoming, numOutgoing;
+    CurvePrimitive::PrimitiveType primitiveType;
 };
 
 class PathFindingEdgeData
@@ -74,6 +75,7 @@ public:
     }
 
     bool ignore() const { return _ignore; }
+    void setIgnore() { _ignore = true; }
     double cost() const { return _cost; }
     double reducedCost() const { return _reducedCost; }
     void reduce(double by) { _reducedCost = _cost - by; }
@@ -89,21 +91,26 @@ private:
 class PathFindingGraph
 {
 public:
-    PathFindingGraph(const vector<Vertex> &vertices, const vector<Edge> &edges)
-        : _vertices(vertices), _edges(edges)
+    PathFindingGraph(const vector<Vertex> &vertices, const vector<Edge> &edges, const Fitter &fitter)
+        : _vertices(vertices), _edges(edges), _fitter(fitter)
     {
+        const vector<FitPrimitive> &primitives = _fitter.output<PRIMITIVE_FITTING>()->primitives;
+
         _vData.resize(vertices.size());
         _eData.reserve(edges.size());
         for(size_t i = 0; i < edges.size(); ++i)
             _eData.push_back(PathFindingEdgeData(&(edges[i])));
 
         for(size_t i = 0; i < vertices.size(); ++i)
+        {
             _vData[i].numOutgoing = vertices[i].edges.size();
+            _vData[i].primitiveType = primitives[i].curve->getType();
+        }
         for(size_t i = 0; i < edges.size(); ++i)
             _vData[edges[i].endVtx].numIncoming++;
     }
 
-    vector<int> shortestPath(const Fitter &fitter)
+    vector<int> shortestPath()
     {
         vector<int> sources;
         for(int i = 0; i < (int)_vertices.size(); ++i)
@@ -114,7 +121,7 @@ public:
             _vData[i].target = _vertices[i].target;
         }
 
-        int reduceEvery = max(1, (int)fitter.params().get(Parameters::REDUCE_GRAPH_EVERY));
+        int reduceEvery = max(1, (int)_fitter.params().get(Parameters::REDUCE_GRAPH_EVERY));
         vector<int> sp;
 
         for(int i = 0; i < _maxIter; ++i)
@@ -124,11 +131,7 @@ public:
 
             sp = _shortestPath(sources);
 
-            bool done = true;
-            for(int j = 0; j < (int)sp.size(); ++j)
-                done = _eData[sp[j]].validate(fitter) && done;
-
-            if(done)
+            if(_validatePath(sp))
                 break;
         }
 
@@ -141,7 +144,7 @@ public:
         return sp;
     }
 
-    vector<int> shortestCycle(const Fitter &fitter)
+    vector<int> shortestCycle()
     {
         //start with the vertex that has an edge both cheap and with very connected vertices
         double minEdgeCost = Parameters::infinity;
@@ -159,7 +162,7 @@ public:
 
         vector<int> sources(1, _edges[bestEdge].startVtx);
 
-        int reduceEvery = max(1, (int)fitter.params().get(Parameters::REDUCE_GRAPH_EVERY));
+        int reduceEvery = max(1, (int)_fitter.params().get(Parameters::REDUCE_GRAPH_EVERY));
 
         vector<int> sp;
 
@@ -177,11 +180,7 @@ public:
                 if(sp.empty()) //should not happen
                     return sp;
 
-                bool done = true;
-                for(int j = 0; j < (int)sp.size(); ++j)
-                    done = _eData[sp[j]].validate(fitter) && done;
-
-                if(done)
+                if(_validatePath(sp))
                     break;
             }
 
@@ -201,6 +200,39 @@ public:
 
 private:
     static const int _maxIter = 10000;
+
+    bool _validatePath(const vector<int> &path)
+    {
+        bool valid = true;
+        for(int i = 0; i < (int)path.size(); ++i)
+            valid = _eData[path[i]].validate(_fitter) && valid;
+
+        //line-clothoid-line
+        if(valid)
+        {
+            int last = _fitter.output<CURVE_CLOSING>()->closed ? path.size() : (int)path.size() - 1;
+            for(int i = 0; i < last; ++i)
+            {
+                int ni = (i + 1) % path.size();
+                if(_edges[path[i]].continuity != 2 || _edges[path[ni]].continuity != 2)
+                    continue;
+                if(_vData[_edges[path[i]].startVtx].primitiveType != CurvePrimitive::LINE)
+                    continue;
+                if(_vData[_edges[path[ni]].endVtx].primitiveType != CurvePrimitive::LINE)
+                    continue;
+                //the middle one has to be a clothoid
+                //Debugging::get()->printf("Line-clothoid-line!");
+                //kill the higher cost edge
+                if(_edges[path[i]].cost > _edges[path[ni]].cost)
+                    _eData[path[i]].setIgnore();
+                else
+                    _eData[path[ni]].setIgnore();
+                valid = false;
+            }
+        }
+
+        return valid;
+    }
 
     void _reduceForPath(const vector<int> &sourceVertices)
     {
@@ -370,6 +402,7 @@ private:
     const vector<Edge> &_edges;
     vector<PathFindingEdgeData> _eData;
     vector<PathFindingVertexData> _vData;
+    const Fitter &_fitter;
 };
 
 class DefaultPathFinder : public Algorithm<PATH_FINDING>
@@ -384,15 +417,15 @@ protected:
         const vector<FitPrimitive> &primitives = fitter.output<PRIMITIVE_FITTING>()->primitives;
 
         //construct the path finding graph
-        PathFindingGraph pfgraph(graph->vertices, graph->edges);
+        PathFindingGraph pfgraph(graph->vertices, graph->edges, fitter);
         
         bool closed = fitter.output<CURVE_CLOSING>()->closed;
 
         vector<int> shortestPath;
         if(closed)
-            shortestPath = pfgraph.shortestCycle(fitter);
+            shortestPath = pfgraph.shortestCycle();
         else
-            shortestPath = pfgraph.shortestPath(fitter);
+            shortestPath = pfgraph.shortestPath();
 
         //debugging output
         ostringstream ss;

@@ -35,12 +35,13 @@ NAMESPACE_Cornu
 
 struct PrimitiveCacheData
 {
-    double x, y, angle, curvature;
+    double x, y, angle, curvature, param;
 
     static PrimitiveCacheData make(CurvePrimitiveConstPtr curve, double param)
     {
         PrimitiveCacheData out;
         Vector2d pos = curve->pos(param);
+        out.param = param;
         out.x = pos[0];
         out.y = pos[1];
         out.angle = curve->angle(param);
@@ -102,6 +103,8 @@ public:
         _errorCostFactor = fitter.params().get(Parameters::ERROR_COST);
         _inflectionCost = fitter.params().get(Parameters::INFLECTION_COST);
         _lengthScale = 1. / (fitter.output<SCALE_DETECTION>()->scale * fitter.params().get(Parameters::PIXEL_SIZE));
+        _shortnessCostFactor = fitter.params().get(Parameters::SHORTNESS_COST);
+        _shortnessThreshold = fitter.scaledParameter(Parameters::SHORTNESS_THRESHOLD);
 
         for(int i = 0; i < (int)_primitives.size(); ++i)
             _primitiveCache.push_back(PrimitiveCache(fitter, _primitives[i]));
@@ -118,6 +121,23 @@ public:
         //inflection
         if(_primitives[p].startCurvSign != _primitives[p].endCurvSign)
             out += _inflectionCost;
+
+        //shortness
+        double len = _primitives[p].curve->length();
+        if(_continuityCost[0] == Parameters::infinity)
+        {
+            //figure out how much we expect the length to decrease when we join things up
+            double lenDecrease = 0;
+            if(!_corners[_primitives[p].startIdx])
+                lenDecrease += _primitiveCache[p].start(1).param;
+            if(!_corners[_primitives[p].endIdx])
+                lenDecrease += len - _primitiveCache[p].end(1).param;
+            if(_continuityCost[1] != Parameters::infinity)
+                lenDecrease *= 0.5;
+            len -= lenDecrease;
+        }
+        double st = _shortnessThreshold;
+        out += _shortnessCostFactor * (sqrt(st * st + SQR(max(0., st - len))) - st);
 
         return out;
     }
@@ -262,6 +282,8 @@ private:
     double _errorCostFactor;
     double _inflectionCost;
     double _lengthScale;
+    double _shortnessCostFactor;
+    double _shortnessThreshold;
     DataModelConstPtr _dataModel;
 };
 
@@ -324,6 +346,8 @@ protected:
                 if(curve1len <= offset * 2) //if the first curve is already too short
                     continue;
 
+                int minType = primitives[i].curve->getType() < continuity ? continuity : 0;
+
                 for(int j = 0; j < (int)curvesStartingAt[startIdx].size(); ++j)
                 {
                     int k = curvesStartingAt[startIdx][j]; //index of the second primitive
@@ -331,8 +355,7 @@ protected:
                     if(curve2len <= offset * 2)
                         continue;
 
-                    int maxType = max(primitives[i].curve->getType(), primitives[k].curve->getType());
-                    if(maxType < continuity)
+                    if(primitives[k].curve->getType() < minType)
                         continue;
 
                     //create edge

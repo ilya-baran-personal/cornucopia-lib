@@ -99,12 +99,12 @@ double Arc::project(const Vec &point) const
         if(_params[CURVATURE] > 0.)
         {
             double projAngleDiff = HALFPI + projAngle - _startAngle();
-            t = AngleUtils::toRange(projAngleDiff, 0.5 * _angleDiff - PI) / _params[CURVATURE];
+            t = AngleUtils::toRange(projAngleDiff, 0.5 * _angleDiff - PI) * _radius;
         }
         else
         {
             double projAngleDiff = HALFPI - projAngle + _startAngle();
-            t = AngleUtils::toRange(projAngleDiff, -0.5 * _angleDiff - PI) / -_params[CURVATURE];
+            t = -AngleUtils::toRange(projAngleDiff, -0.5 * _angleDiff - PI) * _radius;
         }
     }
 

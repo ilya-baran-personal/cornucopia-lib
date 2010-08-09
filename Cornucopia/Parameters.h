@@ -41,6 +41,7 @@ public:
         G1_COST,
         G2_COST,
         ERROR_COST,
+        SHORTNESS_COST,
         INFLECTION_COST,
         //This is not a real parameter--below are parameters the user should not control
         INTERNAL_PARAMETERS_MARKER, 
@@ -61,6 +62,7 @@ public:
         POINTS_PER_CIRCLE,
         MAX_SAMPLE_RATE_SLOPE,
         ERROR_THRESHOLD,
+        SHORTNESS_THRESHOLD,
         TWO_CURVE_CURVATURE_ADJUST,
         CURVE_ADJUST_DAMPING,
         REDUCE_GRAPH_EVERY,
