@@ -43,6 +43,7 @@ public:
 
     QPointF sceneToView(const QPointF &scene) const { return scene * _zoom + _offset; }
     QPointF viewToScene(const QPointF &view) const { return (view - _offset) * (1. / _zoom); }
+    double sceneToViewZoom() const { return _zoom; }
 
 protected:
     QPoint _prevMousePos;

@@ -26,58 +26,103 @@
 #include "Polyline.h"
 
 #include <QMouseEvent>
+#include <QFileDialog>
 
 using namespace std;
 using namespace Eigen;
 
 MainView::MainView(QWidget *parent, ParamWidget *paramWidget)
-    : ScrollView(parent), _paramWidget(paramWidget), _pointsDrawn(0, Cornu::NOT_CIRCULAR)
+    : ScrollView(parent), _paramWidget(paramWidget), _pointsDrawn(0, Cornu::NOT_CIRCULAR), _tool(DrawTool)
 {
     _document = new Document(this);
 }
 
 void MainView::mousePressEvent(QMouseEvent *e)
 {
-    if(e->buttons() & Qt::LeftButton)
+    if(_tool == DrawTool)
     {
-        _pointsDrawn.clear();
+        if(e->buttons() & Qt::LeftButton)
+        {
+            _pointsDrawn.clear();
 
-        _prevMousePos = e->pos();
-        QPointF scenePt = viewToScene(_prevMousePos);
-        _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
+            _prevMousePos = e->pos();
+            QPointF scenePt = viewToScene(_prevMousePos);
+            _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
 
-        return;
+            return;
+        }
     }
+    else if(_tool = SelectTool)
+    {
+    }
+
     ScrollView::mousePressEvent(e);
 }
 
 void MainView::mouseReleaseEvent(QMouseEvent *e)
 {
-    if(e->button() == Qt::LeftButton)
+    if(_tool == DrawTool)
     {
-        scene()->clearGroups("currentlyDrawing");
-        if(_pointsDrawn.size() > 1)
-            _document->curveDrawn(new Cornu::Polyline(_pointsDrawn));
-        return;
+        if(e->button() == Qt::LeftButton)
+        {
+            scene()->clearGroups("currentlyDrawing");
+            if(_pointsDrawn.size() > 1)
+                _document->curveDrawn(new Cornu::Polyline(_pointsDrawn));
+            return;
+        }
+    }
+    else if(_tool = SelectTool)
+    {
+        QPointF scenePt = viewToScene(e->pos());
+
+        _document->selectAt(Vector2d(scenePt.x(), scenePt.y()), e->modifiers() & Qt::SHIFT, 15. / sceneToViewZoom());
     }
     ScrollView::mouseReleaseEvent(e);
 }
 
 void MainView::mouseMoveEvent(QMouseEvent *e)
 {
-    if(e->buttons() & Qt::LeftButton)
+    if(_tool == DrawTool)
     {
-        _prevMousePos = e->pos();
-        QPointF scenePt = viewToScene(_prevMousePos);
-        _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
+        if(e->buttons() & Qt::LeftButton)
+        {
+            _prevMousePos = e->pos();
+            QPointF scenePt = viewToScene(_prevMousePos);
+            _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
 
-        scene()->clearGroups("currentlyDrawing");
-        scene()->addItem(new CurveSceneItem(new Cornu::Polyline(_pointsDrawn), "currentlyDrawing"));
+            scene()->clearGroups("currentlyDrawing");
+            scene()->addItem(new CurveSceneItem(new Cornu::Polyline(_pointsDrawn), "currentlyDrawing"));
 
-        return;
+            return;
+        }
+    }
+    else if(_tool = SelectTool)
+    {
     }
     ScrollView::mouseMoveEvent(e);
 }
 
+void MainView::clearImage()
+{
+    scene()->clearGroups("Background Image");
+}
+
+void MainView::setImage()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Choose the image file",
+                    "",
+                    "Image files (*.png *.jpg)");
+
+    if(fileName.isEmpty())
+        return;
+
+    QImage image(fileName);
+
+    if(image.isNull())
+        return;
+
+    scene()->clearGroups("Background Image");
+    scene()->addItem(new ImageSceneItem(image, "Background Image"));
+}
 
 #include "MainView.moc"

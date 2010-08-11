@@ -38,15 +38,28 @@ public:
     Document *document() const { return _document; }
     ParamWidget *paramWidget() const { return _paramWidget; }
 
+public slots:
+    void setDrawTool() { _tool = DrawTool; }
+    void setSelectTool() { _tool = SelectTool; }
+    void setImage();
+    void clearImage();
+
 protected:
     void mousePressEvent(QMouseEvent *);
     void mouseReleaseEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
 
 private:
+    enum ToolType
+    {
+        DrawTool,
+        SelectTool
+    };
+
     Cornu::VectorC<Eigen::Vector2d> _pointsDrawn;
     Document *_document;
     ParamWidget *_paramWidget;
+    ToolType _tool;
 };
 
 

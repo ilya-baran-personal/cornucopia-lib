@@ -32,6 +32,7 @@
 
 #include <QFileDialog>
 #include <QFile>
+#include <QPen>
 #include <QDataStream>
 #include <QTextStream>
 #include <QMessageBox>
@@ -48,17 +49,119 @@ Document::Document(MainView *view)
 
 void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
 {
-    Sketch sketch;
+    Sketch sketch; //selected by default
     sketch.pts = polyline;
     sketch.name = _getNextSketchName();
     sketch.params = _view->paramWidget()->parameters();
 
+    clearSelection();
     _sketches.push_back(sketch);
+    _processSketch(_sketches.size() - 1);
+    _selectionChanged();
+}
+
+void Document::refitSelected()
+{
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+    {
+        if(_sketches[i].selected)
+        {
+            _sketches[i].params = _view->paramWidget()->parameters();
+            _processSketch(i);
+        }
+    }
+    _selectionChanged();
+}
+
+void Document::selectAll()
+{
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+        _sketches[i].selected = true;
+    _selectionChanged();
+}
+
+void Document::deleteItem()
+{
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+    {
+        if(_sketches[i].selected)
+        {
+            swap(_sketches[i], _sketches.back());
+            _view->scene()->clearGroups(_sketches.back().name);
+            _sketches.pop_back();
+            --i;
+        }
+    }
+    _selectionChanged();
+}
+
+void Document::deleteAll()
+{
+    _view->scene()->clearGroups("");
+    _sketches.clear();
+    _sketchIdx = 0;
+    _selectionChanged();
+}
+
+void Document::clearSelection()
+{
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+        _sketches[i].selected = false;
+    _selectionChanged();
+}
+
+void Document::open()
+{
+    _readFile("Open Curve", true);
+}
+
+void Document::insert()
+{
+    _readFile("Insert Curve", false);
+}
+
+void Document::selectAt(const Eigen::Vector2d &point, bool shift, double radius)
+{
+    if(!shift)
+        clearSelection();
+
+    int closestSketch = -1;
+    double minDistSq = radius * radius;
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+    {
+        if(!_sketches[i].sceneItem)
+            continue;
+        Cornu::CurveConstPtr curve = _sketches[i].sceneItem->curve();
+        double distSq = (point - curve->pos(curve->project(point))).squaredNorm();
+        if(distSq < minDistSq)
+        {
+            minDistSq = distSq;
+            closestSketch = i;
+        }
+    }
+
+    if(closestSketch >= 0)
+        _sketches[closestSketch].selected = !_sketches[closestSketch].selected;
+
+    _selectionChanged();
+}
+
+void Document::_processSketch(int idx)
+{
+    _view->scene()->clearGroups(_sketches[idx].name);
+
     Cornu::Fitter fitter;
-    fitter.setOriginalSketch(sketch.pts);
-    fitter.setParams(sketch.params);
+
+    fitter.setOriginalSketch(_sketches[idx].pts);
+    fitter.setParams(_sketches[idx].params);
     fitter.run();
     
+    if(fitter.finalOutput())
+    {
+        _sketches[idx].sceneItem = new CurveSceneItem(fitter.finalOutput(), _sketches[idx].name);
+        _view->scene()->addItem(_sketches[idx].sceneItem);
+    }
+
     //see if it output a regression dataset and offer to save it
     Cornu::DatasetPtr dataset = fitter.output<Cornu::GRAPH_CONSTRUCTION>()->dataset;
     if(dataset)
@@ -74,36 +177,20 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
             dataset->save(string(fileName.toAscii().constData(), fileName.length()));
         }
     }
-
-    if(fitter.finalOutput())
-        _view->scene()->addItem(new CurveSceneItem(fitter.finalOutput(), sketch.name));
 }
 
-void Document::refitLast()
+void Document::_selectionChanged() const
 {
-    if(_sketches.empty())
-        return;
-    Sketch last = _sketches.back();
-    _sketches.pop_back();
-    _view->scene()->clearGroups(last.name);
-    curveDrawn(last.pts);
-}
-
-void Document::clearAll()
-{
-    _view->scene()->clearGroups("");
-    _sketches.clear();
-    _sketchIdx = 0;
-}
-
-void Document::open()
-{
-    _readFile("Open Curve", true);
-}
-
-void Document::insert()
-{
-    _readFile("Insert Curve", false);
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+    {
+        if(!_sketches[i].sceneItem)
+            continue;
+        if(_sketches[i].selected)
+            _sketches[i].sceneItem->setPen(QPen(Qt::red));
+        else
+            _sketches[i].sceneItem->setPen(QPen());
+    }
+    _view->scene()->emitSceneChanged();
 }
 
 bool Document::_readFile(const QString &message, bool clear) //returns true on success
@@ -159,17 +246,12 @@ bool Document::_readFile(const QString &message, bool clear) //returns true on s
     }
 
     if(clear)
-        clearAll();
+        deleteAll();
 
     for(int i = 0; i < (int)sketches.size(); ++i)
     {
         _sketches.push_back(sketches[i]);
-        Cornu::Fitter fitter;
-        fitter.setOriginalSketch(sketches[i].pts);
-        fitter.setParams(sketches[i].params);
-        fitter.run();
-    
-        _view->scene()->addItem(new CurveSceneItem(fitter.finalOutput(), sketches[i].name));
+        _processSketch(i);
     }
 
     return true;

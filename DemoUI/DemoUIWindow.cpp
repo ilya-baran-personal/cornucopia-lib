@@ -29,6 +29,7 @@
 #include "libTest.h"
 
 #include <QScrollArea>
+#include <QActionGroup>
 #include <QMenuBar>
 #include <QMenu>
 
@@ -46,18 +47,30 @@ DemoUIWindow::DemoUIWindow()
     setCentralWidget(mainView);
     addDockWidget(Qt::RightDockWidgetArea, paramWidget);
     
-    connect(paramWidget, SIGNAL(rerunClicked()), mainView->document(), SLOT(refitLast()));
+    connect(paramWidget, SIGNAL(rerunClicked()), mainView->document(), SLOT(refitSelected()));
 
     _debugWindow = new DebugWindow();
+
+    QActionGroup *toolGroup = new QActionGroup(this);
+    toolGroup->addAction(ui.actionDraw_Tool);
+    toolGroup->addAction(ui.actionSelect_Tool);
+    ui.actionDraw_Tool->setChecked(true);
 
     //menus
     connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(ui.action_Reset_View, SIGNAL(triggered()), mainView, SLOT(resetView()));
-    connect(ui.action_New, SIGNAL(triggered()), mainView->document(), SLOT(clearAll()));
+    connect(ui.action_New, SIGNAL(triggered()), mainView->document(), SLOT(deleteAll()));
     connect(ui.actionOpen, SIGNAL(triggered()), mainView->document(), SLOT(open()));
     connect(ui.actionInsert, SIGNAL(triggered()), mainView->document(), SLOT(insert()));
     connect(ui.actionSave, SIGNAL(triggered()), mainView->document(), SLOT(save()));
+    connect(ui.actionClear_Background_Image, SIGNAL(triggered()), mainView, SLOT(clearImage()));
+    connect(ui.actionSet_Background_Image, SIGNAL(triggered()), mainView, SLOT(setImage()));
     connect(ui.actionShow_Debug_Window, SIGNAL(triggered()), _debugWindow, SLOT(show()));
+    connect(ui.actionDelete, SIGNAL(triggered()), mainView->document(), SLOT(deleteItem()));
+    connect(ui.actionSelect_All, SIGNAL(triggered()), mainView->document(), SLOT(selectAll()));
+
+    connect(ui.actionDraw_Tool, SIGNAL(triggered()), mainView, SLOT(setDrawTool()));
+    connect(ui.actionSelect_Tool, SIGNAL(triggered()), mainView, SLOT(setSelectTool()));
 
     _debugWindow->show();
 

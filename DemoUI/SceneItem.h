@@ -28,6 +28,7 @@
 #include <QBrush>
 #include <QPen>
 #include <QPainterPath>
+#include <QImage>
 
 #include <Eigen/Core>
 
@@ -39,8 +40,14 @@ public:
 
     virtual void draw(QPainter *, const QTransform &) const = 0;
     virtual QRectF rect() const = 0;
+    virtual bool addToBeginning() { return false; } //true for images
 
     QString group() const { return _group; }
+
+    QPen pen() const { return _pen; }
+    QBrush brush() const { return _brush; }
+    void setPen(QPen pen) { _pen = pen; }
+    void setBrush(QBrush brush) { _brush = brush; }
 
 protected:
     QString _group;
@@ -80,6 +87,8 @@ class CurveSceneItem : public SceneItem
 public:
     CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen pen = QPen(), QBrush brush = QBrush());
 
+    Cornu::CurveConstPtr curve() const { return _curve; }
+
     //overrides
     void draw(QPainter *p, const QTransform &) const;
     QRectF rect() const { return _rect; }
@@ -89,5 +98,21 @@ private:
     QRectF _rect;
     QPolygonF _curveTess;
 };
+
+class ImageSceneItem : public SceneItem
+{
+public:
+    ImageSceneItem(QImage image, QString group) : SceneItem(group), _image(image) {}
+
+    //overrides
+    virtual bool addToBeginning() { return true; } //images drawn first
+    void draw(QPainter *p, const QTransform &) const;
+    QRectF rect() const { return _image.rect(); }
+
+private:
+    QImage _image;
+};
+
+SMART_TYPEDEFS(CurveSceneItem);
 
 #endif //SCENEITEM_H_INCLUDED

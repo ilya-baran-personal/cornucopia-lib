@@ -30,6 +30,7 @@
 
 class QDataStream;
 class QTextStream;
+SMART_FORW_DECL(CurveSceneItem);
 
 namespace Cornu
 {
@@ -45,20 +46,32 @@ public:
 
     void curveDrawn(Cornu::PolylineConstPtr polyline);
 
+    void selectAt(const Eigen::Vector2d &point, bool shift, double radius);
+
 public slots:
-    void refitLast();
-    void clearAll();
+    void refitSelected();
+    void deleteAll();
+    void clearSelection();
     void open();
     void insert();
     void save();
+    void selectAll();
+    void deleteItem();
 
 private:
     struct Sketch
     {
+        Sketch() : selected(true) {}
+
         Cornu::PolylineConstPtr pts;
         QString name;
         Cornu::Parameters params;
+        CurveSceneItemPtr sceneItem;
+        bool selected;
     };
+
+    void _selectionChanged() const;
+    void _processSketch(int idx);
 
     bool _readFile(const QString &message, bool clear); //returns true on success
     Cornu::PolylineConstPtr _readPts(QDataStream &stream);

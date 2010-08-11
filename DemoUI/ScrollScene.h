@@ -51,6 +51,7 @@ public:
     QSet<QString> getAllGroups() const;
 
     void setGroupVisible(QString group, bool visible);
+    void emitSceneChanged() { emit sceneChanged(); }
 
 signals:
     void sceneChanged();

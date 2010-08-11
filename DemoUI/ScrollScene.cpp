@@ -50,7 +50,10 @@ void ScrollScene::draw(QPainter *p, const QTransform &transform) const
 
 void ScrollScene::addItem(SceneItemPtr item)
 {
-    _items.push_back(item);
+    if(item->addToBeginning())
+        _items.insert(_items.begin(), item);
+    else
+        _items.push_back(item);
     emit sceneChanged();
 }
 

@@ -83,7 +83,7 @@ CurveSceneItem::CurveSceneItem(Cornu::CurveConstPtr curve, QString group, QPen p
     }
     else
     {
-        for(double s = 0; s < curve->length(); s += 5.) //skip pixels
+        for(double s = 0; s < curve->length(); s += 2.) //skip pixels
         {
              pt = curve->pos(s);
             _curveTess.push_back(QPointF(pt[0], pt[1]));
@@ -99,4 +99,12 @@ void CurveSceneItem::draw(QPainter *p, const QTransform &transform) const
 {
     p->setPen(_pen);
     p->drawPolyline(transform.map(_curveTess));
+}
+
+void ImageSceneItem::draw(QPainter *p, const QTransform &transform) const
+{
+    QTransform oldTransform = p->transform();
+    p->setTransform(transform, true);
+    p->drawImage(0, 0, _image);
+    p->setTransform(oldTransform, false);
 }
