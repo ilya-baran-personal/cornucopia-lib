@@ -94,6 +94,7 @@ void Parameters::_initializePresets()
     Parameters accurate = defaultParams;
     accurate._name = "Accurate (G2)";
     accurate.set(ERROR_COST, 5.);
+    accurate.set(SHORTNESS_COST, 1.);
     accurate.set(CURVATURE_ESTIMATE_REGION, 10.);
     accurate.set(POINTS_PER_CIRCLE, 30.);
     accurate.set(ERROR_THRESHOLD, 2.);

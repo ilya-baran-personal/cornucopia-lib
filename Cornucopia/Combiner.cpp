@@ -227,13 +227,14 @@ private:
     template<class M1, class M2> void _solveCholL(M1 EIGEN_REF_TO_TEMPORARY out, const BlockCholVectorType &chols, const M2 &rhs)
     {
         for(int i = 0; i < (int)chols.size(); ++i)
-	    const_cast<M1 &>(out).block(_blockIndices[i], 0, _blockSizes[i], out.cols()) =
+            const_cast<M1 &>(out).block(_blockIndices[i], 0, _blockSizes[i], out.cols()) =
                 chols[i].matrixL().solve(rhs.block(_blockIndices[i], 0, _blockSizes[i], rhs.cols()));
     }
+
     template<class M1, class M2> void _solveCholU(M1 EIGEN_REF_TO_TEMPORARY out, const BlockCholVectorType &chols, const M2 &rhs)
     {
         for(int i = 0; i < (int)chols.size(); ++i)
-	    const_cast<M1 &>(out).block(_blockIndices[i], 0, _blockSizes[i], out.cols()) =
+            const_cast<M1 &>(out).block(_blockIndices[i], 0, _blockSizes[i], out.cols()) =
                 chols[i].matrixU().solve(rhs.block(_blockIndices[i], 0, _blockSizes[i], rhs.cols()));
     }
 

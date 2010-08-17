@@ -99,8 +99,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>302</width>
-             <height>451</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="paramLayout">
@@ -156,8 +156,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>299</width>
-             <height>451</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="algLayout">
@@ -201,8 +201,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>302</width>
-             <height>451</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="internLayout">
@@ -303,7 +303,7 @@
       <item>
        <widget class="QPushButton" name="rerunButton">
         <property name="text">
-         <string>Rerun Last</string>
+         <string>Rerun Selected</string>
         </property>
        </widget>
       </item>

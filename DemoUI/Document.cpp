@@ -254,6 +254,8 @@ bool Document::_readFile(const QString &message, bool clear) //returns true on s
         _processSketch(i);
     }
 
+    _selectionChanged();
+
     return true;
 }
 
