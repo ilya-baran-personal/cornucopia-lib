@@ -54,6 +54,35 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
     sketch.name = _getNextSketchName();
     sketch.params = _view->paramWidget()->parameters();
 
+    //compute which curve (among the selected ones) we're oversketching
+    pair<double, double> minDist;
+    int best = -1;
+    Vector2d startPos = polyline->startPos();
+    Vector2d endPos = polyline->endPos();
+    const double threshold = 20 * 20;
+    for(int i = 0; i < (int)_sketches.size(); ++i)
+    {
+        if(!_sketches[i].selected)
+            continue;
+        Cornu::CurveConstPtr curve = _sketches[i].curve;
+        double distStart = (startPos - curve->pos(curve->project(startPos))).squaredNorm();
+        double distEnd = (endPos - curve->pos(curve->project(endPos))).squaredNorm();
+        if(distStart > threshold && distEnd > threshold)
+            continue;
+        distStart = min(distStart, threshold);
+        distEnd = min(distStart, threshold);
+        pair<double, double> dist(max(distStart, distEnd), min(distStart, distEnd));
+        if(best == -1 || dist < minDist)
+        {
+            minDist = dist;
+            best = i;
+        }
+    }
+
+    sketch.oversketch = best;
+    if(best >= 0)
+        _view->scene()->clearGroups(_sketches[best].name);
+
     clearSelection();
     _sketches.push_back(sketch);
     _processSketch(_sketches.size() - 1);
@@ -76,12 +105,19 @@ void Document::refitSelected()
 void Document::selectAll()
 {
     for(int i = 0; i < (int)_sketches.size(); ++i)
-        _sketches[i].selected = true;
+        _sketches[i].selected = _sketches[i].sceneItem; //only select sketches that have something visible
     _selectionChanged();
 }
 
 void Document::deleteItem()
 {
+    //select oversketched stuff for deletion
+    for(int i = (int)_sketches.size() - 1; i > 0; --i) //proceed in reverse order so we get everything
+    {
+        if(_sketches[i].selected && _sketches[i].oversketch >= 0)
+            _sketches[_sketches[i].oversketch].selected = true;
+    }
+
     for(int i = 0; i < (int)_sketches.size(); ++i)
     {
         if(_sketches[i].selected)
@@ -155,10 +191,11 @@ void Document::_processSketch(int idx)
     fitter.setOriginalSketch(_sketches[idx].pts);
     fitter.setParams(_sketches[idx].params);
     fitter.run();
-    
-    if(fitter.finalOutput())
+
+    _sketches[idx].curve = fitter.finalOutput();
+    if(_sketches[idx].curve)
     {
-        _sketches[idx].sceneItem = new CurveSceneItem(fitter.finalOutput(), _sketches[idx].name);
+        _sketches[idx].sceneItem = new CurveSceneItem(_sketches[idx].curve, _sketches[idx].name);
         _view->scene()->addItem(_sketches[idx].sceneItem);
     }
 
@@ -248,9 +285,15 @@ bool Document::_readFile(const QString &message, bool clear) //returns true on s
     if(clear)
         deleteAll();
 
+    int idxOffset = (int)_sketches.size();
+
     for(int i = 0; i < (int)sketches.size(); ++i)
     {
         _sketches.push_back(sketches[i]);
+
+        if(sketches[i].oversketch >= 0)
+            _sketches.back().oversketch += idxOffset;
+
         _processSketch(i);
     }
 
@@ -354,6 +397,12 @@ vector<Document::Sketch> Document::_readNative(QTextStream &stream)
             }
         }
 
+        QScriptValue oversketch = curSketch.property("oversketch");
+        if(oversketch.isValid() && oversketch.isNumber())
+            cur.oversketch = oversketch.toInt32();
+        if(cur.oversketch < 0 || cur.oversketch >= (int)out.size()) //check that the index is valid
+            cur.oversketch = -1;
+
         cur.name = _getNextSketchName();
         out.push_back(cur);
     }
@@ -401,6 +450,9 @@ void Document::_writeNative(QTextStream &stream)
             stream << " ,\n      \"" <<  alg->stageName().c_str() << "\" : ";
             stream << "\"" << alg->name().c_str() << "\"";
         }
+
+        //write out oversketch index
+        stream << " ,\n      \"oversketch\" : " << _sketches[i].oversketch;
 
         stream << " }";
     }

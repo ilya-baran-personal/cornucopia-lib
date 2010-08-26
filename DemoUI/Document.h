@@ -35,6 +35,7 @@ SMART_FORW_DECL(CurveSceneItem);
 namespace Cornu
 {
     SMART_FORW_DECL(Polyline);
+    SMART_FORW_DECL(PrimitiveSequence);
 }
 class MainView;
 
@@ -61,13 +62,15 @@ public slots:
 private:
     struct Sketch
     {
-        Sketch() : selected(true) {}
+        Sketch() : selected(true), oversketch(-1) {}
 
         Cornu::PolylineConstPtr pts;
         QString name;
         Cornu::Parameters params;
+        Cornu::PrimitiveSequenceConstPtr curve;
         CurveSceneItemPtr sceneItem;
         bool selected;
+        int oversketch; //index of the sketch over which this one is sketched, or -1 if this is a new curve
     };
 
     void _selectionChanged() const;
