@@ -58,14 +58,14 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
     int best = -1;
     Vector2d startPos = polyline->startPos();
     Vector2d endPos = polyline->endPos();
-    const double threshold = 20 * 20;
+    const double threshold = Cornu::SQR(sketch.params.get(Cornu::Parameters::OVERSKETCH_THRESHOLD));
     for(int i = 0; i < (int)_sketches.size(); ++i)
     {
         if(!_sketches[i].selected)
             continue;
         Cornu::CurveConstPtr curve = _sketches[i].curve;
-        double distStart = (startPos - curve->pos(curve->project(startPos))).squaredNorm();
-        double distEnd = (endPos - curve->pos(curve->project(endPos))).squaredNorm();
+        double distStart = curve->distanceSqTo(startPos);
+        double distEnd = curve->distanceSqTo(endPos);
         if(distStart > threshold && distEnd > threshold)
             continue;
         distStart = min(distStart, threshold);
@@ -167,7 +167,7 @@ void Document::selectAt(const Eigen::Vector2d &point, bool shift, double radius)
         if(!_sketches[i].sceneItem)
             continue;
         Cornu::CurveConstPtr curve = _sketches[i].sceneItem->curve();
-        double distSq = (point - curve->pos(curve->project(point))).squaredNorm();
+        double distSq = curve->distanceSqTo(point);
         if(distSq < minDistSq)
         {
             minDistSq = distSq;
@@ -187,8 +187,10 @@ void Document::_processSketch(int idx)
 
     Cornu::Fitter fitter;
 
-    fitter.setOriginalSketch(_sketches[idx].pts);
     fitter.setParams(_sketches[idx].params);
+    fitter.setOriginalSketch(_sketches[idx].pts);
+    if(_sketches[idx].oversketch >= 0)
+        fitter.setOversketchBase(_sketches[_sketches[idx].oversketch].curve);
     fitter.run();
 
     _sketches[idx].curve = fitter.finalOutput();

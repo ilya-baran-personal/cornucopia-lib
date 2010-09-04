@@ -65,7 +65,8 @@ public:
         TWO_CURVE_CURVATURE_ADJUST,
         CURVE_ADJUST_DAMPING,
         REDUCE_GRAPH_EVERY,
-        COMBINE_DAMPING
+        COMBINE_DAMPING,
+        OVERSKETCH_THRESHOLD
     };
 
     Parameters(const std::string &name = std::string());

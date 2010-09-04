@@ -73,6 +73,88 @@ double PrimitiveSequence::project(const Vector2d &point) const
     return bestS;
 }
 
+PrimitiveSequencePtr PrimitiveSequence::trimmed(double from, double to) const
+{
+    double len = length();
+
+    const double tol = 1e-10;
+
+    if(isClosed())
+    {
+        if(to - from > len) //trim too long--trim around the middle
+        {
+            double mid = 0.5 * (to + from);
+            from = mid - 0.5 * len + tol;
+            to = mid + 0.5 * len - tol;
+        }
+
+        //get the arguments into range
+        from = fmod(from, len);
+        if(from < 0)
+            from += len;
+        to = fmod(to, len);
+        if(to < 0)
+            to += len;
+    }
+    else //if not closed
+    {
+        from = max(0., from);
+        to = min(len, to);
+        if(from > to)
+            swap(from, to);
+    }
+
+    VectorC<CurvePrimitiveConstPtr> out(0, NOT_CIRCULAR);
+
+    double startParamRemainder, endParamRemainder;
+    int startIdx = paramToIdx(from, &startParamRemainder);
+
+    if(_primitives[startIdx]->length() - startParamRemainder < tol)
+    {
+        startIdx = _primitives.toLinearIdx(startIdx + 1);
+        startParamRemainder = 0;
+    }
+
+    int endIdx = paramToIdx(to, &endParamRemainder);
+    if(endParamRemainder < tol)
+    {
+        endIdx = _primitives.toLinearIdx(endIdx - 1);
+        endParamRemainder = _primitives[endIdx]->length();
+    }
+
+    if(startIdx == endIdx && startParamRemainder < endParamRemainder)
+    {
+        out.push_back(_primitives[startIdx]->trimmed(startParamRemainder, endParamRemainder));
+    }
+    else
+    {
+        out.push_back(_primitives[startIdx]->trimmed(startParamRemainder, _primitives[startIdx]->length()));
+
+        for(VectorC<CurvePrimitiveConstPtr>::Circulator circ = _primitives.circulator(startIdx + 1); !circ.done() ; ++circ)
+        {
+            if(circ.index() == endIdx)
+                break;
+
+            out.push_back(*circ);
+        }
+
+        out.push_back(_primitives[endIdx]->trimmed(0, endParamRemainder));
+    }
+
+    return new PrimitiveSequence(out);
+}
+
+PrimitiveSequencePtr PrimitiveSequence::flipped() const
+{
+    VectorC<CurvePrimitiveConstPtr> out = _primitives;
+    reverse(out.begin(), out.end());
+
+    for(int i = 0; i < (int)out.size(); ++i)
+        out.flatAt(i) = out.flatAt(i)->flipped();
+
+    return new PrimitiveSequence(out);
+}
+
 END_NAMESPACE_Cornu
 
 

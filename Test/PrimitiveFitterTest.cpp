@@ -70,7 +70,7 @@ public:
 
         for(int i = 0; i < (int)pts.size(); ++i)
         {
-            double dist = (pts[i] - fit->pos(fit->project(pts[i]))).norm();
+            double dist = fit->distanceTo(pts[i]);
             CORNU_ASSERT_LT_MSG(dist, jiggle * sqrt(8.), "Point " << i << " too far");
         }
     }
@@ -100,7 +100,7 @@ public:
 
         for(int i = 0; i < (int)pts.size(); ++i)
         {
-            double dist = (pts[i] - fit->pos(fit->project(pts[i]))).norm();
+            double dist = fit->distanceTo(pts[i]);
             CORNU_ASSERT_LT_MSG(dist, jiggle * sqrt(8.) * 2., "Point " << i << " too far");
         }
     }
@@ -129,7 +129,7 @@ public:
 
         for(int i = 0; i < (int)pts.size(); ++i)
         {
-            double dist = (pts[i] - fit->pos(fit->project(pts[i]))).norm();
+            double dist = fit->distanceTo(pts[i]);
             CORNU_ASSERT_LT_MSG(dist, jiggle * sqrt(8.) * 2., "Point " << i << " too far");
         }
 

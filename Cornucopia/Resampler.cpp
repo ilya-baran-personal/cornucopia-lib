@@ -20,7 +20,7 @@
 
 #include "Resampler.h"
 #include "Fitter.h"
-#include "Preprocessing.h"
+#include "Oversketcher.h"
 #include "Polyline.h"
 #include "CornerDetector.h"
 #include "PrimitiveFitUtils.h"
@@ -43,7 +43,7 @@ protected:
     void _run(const Fitter &fitter, AlgorithmOutput<RESAMPLING> &out)
     {
         VectorC<bool> corners = fitter.output<CORNER_DETECTION>()->corners;
-        PolylineConstPtr poly = fitter.output<CURVE_CLOSING>()->output;
+        PolylineConstPtr poly = fitter.output<OVERSKETCHING>()->output;
         const VectorC<Vector2d> &pts = poly->pts();
 
         if(!poly->isClosed()) //if curve is not closed, start and end points are effectively corners

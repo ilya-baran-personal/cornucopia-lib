@@ -44,6 +44,8 @@ public:
     virtual void eval(double s, Vec *pos, Vec *der = NULL, Vec *der2 = NULL) const = 0;
 
     virtual double project(const Vec &point) const = 0;
+    virtual double distanceSqTo(const Vec &point) const { return (point - pos(project(point))).squaredNorm(); }
+    virtual double distanceTo(const Vec &point) const { return sqrt(distanceSqTo(point)); }
 
     //derived evaluation functions--subclasses can implement them more efficiently
     virtual Vec pos(double s) const { Vec out; eval(s, &out); return out; }

@@ -155,7 +155,7 @@ private:
         int mid = -1;
         for(int i = start; i < end; ++i)
         {
-            double dist = (pts[i] - cur.pos(cur.project(pts[i]))).norm();
+            double dist = cur.distanceTo(pts[i]);
             if(dist > maxDist)
             {
                 maxDist = dist;
@@ -201,6 +201,9 @@ protected:
         out.output = fitter.output<PRELIM_RESAMPLING>()->output;
         out.closed = false;
         
+        if(fitter.oversketchBase())
+            return; //if we're oversketching, the curve is not closed
+
         const double tol = fitter.scaledParameter(Parameters::CLOSEDNESS_THRESHOLD);
         const double tolSq = SQR(tol);
         const VectorC<Vector2d> &pts = fitter.output<PRELIM_RESAMPLING>()->output->pts();

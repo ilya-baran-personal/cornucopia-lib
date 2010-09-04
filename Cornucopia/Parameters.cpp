@@ -58,7 +58,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(MAX_RESCALE, "Max rescale", 2.));
     _parameters.push_back(Parameter(MIN_PRELIM_LENGTH, "Min prelim length", 2.));
     _parameters.push_back(Parameter(DP_CUTOFF, "Douglas-Peucker cutoff", 3.));
-    _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness threshold", 15.));
+    _parameters.push_back(Parameter(CLOSEDNESS_THRESHOLD, "Closedness threshold", 20.));
     _parameters.push_back(Parameter(MINIMUM_CORNER_SPACING, "Min corner spacing", 5.));
     _parameters.push_back(Parameter(CORNER_NEIGHBORHOOD, "Corner neighborhood", 15.));
     _parameters.push_back(Parameter(DENSE_SAMPLING_STEP, "Dense sampling step", 1.));
@@ -74,6 +74,7 @@ void Parameters::_initializeParameters()
     _parameters.push_back(Parameter(CURVE_ADJUST_DAMPING, "Curve Adjust Damping", 1.));
     _parameters.push_back(Parameter(REDUCE_GRAPH_EVERY, "Reduce Graph Every", 10.));
     _parameters.push_back(Parameter(COMBINE_DAMPING, "Combine Damping", 2.));
+    _parameters.push_back(Parameter(OVERSKETCH_THRESHOLD, "Oversketch Threshold", 15.));
 }
 
 void Parameters::_initializePresets()
@@ -88,6 +89,13 @@ void Parameters::_initializePresets()
     //default
     Parameters defaultParams("Default (G2)");
     _presets.push_back(defaultParams);
+
+    //Loose
+    Parameters loose = defaultParams;
+    loose._name = "Loose (G2)";
+    loose.set(ERROR_COST, 0.2);
+    loose.set(ERROR_THRESHOLD, 8.);
+    _presets.push_back(loose);
 
     //Accurate
     Parameters accurate = defaultParams;

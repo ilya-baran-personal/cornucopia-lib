@@ -41,6 +41,9 @@ public:
     PolylineConstPtr originalSketch() const { return _originalSketch; }
     void setOriginalSketch(PolylineConstPtr originalSketch) { _originalSketch = originalSketch; _clearBefore(SCALE_DETECTION); }
 
+    PrimitiveSequenceConstPtr oversketchBase() const { return _oversketchBase; }
+    void setOversketchBase(PrimitiveSequenceConstPtr oversketchBase) { _oversketchBase = oversketchBase; _clearBefore(SCALE_DETECTION); }
+
     template<int AlgStage>
     smart_ptr<const AlgorithmOutput<AlgStage> > output() const
     {
@@ -57,6 +60,7 @@ private:
     void _runStage(AlgorithmStage stage);
     void _clearBefore(AlgorithmStage stage);
 
+    PrimitiveSequenceConstPtr _oversketchBase;
     PolylineConstPtr _originalSketch;
     Parameters _params;
 

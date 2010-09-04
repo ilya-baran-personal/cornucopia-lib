@@ -81,8 +81,8 @@ public:
     bool isValid() const; //calls isValidImpl internally
 
     //utility functions
-    CurvePrimitivePtr flipped() { CurvePrimitivePtr out = clone(); out->flip(); return out; }
-    CurvePrimitivePtr trimmed(double sFrom, double sTo) { CurvePrimitivePtr out = clone(); out->trim(sFrom, sTo); return out; }
+    CurvePrimitivePtr flipped() const { CurvePrimitivePtr out = clone(); out->flip(); return out; }
+    CurvePrimitivePtr trimmed(double sFrom, double sTo) const { CurvePrimitivePtr out = clone(); out->trim(sFrom, sTo); return out; }
 
 protected:
     //non-virtual inline functions -- use them in derived classes

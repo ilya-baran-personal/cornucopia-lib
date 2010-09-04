@@ -46,6 +46,12 @@ public:
     int paramToIdx(double param, double *outParam = NULL) const;
     bool isParamValid(double param) const { return isClosed() || (param >= 0 && param <= _lengths.back()); }
 
+    //Returns the curve trimmed between the input arguments, if possible, but at most
+    //the length of the original curve.  Arguments can be negative and to can be smaller
+    //than from for a closed curve.
+    PrimitiveSequencePtr trimmed(double from, double to) const;
+    PrimitiveSequencePtr flipped() const;
+
     const VectorC<CurvePrimitiveConstPtr> &primitives() const { return _primitives; }
 
 private:

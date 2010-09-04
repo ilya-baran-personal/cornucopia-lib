@@ -20,6 +20,7 @@
 
 #include "Algorithm.h"
 #include "Preprocessing.h"
+#include "Oversketcher.h"
 #include "CornerDetector.h"
 #include "Debugging.h"
 #include "Resampler.h"
@@ -60,6 +61,7 @@ void AlgorithmBase::_initialize()
     Algorithm<SCALE_DETECTION>::_initialize();
     Algorithm<PRELIM_RESAMPLING>::_initialize();
     Algorithm<CURVE_CLOSING>::_initialize();
+    Algorithm<OVERSKETCHING>::_initialize();
     Algorithm<CORNER_DETECTION>::_initialize();
     Algorithm<RESAMPLING>::_initialize();
     Algorithm<ERROR_COMPUTER>::_initialize();

@@ -20,7 +20,7 @@
 
 #include "CornerDetector.h"
 #include "Fitter.h"
-#include "Preprocessing.h"
+#include "Oversketcher.h"
 #include "Polyline.h"
 #include "PrimitiveFitter.h"
 
@@ -36,7 +36,7 @@ public:
 protected:
     void _run(const Fitter &fitter, AlgorithmOutput<CORNER_DETECTION> &out)
     {
-        const VectorC<Vector2d> &pts = fitter.output<CURVE_CLOSING>()->output->pts();
+        const VectorC<Vector2d> &pts = fitter.output<OVERSKETCHING>()->output->pts();
 
         out.corners.resize(pts.size(), false);
         out.corners.setCircular(pts.circular());
@@ -86,7 +86,7 @@ class DefaultCornerDetector : public BaseCornerDetector
 protected:
     virtual VectorC<double> cornerScores(const Fitter &fitter)
     {
-        PolylineConstPtr input = fitter.output<CURVE_CLOSING>()->output;
+        PolylineConstPtr input = fitter.output<OVERSKETCHING>()->output;
         const VectorC<Vector2d> &pts = input->pts();
         VectorC<double> out(pts.size(), pts.circular());
 
