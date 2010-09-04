@@ -67,7 +67,7 @@ private:
     bool _infinity;
     Ui::OneParamWidgetUi *_ui;
 
-    static const int _sliderMarks = 100;
+    static const int _sliderMarks;
 };
 
 class ParameterSetter : public QObject

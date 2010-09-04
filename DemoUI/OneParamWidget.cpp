@@ -25,6 +25,8 @@
 using namespace std;
 using namespace Eigen;
 
+const int OneParamWidget::_sliderMarks = 100;
+
 OneParamWidget::OneParamWidget(ParamWidget *paramWidget, QWidget *parent, const Cornu::Parameters::Parameter &param)
     : _paramWidget(paramWidget), QWidget(parent), _param(param), _changing(false), _value(param.defaultVal), _infinity(false)
 {
