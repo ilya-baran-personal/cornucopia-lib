@@ -26,7 +26,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(CurvePrimitive);
+CORNU_SMART_FORW_DECL(CurvePrimitive);
 
 class ErrorComputer : public smart_base
 {
@@ -41,7 +41,7 @@ public:
                                        bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
 };
 
-SMART_TYPEDEFS(ErrorComputer);
+CORNU_SMART_TYPEDEFS(ErrorComputer);
 
 template<>
 struct AlgorithmOutput<ERROR_COMPUTER> : public AlgorithmOutputBase

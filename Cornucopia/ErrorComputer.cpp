@@ -59,6 +59,9 @@ public:
     {
         double error = 0;
 
+        if(from < 0 || to >= (int)_pts.size())
+            return 0.;
+
         bool first = true;
         for(VectorC<Vector2d>::Circulator circ = _pts.circulator(from); ; ++circ)
         {
@@ -103,6 +106,13 @@ public:
         outError.resize(numOutputs); 
         if(outErrorDer)
             outErrorDer->resize(numOutputs, numParams);
+
+        if(from < 0 || to >= (int)_pts.size())
+        {
+            outError.setZero();
+            outErrorDer->setZero();
+            return;
+        }
          
         CurvePrimitive::ParamDer der, tanDer;
         bool first = true;
@@ -183,6 +193,9 @@ public:
                                bool firstToEndpoint, bool lastToEndpoint, bool reversed) const
     {
         double error = 0;
+
+        if(from < 0 || to >= (int)_pts.size())
+            return 0.;
 
         bool first = true;
         for(VectorC<Vector2d>::Circulator circ = _pts.circulator(from); ; ++circ)

@@ -60,15 +60,33 @@ public:
         }
 
         //adjust the curves to enforce continuity
-        Vector2d midPt = 0.5 * (_c[0]->startPos() + _c[1]->startPos());
+        Vector2d midPt;
+
+        double w0 = _c[0]->length() / (_c[0]->length() + _c[1]->length());
+        double w1 = _c[1]->length() / (_c[0]->length() + _c[1]->length());
+
+        if(p[0].isFixed())
+        {
+            w0 = 1;
+            w1 = 0;
+            midPt = _c[0]->startPos();
+        }
+        else if(p[1].isFixed())
+        {
+            w0 = 0;
+            w1 = 1;
+            midPt = _c[1]->startPos();
+        }
+        else
+        {
+            midPt = 0.5 * (_c[0]->startPos() + _c[1]->startPos());
+        }
+
         for(int i = 0; i < 2; ++i)
         {
             v[i][CurvePrimitive::X] = midPt[0];
             v[i][CurvePrimitive::Y] = midPt[1];
         }
-
-        double w0 = _c[0]->length() / (_c[0]->length() + _c[1]->length());
-        double w1 = _c[1]->length() / (_c[0]->length() + _c[1]->length());
 
         if(_continuity >= 1)
         {
@@ -254,7 +272,7 @@ public:
         CurvePrimitive::EndDer endDer;
         for(int c = 0; c < 2; ++c)
         {
-            int offs = err[c].size();
+            size_t offs = err[c].size();
             err[c].conservativeResize(offs + 2);
             errDer[c].conservativeResize(offs + 2, NoChange);
 
@@ -305,6 +323,14 @@ public:
     }
 
     int getParamIndex(int curveIdx, CurvePrimitive::Param parameter) const
+    {
+        int mappingIdx = _getMappingIndex(curveIdx, parameter);
+        if(mappingIdx >= 0)
+            return _mapping[mappingIdx].paramIdx;
+        return -1;
+    }
+
+    int getNormalParamIndex(int curveIdx, CurvePrimitive::Param parameter) const
     {
         int mappingIdx = _getMappingIndex(curveIdx, parameter);
         if(mappingIdx >= 0 && (_mapping[mappingIdx].type == MappingElement::Normal || _mapping[mappingIdx].type == MappingElement::EndCurvature))
@@ -389,15 +415,12 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     out.c1 = primitives[p1].curve->clone();
     out.c2 = primitives[p2].curve->clone();
 
-#if 0
-    Debugging::get()->drawCurve(out.c1, Vector3d(1, 0, 0), "Curves Orig");
-    Debugging::get()->drawCurve(out.c2, Vector3d(0, 0, 1), "Curves Orig");
-#endif
-
     //trim c1 and c2
     Vector2d trimPt = 0.5 * (out.c1->endPos() + out.c2->startPos());
-    out.c1->trim(0, out.c1->project(trimPt));
-    out.c2->trim(out.c2->project(trimPt), out.c2->length());
+    if(!primitives[p1].isFixed())
+        out.c1->trim(0, out.c1->project(trimPt));
+    if(!primitives[p2].isFixed())
+        out.c2->trim(out.c2->project(trimPt), out.c2->length());
 
     out.c1->flip();
 
@@ -414,36 +437,62 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
 
     vector<LSBoxConstraint> constraints;
 
-    //minimum length
+    //see if any curve is a start curve or end curve and therefore should not be allowed to move
     for(int curveIdx = 0; curveIdx < 2; ++curveIdx)
-        constraints.push_back(LSBoxConstraint(combined.getParamIndex(curveIdx, CurvePrimitive::LENGTH),
-                                              combined.getCurve(curveIdx)->length() * 0.5, 1));
-
-    bool inflectionAccounting = fitter.params().get(Parameters::INFLECTION_COST) > 0.;
-
-    if(inflectionAccounting)
     {
-        bool constantCurvature = primArray[0].startCurvSign == primArray[0].endCurvSign &&
-                                 primArray[0].startCurvSign == primArray[1].startCurvSign &&
-                                 primArray[0].startCurvSign == primArray[1].endCurvSign;
-
-        for(int curveIdx = 0; curveIdx < 2; ++curveIdx)
+        if(primArray[curveIdx].isFixed())
         {
-            int curStartSign = curveIdx == 0 ? -primArray[0].endCurvSign : primArray[1].startCurvSign;
-            int curEndSign = curveIdx == 0 ? -primArray[0].startCurvSign : primArray[1].endCurvSign;
-
-            if(primArray[curveIdx].curve->getType() == CurvePrimitive::CLOTHOID)
+            for(int i = 0; i < primArray[curveIdx].curve->numParams(); ++i)
             {
-                //cout << "Idx = " << curveIdx << " end constraint = " << curEndSign << endl;
-                constraints.push_back(LSBoxConstraint(combined.getParamIndex(curveIdx, CurvePrimitive::DCURVATURE), 0., curEndSign));
+                int paramIdx = combined.getParamIndex(curveIdx, CurvePrimitive::Param(i));
+                constraints.push_back(LSBoxConstraint(paramIdx, x[paramIdx], 0));
             }
-            int startCurv = combined.getParamIndex(curveIdx, CurvePrimitive::CURVATURE);
-            if(continuity == 2 && !constantCurvature)
-                startCurv = -1; //don't add a curvature constraint
-            if(startCurv >= 0)
+        }
+    }
+
+#if 0
+    static int cnt = 0;
+    bool origDrawn = !constraints.empty() && !(cnt++);
+    if(origDrawn)
+    {
+        Debugging::get()->drawCurve(primitives[p1].curve, Vector3d(1, 0, 0), "Curves Orig");
+        Debugging::get()->drawCurve(primitives[p2].curve, Vector3d(0, 0, 1), "Curves Orig");
+    }
+#endif
+
+    //minimum length
+    if(constraints.empty()) //if neither curve is fixed
+    {
+        for(int curveIdx = 0; curveIdx < 2; ++curveIdx)
+            constraints.push_back(LSBoxConstraint(combined.getParamIndex(curveIdx, CurvePrimitive::LENGTH),
+                                                  combined.getCurve(curveIdx)->length() * 0.5, 1));
+
+        bool inflectionAccounting = fitter.params().get(Parameters::INFLECTION_COST) > 0.;
+
+        if(inflectionAccounting)
+        {
+            bool constantCurvature = primArray[0].startCurvSign == primArray[0].endCurvSign &&
+                                     primArray[0].startCurvSign == primArray[1].startCurvSign &&
+                                     primArray[0].startCurvSign == primArray[1].endCurvSign;
+
+            for(int curveIdx = 0; curveIdx < 2; ++curveIdx)
             {
-                //cout << "Idx = " << curveIdx << " start constraint = " << curStartSign  << endl;
-                constraints.push_back(LSBoxConstraint(startCurv, 0., curStartSign));
+                int curStartSign = curveIdx == 0 ? -primArray[0].endCurvSign : primArray[1].startCurvSign;
+                int curEndSign = curveIdx == 0 ? -primArray[0].startCurvSign : primArray[1].endCurvSign;
+
+                if(primArray[curveIdx].curve->getType() == CurvePrimitive::CLOTHOID)
+                {
+                    //cout << "Idx = " << curveIdx << " end constraint = " << curEndSign << endl;
+                    constraints.push_back(LSBoxConstraint(combined.getParamIndex(curveIdx, CurvePrimitive::DCURVATURE), 0., curEndSign));
+                }
+                int startCurv = combined.getNormalParamIndex(curveIdx, CurvePrimitive::CURVATURE);
+                if(continuity == 2 && !constantCurvature)
+                    startCurv = -1; //don't add a curvature constraint
+                if(startCurv >= 0)
+                {
+                    //cout << "Idx = " << curveIdx << " start constraint = " << curStartSign  << endl;
+                    constraints.push_back(LSBoxConstraint(startCurv, 0., curStartSign));
+                }
             }
         }
     }
@@ -457,8 +506,11 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
     combined.setParams(x);
 
 #if 0
-    Debugging::get()->drawCurve(combined.getCurve(0), Vector3d(1, 0, 0), "Curves Final");
-    Debugging::get()->drawCurve(combined.getCurve(1), Vector3d(0, 0, 1), "Curves Final");
+    if(origDrawn)
+    {
+        Debugging::get()->drawCurve(combined.getCurve(0), Vector3d(1, 0, 0), "Curves Final");
+        Debugging::get()->drawCurve(combined.getCurve(1), Vector3d(0, 0, 1), "Curves Final");
+    }
 #endif
 
     out.err1 = combined.computeErrorForCost(0);

@@ -26,7 +26,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Polyline)
+CORNU_SMART_FORW_DECL(Polyline)
 
 template<>
 struct AlgorithmOutput<SCALE_DETECTION> : public AlgorithmOutputBase

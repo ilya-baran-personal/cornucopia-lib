@@ -112,6 +112,6 @@ private:
     QImage _image;
 };
 
-SMART_TYPEDEFS(CurveSceneItem);
+CORNU_SMART_TYPEDEFS(CurveSceneItem);
 
 #endif //SCENEITEM_H_INCLUDED

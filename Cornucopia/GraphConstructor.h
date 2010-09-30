@@ -46,8 +46,8 @@ struct Edge
     double validatedCost(const Fitter &fitter) const;
 };
 
-SMART_FORW_DECL(Dataset);
-SMART_FORW_DECL(CostEvaluator);
+CORNU_SMART_FORW_DECL(Dataset);
+CORNU_SMART_FORW_DECL(CostEvaluator);
 
 template<>
 struct AlgorithmOutput<GRAPH_CONSTRUCTION> : public AlgorithmOutputBase

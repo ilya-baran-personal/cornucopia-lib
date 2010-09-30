@@ -102,7 +102,7 @@ public:
 
         for(size_t i = 0; i < vertices.size(); ++i)
         {
-            _vData[i].numOutgoing = vertices[i].edges.size();
+            _vData[i].numOutgoing = (int)vertices[i].edges.size();
             _vData[i].primitiveType = primitives[i].curve->getType();
         }
         for(size_t i = 0; i < edges.size(); ++i)
@@ -147,7 +147,7 @@ public:
     {
         //start with the vertex that has an edge both cheap and with very connected vertices
         double minEdgeCost = Parameters::infinity;
-        int bestEdge = 0;
+        size_t bestEdge = 0;
 
         for(size_t i = 0; i < _eData.size(); ++i)
         {
@@ -209,7 +209,7 @@ private:
         //line-clothoid-line
         if(valid)
         {
-            int last = _fitter.output<CURVE_CLOSING>()->closed ? path.size() : (int)path.size() - 1;
+            int last = _fitter.output<CURVE_CLOSING>()->closed ? (int)path.size() : (int)path.size() - 1;
             for(int i = 0; i < last; ++i)
             {
                 int ni = (i + 1) % path.size();
@@ -445,7 +445,7 @@ protected:
             Debugging::get()->drawPrimitive(primitives[graph->edges[shortestPath[i]].startVtx].curve, "Path", i);
         }
         if(shortestPath.size() > 0 && graph->edges[shortestPath[0]].continuity != -1)
-            Debugging::get()->drawPrimitive(primitives[graph->edges[shortestPath.back()].endVtx].curve, "Path", shortestPath.size());
+            Debugging::get()->drawPrimitive(primitives[graph->edges[shortestPath.back()].endVtx].curve, "Path", (int)shortestPath.size());
 
         out.path = shortestPath;
     }

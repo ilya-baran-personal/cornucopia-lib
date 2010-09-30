@@ -65,7 +65,7 @@ public:
 private:
     std::vector<std::pair<IndependentValue, double> > _data;
 };
-SMART_TYPEDEFS(Dataset);
+CORNU_SMART_TYPEDEFS(Dataset);
 
 class DataModel : public smart_base
 {
@@ -80,7 +80,7 @@ private:
     void _computeCoefs(const std::vector<std::pair<IndependentValue, double> > &pts, int start, int cnt);
     std::vector<Eigen::VectorXd> _coefs; //maps the discrete id to the set of coefficients
 };
-SMART_TYPEDEFS(DataModel);
+CORNU_SMART_TYPEDEFS(DataModel);
 
 END_NAMESPACE_Cornu
 

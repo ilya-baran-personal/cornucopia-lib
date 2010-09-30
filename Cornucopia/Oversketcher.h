@@ -26,8 +26,8 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Polyline);
-SMART_FORW_DECL(PrimitiveSequence);
+CORNU_SMART_FORW_DECL(Polyline);
+CORNU_SMART_FORW_DECL(PrimitiveSequence);
 
 template<>
 struct AlgorithmOutput<OVERSKETCHING> : public AlgorithmOutputBase
@@ -35,6 +35,8 @@ struct AlgorithmOutput<OVERSKETCHING> : public AlgorithmOutputBase
     PolylineConstPtr output;
     CurvePrimitiveConstPtr startCurve;
     CurvePrimitiveConstPtr endCurve;
+    int startContinuity;
+    int endContinuity;
     PrimitiveSequenceConstPtr toAppend;
     PrimitiveSequenceConstPtr toPrepend;
     bool finallyClose;

@@ -26,7 +26,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(CurvePrimitive);
+CORNU_SMART_FORW_DECL(CurvePrimitive);
 
 /*
     A CurvePrimitive is a line, arc, or a clothoid, defined by 4-6 parameters.

@@ -29,6 +29,7 @@
 #include "Solver.h"
 #include "ErrorComputer.h"
 #include "Fitter.h"
+#include "Oversketcher.h"
 
 #include <iterator>
 #include <iostream> //TODO: tmp
@@ -51,9 +52,9 @@ public:
 
     void solveForDelta(double damping, Eigen::VectorXd &out, std::set<LSBoxConstraint> &constraints)
     {
-        int vars = (int)_errDer.cols();
+        size_t vars = _errDer.cols();
 
-        int size = vars + (int)_con.size() + constraints.size();
+        size_t size = vars + _con.size() + constraints.size();
         MatrixXd lhs = MatrixXd::Zero(size, size);
         VectorXd rhs = VectorXd::Zero(size);
 
@@ -138,16 +139,16 @@ public:
     {
         _computeIndices();
 
-        int vars = _blockIndices.back();
-        int cons = (int)_con.size() + constraints.size();
+        size_t vars = _blockIndices.back();
+        size_t cons = _con.size() + constraints.size();
 
-        int size = vars + cons;
+        size_t size = vars + cons;
         VectorXd rhs = VectorXd::Zero(size);
         rhs.segment(0, vars) = _err;
         rhs.segment(vars, _con.size()) = -_con;
 
         BlockCholVectorType cholBlocks(_errDerBlocks.size());
-        for(int i = 0; i < (int)cholBlocks.size(); ++i)
+        for(size_t i = 0; i < cholBlocks.size(); ++i)
             cholBlocks[i] = BlockCholType(_errDerBlocks[i] + damping * MatrixXd::Identity(_blockSizes[i], _blockSizes[i]));
 
         MatrixXd C = MatrixXd::Zero(cons, vars);
@@ -214,7 +215,7 @@ private:
 
     MatrixXd _blocksToMatrix(const BlockVectorType &blocks)
     {
-        int sz = _blockIndices.back();
+        size_t sz = _blockIndices.back();
         MatrixXd out = MatrixXd::Zero(sz, sz);
 
         for(int i = 0; i < (int)blocks.size(); ++i)
@@ -237,7 +238,7 @@ private:
                 chols[i].matrixU().solve(rhs.block(_blockIndices[i], 0, _blockSizes[i], rhs.cols()));
     }
 
-    vector<int> _blockIndices, _blockSizes;
+    vector<size_t> _blockIndices, _blockSizes;
     BlockVectorType _errDerBlocks;
 
     Eigen::VectorXd _err;
@@ -265,8 +266,8 @@ public:
         if(!_closed)
             _primIdcs.push_back(graph->edges[path.back()].endVtx);
         
-        _curves = VectorC<CurvePrimitivePtr>(_primIdcs.size(), _closed ? CIRCULAR : NOT_CIRCULAR);
-        _curveRanges = VectorC<pair<int, int> >(_primIdcs.size(), _curves.circular());
+        _curves = VectorC<CurvePrimitivePtr>((int)_primIdcs.size(), _closed ? CIRCULAR : NOT_CIRCULAR);
+        _curveRanges = VectorC<pair<int, int> >((int)_primIdcs.size(), _curves.circular());
         for(int i = 0; i < (int)_primIdcs.size(); ++i)
         {
             _curveRanges[i] = make_pair(_primitives[_primIdcs[i]].startIdx, _primitives[_primIdcs[i]].endIdx);
@@ -282,8 +283,10 @@ public:
 
             //trim
             Vector2d trimPt = 0.5 * (_curves[i]->endPos() + _curves[i + 1]->startPos());
-            _curves[i]->trim(0, _curves[i]->project(trimPt));
-            _curves[i + 1]->trim(_curves[i + 1]->project(trimPt), _curves[i + 1]->length());
+            if(!_primitives[_primIdcs[i]].isFixed())
+                _curves[i]->trim(0, _curves[i]->project(trimPt));
+            if(_curves.circular() || !_primitives[_primIdcs[i + 1]].isFixed())
+                _curves[i + 1]->trim(_curves[i + 1]->project(trimPt), _curves[i + 1]->length());
 
             //the ranges over which error is computed should not overlap
             if(_continuities[i] == 1)
@@ -299,15 +302,25 @@ public:
     vector<LSBoxConstraint> getConstraints() const
     {
         vector<LSBoxConstraint> out;
+        VectorXd curParams = params();
 
         int curVar = 0;
         for(int i = 0; i < _curves.size(); ++i)
         {
+            int primIdx = _primIdcs[i];
+            if(_primitives[primIdx].isFixed())
+            {
+                int n = _curves[i]->numParams();
+                for(int j = 0; j < n; ++j, ++curVar)
+                    out.push_back(LSBoxConstraint(curVar, curParams[curVar], 0));
+
+                continue;
+            }
+
             //length must be at least half initial
             out.push_back(LSBoxConstraint(curVar + CurvePrimitive::LENGTH, _curves[i]->length() * 0.5, 1));
 
             //inflections
-            int primIdx = _primIdcs[i];
             //Debugging::get()->printf("idx = %d Type = %d, startSign = %d, endSign = %d", i, _curves[i]->getType(), _primitives[primIdx].startCurvSign, _primitives[primIdx].endCurvSign);
             if(_inflectionAccounting && _curves[i]->getType() >= CurvePrimitive::ARC)
             {
@@ -397,13 +410,13 @@ public:
         ++_iter;
     }
 
-    Eigen::VectorXd params()
+    VectorXd params() const
     {
         int totParams = 0;
         for(int i = 0; i < (int)_curves.size(); ++i)
             totParams += _curves[i]->numParams();
 
-        Eigen::VectorXd out(totParams);
+        VectorXd out(totParams);
 
         int curIdx = 0;
         for(int i = 0; i < (int)_curves.size(); ++i)
@@ -453,7 +466,7 @@ private:
         vector<VectorXd> errVecs(_curves.size());
         vector<MatrixXd> errVecDers(_curves.size());
 
-        int numErr = 0, numVar = 0;
+        size_t numErr = 0, numVar = 0;
         for(int i = 0; i < (int)_curves.size(); ++i)
         {
             int csz = (int)_continuities.size();
@@ -481,11 +494,11 @@ private:
         outErrDer = MatrixXd::Zero(numErr, numVar);
 #endif
 
-        int curErr = 0, curVar = 0;
+        size_t curErr = 0, curVar = 0;
         for(int i = 0; i < (int)_curves.size(); ++i)
         {
-            int nErr = errVecs[i].size();
-            int nVar = errVecDers[i].cols();
+            size_t nErr = errVecs[i].size();
+            size_t nVar = errVecDers[i].cols();
 #if SPARSE
             outErrDerBlocks[i] = errVecDers[i].transpose() * errVecDers[i];
             outErr.segment(curVar, nVar) = -errVecDers[i].transpose() * errVecs[i];
@@ -508,7 +521,7 @@ private:
 
         CurvePrimitive::EndDer endDer;
 
-        int numCon = 0, numVar = 0;
+        size_t numCon = 0, numVar = 0;
         for(int i = 0; i < (int)_continuities.size(); ++i)
         {
             conVecs[i].resize(2 + _continuities[i]);
@@ -532,11 +545,11 @@ private:
         outCon = VectorXd::Zero(numCon);
         outConDer = MatrixXd::Zero(numCon, numVar);
 
-        int curCon = 0, curVar = 0;
+        size_t curCon = 0, curVar = 0;
         for(int i = 0; i < (int)_continuities.size(); ++i)
         {
-            int nCon = conVecs[i].size();
-            int nVar = conVecDers[i].cols();
+            size_t nCon = conVecs[i].size();
+            size_t nVar = conVecDers[i].cols();
             outCon.segment(curCon, nCon) = conVecs[i];
             outConDer.block(curCon, curVar, nCon, nVar) = conVecDers[i];
 
@@ -579,29 +592,44 @@ protected:
         if(path.empty())
             return; //no path
 
+        VectorC<CurvePrimitiveConstPtr> outV;
+
         //if a single primitive
         if(graph->edges[path[0]].continuity == -1)
         {
-            VectorC<CurvePrimitiveConstPtr> outV(1, NOT_CIRCULAR);
+            outV = VectorC<CurvePrimitiveConstPtr>(1, NOT_CIRCULAR);
             outV[0] = primitives[graph->edges[path[0]].startVtx].curve;
-            out.output = new PrimitiveSequence(outV);
+        }
+        else //solve the nonlinear problem
+        {
+            MulticurveProblem problem(fitter);
+            vector<LSBoxConstraint> constraints = problem.getConstraints();
+            LSSolver solver(&problem, constraints);
+            solver.setDefaultDamping(fitter.params().get(Parameters::COMBINE_DAMPING));
+            solver.setMaxIter(50);
+            solver.setIncreaseDampingAfter(5);
+            solver.setDampingIncreaseFactor(1.5);
 
-            return; //no combining necessary
+            VectorXd result = solver.solve(problem.params());
+            problem.setParams(result);
+            Debugging::get()->printf("Final objective = %lf", sqrt(problem.objective()));
+
+            outV = problem.curves();
         }
 
-        MulticurveProblem problem(fitter);
-        vector<LSBoxConstraint> constraints = problem.getConstraints();
-        LSSolver solver(&problem, constraints);
-        solver.setDefaultDamping(fitter.params().get(Parameters::COMBINE_DAMPING));
-        solver.setMaxIter(20);
-        solver.setIncreaseDampingAfter(5);
-        solver.setDampingIncreaseFactor(1.5);
+        //combine with what needs to be done w.r.t. oversketching
+        smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
+        VectorC<CurvePrimitiveConstPtr> outFinal(0, osOutput->finallyClose ? CIRCULAR : NOT_CIRCULAR);
 
-        VectorXd result = solver.solve(problem.params());
-        problem.setParams(result);
-        Debugging::get()->printf("Final objective = %lf", sqrt(problem.objective()));
+        if(osOutput->toPrepend)
+            outFinal.insert(outFinal.end(), osOutput->toPrepend->primitives().begin(), osOutput->toPrepend->primitives().end() - 1);
+        outFinal.insert(outFinal.end(), outV.begin(), outV.end());
+        //TODO: this may fail when toAppend has only 1 item
+        if(osOutput->toAppend)
+            outFinal.insert(outFinal.end(), osOutput->toAppend->primitives().begin() + 1,
+            osOutput->toAppend->primitives().end() - (osOutput->finallyClose ? 1 : 0));
 
-        out.output = new PrimitiveSequence(problem.curves());
+        out.output = new PrimitiveSequence(outFinal);
     }
 };
 

@@ -106,7 +106,7 @@ set<LSBoxConstraint> LSSolver::_clamp(VectorXd &x)
     for(int i = 0; i < (int)_constraints.size(); ++i)
     {
         const LSBoxConstraint &c = _constraints[i];
-        if((x[c.index] - c.value) * c.sign < 0.)
+        if(c.sign == 0 || (x[c.index] - c.value) * c.sign < 0.)
         {
             x[c.index] = c.value;
             out.insert(c);
@@ -244,7 +244,7 @@ void LSDenseEvalData::solveForDelta(double damping, VectorXd &out, set<LSBoxCons
         {
             set<LSBoxConstraint>::iterator next = it;
             ++next;
-            if(gradient[it->index] * it->sign < 0)
+            if(gradient[it->index] * it->sign < 0) //if sign is zero, constraint will not get erased
             {
                 //cout << "Unsetting constraint on variable at index " << it->index << endl;
                 constraints.erase(it);

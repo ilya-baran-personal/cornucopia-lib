@@ -84,7 +84,7 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
 
     clearSelection();
     _sketches.push_back(sketch);
-    _processSketch(_sketches.size() - 1);
+    _processSketch((int)_sketches.size() - 1);
     _selectionChanged();
 }
 

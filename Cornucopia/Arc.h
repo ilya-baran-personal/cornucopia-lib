@@ -26,7 +26,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Arc);
+CORNU_SMART_FORW_DECL(Arc);
 
 class Arc : public CurvePrimitive
 {

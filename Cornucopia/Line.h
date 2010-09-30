@@ -26,7 +26,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Line);
+CORNU_SMART_FORW_DECL(Line);
 
 class Line : public CurvePrimitive
 {

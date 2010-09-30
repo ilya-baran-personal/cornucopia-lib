@@ -43,7 +43,8 @@ protected:
     void _run(const Fitter &fitter, AlgorithmOutput<RESAMPLING> &out)
     {
         VectorC<bool> corners = fitter.output<CORNER_DETECTION>()->corners;
-        PolylineConstPtr poly = fitter.output<OVERSKETCHING>()->output;
+        smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
+        PolylineConstPtr poly = osOutput->output;
         const VectorC<Vector2d> &pts = poly->pts();
 
         if(!poly->isClosed()) //if curve is not closed, start and end points are effectively corners
@@ -68,6 +69,9 @@ protected:
         {
             if(!corners[idx])
                 continue;
+
+            bool denseNearStart = (idx == 0) && osOutput->startCurve;
+
             VectorC<Vector2d> segment(0, NOT_CIRCULAR);
             for(VectorC<Vector2d>::Circulator circ = pts.circulator(idx); !circ.done(); ++circ, ++idx)
             {
@@ -75,9 +79,12 @@ protected:
                 if(segment.size() > 1 && corners[circ.index()])
                     break;
             }
+
+            bool denseNearEnd = (idx + 1 == pts.size()) && osOutput->endCurve;
+
             --idx; //we should start the next segment from the last point of the current one
 
-            PolylineConstPtr resampled = _resample(fitter, new Polyline(segment));
+            PolylineConstPtr resampled = _resample(fitter, new Polyline(segment), denseNearStart, denseNearEnd);
             int startIdx = outputPts.empty() ? 0 : 1;
             copy(resampled->pts().begin() + startIdx, resampled->pts().end(), back_inserter(outputPts));
             out.corners.insert(out.corners.end(), resampled->pts().end() - (resampled->pts().begin() + startIdx), false);
@@ -94,7 +101,7 @@ protected:
         displayOutput(out);
     }
 
-    virtual PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly) = 0;
+    virtual PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false) = 0;
 
 private:
     void displayOutput(AlgorithmOutput<RESAMPLING> &out)
@@ -340,7 +347,7 @@ public:
     string name() const { return "Default"; }
 
 protected:
-    PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly)
+    PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false)
     {
         const VectorC<Vector2d> pts = poly->pts();
         SampleSpacingFunction spacing(poly);
@@ -364,6 +371,8 @@ protected:
 
             double curvature = fabs(arcFitter.getCurve()->startCurvature());
             spacing.values()[i] = TWOPI / max(pointsPerCircle * curvature, TWOPI / maxInterval);
+            if((i == 0 && denseNearStart) || ((i + 1) == pts.size() && denseNearEnd))
+                spacing.values()[i] = 1;
         }
 
         //Make sure the sample spacing doesn't vary more than allowed
@@ -453,7 +462,7 @@ public:
     string name() const { return "Length"; }
 
 protected:
-    PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly)
+    PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false)
     {
         int numPts = 2 + int(poly->length() / fitter.scaledParameter(Parameters::MAX_SAMPLING_INTERVAL));
         VectorC<Vector2d> out(numPts, poly->pts().circular());

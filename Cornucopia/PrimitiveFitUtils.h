@@ -41,7 +41,7 @@ public:
     virtual void addPoint(const Eigen::Vector2d &pt) { addPointW(pt, 1.); }
     virtual CurvePrimitivePtr getPrimitive() const = 0;
 };
-SMART_TYPEDEFS(FitterBase);
+CORNU_SMART_TYPEDEFS(FitterBase);
 
 class LineFitter : public FitterBase
 {

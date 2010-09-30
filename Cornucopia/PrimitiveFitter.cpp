@@ -25,6 +25,7 @@
 #include "PrimitiveFitUtils.h"
 #include "ErrorComputer.h"
 #include "Solver.h"
+#include "Oversketcher.h"
 
 using namespace std;
 using namespace Eigen;
@@ -102,12 +103,39 @@ protected:
         const VectorC<bool> &corners = fitter.output<RESAMPLING>()->corners;
         PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
         ErrorComputerConstPtr errorComputer = fitter.output<ERROR_COMPUTER>()->errorComputer;
+        smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
 
         const VectorC<Vector2d> &pts = poly->pts();
 
         const double errorThreshold = fitter.scaledParameter(Parameters::ERROR_THRESHOLD);
         std::string typeNames[3] = { "Lines", "Arcs", "Clothoids" };
         bool inflectionAccounting = fitter.params().get(Parameters::INFLECTION_COST) > 0.;
+
+        if(osOutput->startCurve)
+        {
+            FitPrimitive fit;
+            fit.curve = osOutput->startCurve->clone();
+            fit.startIdx = -1;
+            fit.endIdx = 0;
+            fit.numPts = 0;
+            fit.error = 0.;
+            fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
+            fit.endCurvSign = (fit.curve->endCurvature() >= 0) ? 1 : -1;
+            out.primitives.push_back(fit);
+        }
+
+        if(osOutput->endCurve)
+        {
+            FitPrimitive fit;
+            fit.curve = osOutput->endCurve->clone();
+            fit.startIdx = (int)pts.size() - 1;
+            fit.endIdx = fit.startIdx + 1;
+            fit.numPts = 0;
+            fit.error = 0.;
+            fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
+            fit.endCurvSign = (fit.curve->endCurvature() >= 0) ? 1 : -1;
+            out.primitives.push_back(fit);
+        }
 
         for(int i = 0; i < pts.size(); ++i) //iterate over start points
         {

@@ -27,8 +27,8 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Polyline);
-SMART_FORW_DECL(PrimitiveSequence);
+CORNU_SMART_FORW_DECL(Polyline);
+CORNU_SMART_FORW_DECL(PrimitiveSequence);
 
 class Fitter
 {

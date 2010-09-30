@@ -27,6 +27,7 @@
 #include "Preprocessing.h"
 #include "TwoCurveCombine.h"
 #include "Regression.h"
+#include "Oversketcher.h"
 
 using namespace std;
 using namespace Eigen;
@@ -65,6 +66,13 @@ public:
     {
         const VectorC<Vector2d> &pts = fitter.output<RESAMPLING>()->output->pts();
         CurvePrimitiveConstPtr curve = primitive.curve;
+
+        if(primitive.isFixed())
+        {
+            _startData[0] = PrimitiveCacheData::make(curve, 0.);
+            _endData[0] = PrimitiveCacheData::make(curve, curve->length());
+            return;
+        }
 
         for(int i = 0; i < 3; ++i)
         {
@@ -111,6 +119,9 @@ public:
 
     double vertexCost(int p) const
     {
+        if(_primitives[p].isFixed())
+            return 0.;
+
         //complexity
         double out = _curveCost[_primitives[p].curve->getType()];
 
@@ -146,9 +157,7 @@ public:
         double out = 0.;
 
         //continuity
-        if(_corners[_primitives[p1].endIdx]) //no primitive spans a corner, so the start index is also there
-            out += ((continuity == 0) ? 0 : Parameters::infinity); //corners only have zero continuity edges
-        else
+        if(!_corners[_primitives[p1].endIdx]) //no primitive spans a corner, so the start index is also there
             out += _continuityCost[continuity];
 
         //inflection
@@ -208,7 +217,10 @@ private:
     {
         //outExtra1 = outExtra2 = 0.;  return;
 #if 1   //Dumb method
-        Vector3d diffs = _getDiffs(p1, p2, continuity);
+        int offset = continuity;
+        if(continuity > 0 && _primitives[p1].endIdx == _primitives[p2].startIdx)
+            offset = 0; //one of the curve is a start or an end curve
+        Vector3d diffs = _getDiffs(p1, p2, offset);
         for(int i = continuity + 1; i < 3; ++i)
             diffs[i] = 0.; //don't count more than necessary
 
@@ -296,6 +308,7 @@ protected:
     {
         const vector<FitPrimitive> &primitives = fitter.output<PRIMITIVE_FITTING>()->primitives;
         PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
+        smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
         const VectorC<Vector2d> &pts = poly->pts();
         bool closed = poly->isClosed();
 
@@ -309,8 +322,15 @@ protected:
             out.vertices[i].source = out.vertices[i].target = false;
             if(!closed)
             {
-                out.vertices[i].source = (primitives[i].startIdx == 0);
-                out.vertices[i].target = (primitives[i].endIdx + 1 == pts.size());
+                if(osOutput->startCurve)
+                    out.vertices[i].source = (primitives[i].startIdx == -1);
+                else
+                    out.vertices[i].source = (primitives[i].startIdx == 0);
+
+                if(osOutput->endCurve)
+                    out.vertices[i].target = (primitives[i].endIdx == pts.size());
+                else
+                    out.vertices[i].target = (primitives[i].endIdx + 1 == pts.size());
             }
 
             out.vertices[i].cost = out.costEvaluator->vertexCost(i);
@@ -329,10 +349,45 @@ protected:
         //create edges
         VectorC<vector<int> > curvesStartingAt(pts.size(), pts.circular());
         for(int i = 0; i < (int)primitives.size(); ++i)
-            curvesStartingAt[primitives[i].startIdx].push_back(i);
+        {
+            if(primitives[i].numPts)
+                curvesStartingAt[primitives[i].startIdx].push_back(i);
+        }
 
+        //create edges from start curve, if necessary
+        if(osOutput->startCurve)
+        {
+            int startIdx = 0;
+            for(int i = 0; i < (int)curvesStartingAt[0].size(); ++i)
+            {
+                int prim = curvesStartingAt[0][i];
+
+                int continuity = osOutput->startContinuity;
+
+                if(primitives[prim].curve->getType() == CurvePrimitive::LINE && continuity == 2)
+                    continue;
+
+                //create edge
+                Edge e;
+                e.continuity = continuity;
+                e.startVtx = startIdx;
+                e.endVtx = prim;
+                e.cost = out.costEvaluator->edgeCost(startIdx, prim, continuity);
+                e.cost += out.vertices[startIdx].cost;
+                e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
+                if(e.cost >= Parameters::infinity)
+                    continue;
+                out.vertices[startIdx].edges.push_back((int)out.edges.size());
+                out.edges.push_back(e);
+            }
+        }
+
+        //create normal edges
         for(int i = 0; i < (int)primitives.size(); ++i)
         {
+            if(!primitives[i].numPts)
+                continue;
+
             int endIdx = primitives[i].endIdx;
             int curve1len = primitives[i].numPts - 1;
 
@@ -372,6 +427,36 @@ protected:
                 }
             }
         }
+
+        //create edges to end curve, if necessary
+        if(osOutput->endCurve)
+        {
+            int endIdx = osOutput->startCurve ? 1 : 0; //start curve is first, end is second
+            for(int prim = 0; prim < (int)primitives.size(); ++prim)
+            {
+                if(primitives[prim].endIdx + 1 != (int)pts.size())
+                    continue;
+
+                int continuity = osOutput->endContinuity;
+
+                if(primitives[prim].curve->getType() == CurvePrimitive::LINE && continuity == 2)
+                    continue;
+
+                //create edge
+                Edge e;
+                e.continuity = continuity;
+                e.startVtx = prim;
+                e.endVtx = endIdx;
+                e.cost = out.costEvaluator->edgeCost(prim, endIdx, continuity);
+                e.cost += out.vertices[endIdx].cost;
+                e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
+                if(e.cost >= Parameters::infinity)
+                    continue;
+                out.vertices[prim].edges.push_back((int)out.edges.size());
+                out.edges.push_back(e);
+            }
+        }
+
         Debugging::get()->printf("Graph vertices = %d edges = %d", out.vertices.size(), out.edges.size());
     }
 };

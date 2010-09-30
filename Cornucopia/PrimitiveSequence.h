@@ -27,7 +27,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(PrimitiveSequence);
+CORNU_SMART_FORW_DECL(PrimitiveSequence);
 
 class PrimitiveSequence : public Curve
 {

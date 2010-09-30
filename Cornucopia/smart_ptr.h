@@ -55,13 +55,13 @@ protected:
     int getRefCount() const { return _refCount; }
 };
 
-#define SMART_TYPEDEFS(classname) \
+#define CORNU_SMART_TYPEDEFS(classname) \
     typedef Cornu::smart_ptr<classname> classname##Ptr; \
     typedef Cornu::smart_ptr<const classname> classname##ConstPtr;
 
-#define SMART_FORW_DECL(classname) \
+#define CORNU_SMART_FORW_DECL(classname) \
     class classname; \
-    SMART_TYPEDEFS(classname)
+    CORNU_SMART_TYPEDEFS(classname)
 
 template<typename T>
 class smart_ptr

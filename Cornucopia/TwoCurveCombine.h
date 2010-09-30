@@ -27,7 +27,7 @@
 NAMESPACE_Cornu
 
 class Fitter;
-SMART_FORW_DECL(CurvePrimitive);
+CORNU_SMART_FORW_DECL(CurvePrimitive);
 
 struct Combination
 {

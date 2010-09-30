@@ -27,7 +27,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Polyline);
+CORNU_SMART_FORW_DECL(Polyline);
 
 //A polyline must have at least two points
 class Polyline : public Curve

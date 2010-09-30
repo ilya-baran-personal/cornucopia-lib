@@ -30,7 +30,7 @@
 #include <QRectF>
 #include <QSet>
 
-SMART_FORW_DECL(SceneItem);
+CORNU_SMART_FORW_DECL(SceneItem);
 class QPainter;
 class QTransform;
 

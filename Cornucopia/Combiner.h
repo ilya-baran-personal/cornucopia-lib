@@ -28,7 +28,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(PrimitiveSequence);
+CORNU_SMART_FORW_DECL(PrimitiveSequence);
 
 template<>
 struct AlgorithmOutput<COMBINING> : public AlgorithmOutputBase

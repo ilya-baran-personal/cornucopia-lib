@@ -29,12 +29,12 @@
 
 class QDataStream;
 class QTextStream;
-SMART_FORW_DECL(CurveSceneItem);
+CORNU_SMART_FORW_DECL(CurveSceneItem);
 
 namespace Cornu
 {
-    SMART_FORW_DECL(Polyline);
-    SMART_FORW_DECL(PrimitiveSequence);
+    CORNU_SMART_FORW_DECL(Polyline);
+    CORNU_SMART_FORW_DECL(PrimitiveSequence);
 }
 class MainView;
 

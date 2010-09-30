@@ -51,7 +51,7 @@ struct AlgorithmOutputBase : public smart_base
 {
 };
 
-SMART_TYPEDEFS(AlgorithmOutputBase);
+CORNU_SMART_TYPEDEFS(AlgorithmOutputBase);
 
 template<int AlgStage>
 struct AlgorithmOutput : public AlgorithmOutputBase

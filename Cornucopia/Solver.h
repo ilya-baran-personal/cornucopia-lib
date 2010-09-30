@@ -35,7 +35,7 @@ struct LSBoxConstraint
 
     int index; //of variable
     double value;
-    int sign; //variable greater than value if sign is positive, less than value if negative
+    int sign; //variable greater than value if sign is positive, less than value if negative, equal if zero
 };
 
 class LSEvalData

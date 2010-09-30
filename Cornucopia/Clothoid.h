@@ -26,7 +26,7 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Clothoid);
+CORNU_SMART_FORW_DECL(Clothoid);
 
 class Clothoid : public CurvePrimitive
 {

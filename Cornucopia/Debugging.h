@@ -29,8 +29,8 @@
 
 NAMESPACE_Cornu
 
-SMART_FORW_DECL(Curve);
-SMART_FORW_DECL(CurvePrimitive);
+CORNU_SMART_FORW_DECL(Curve);
+CORNU_SMART_FORW_DECL(CurvePrimitive);
 
 //This class does nothing by default
 class Debugging

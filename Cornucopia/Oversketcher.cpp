@@ -39,6 +39,9 @@ protected:
         PolylineConstPtr curve = fitter.output<CURVE_CLOSING>()->output;
         PrimitiveSequenceConstPtr base = fitter.oversketchBase();
 
+        out.finallyClose = curve->isClosed();
+        out.startContinuity = out.endContinuity = 2;
+
         if(!base)
         {
             out.output = curve;
@@ -46,6 +49,7 @@ protected:
         }
 
         const double threshold = fitter.params().get(Parameters::OVERSKETCH_THRESHOLD);
+        const double peelback = 2. * threshold;
         double startParam = base->project(curve->startPos());
         double endParam = base->project(curve->endPos());
         Vector2d startOnBase = base->pos(startParam);
@@ -66,8 +70,8 @@ protected:
         }
         else
         {
-            startClose = startDist < threshold && startDist < startParam;
-            endClose = endDist < threshold && endDist < base->length() - endParam;
+            startClose = startDist < threshold && startDist + peelback < startParam;
+            endClose = endDist < threshold && endDist + peelback < base->length() - endParam;
 
             if(!(startClose || endClose)) //no point oversketching if neither end is close
             {
@@ -91,7 +95,7 @@ protected:
         if(startClose)
         {
             startSketchTransition = min(startDist, curve->length() * underHalf);
-            startBaseTransition = startParam - min(startDist, remainingLength * underHalf);
+            startBaseTransition = startParam - min(startDist + peelback, remainingLength * underHalf);
         }
         else
             startSketchTransition = 0;
@@ -99,7 +103,7 @@ protected:
         if(endClose)
         {
             endSketchTransition = max(curve->length() - endDist, curve->length() * underHalf);
-            endBaseTransition = endParam + min(endDist, remainingLength * underHalf);
+            endBaseTransition = endParam + min(endDist + peelback, remainingLength * underHalf);
         }
         else
             endSketchTransition = curve->length();
@@ -109,13 +113,21 @@ protected:
         VectorC<Vector2d> pre, post;
         if(startClose)
         {
-            pre = buildTransition(base, curve, startBaseTransition, startParam, 0, startSketchTransition, (int)threshold);
+            VectorC<Vector2d> prepre = buildTransition(base, base,
+                                                       startBaseTransition, (startBaseTransition + startParam) * 0.5,
+                                                       startBaseTransition, (startBaseTransition + startParam) * 0.5, (int)threshold);
+            pre = buildTransition(base, curve, (startBaseTransition + startParam) * 0.5, startParam, 0, startSketchTransition, (int)threshold);
+            pre.insert(pre.begin(), prepre.begin(), prepre.end() - 1);
             pre.pop_back();
         }
         if(endClose)
         {
             cur.pop_back();
-            post = buildTransition(curve, base, endSketchTransition, curve->length(), endParam, endBaseTransition, (int)threshold);
+            post = buildTransition(curve, base, endSketchTransition, curve->length(), endParam, (endBaseTransition + endParam) * 0.5, (int)threshold);
+            VectorC<Vector2d> postpost = buildTransition(base, base,
+                                                         (endBaseTransition + endParam) * 0.5, endBaseTransition,
+                                                         (endBaseTransition + endParam) * 0.5, endBaseTransition, (int)threshold);
+            post.insert(post.end(), postpost.begin() + 1, postpost.end());
         }
         pre.insert(pre.end(), cur.begin(), cur.end());
         pre.insert(pre.end(), post.begin(), post.end());
