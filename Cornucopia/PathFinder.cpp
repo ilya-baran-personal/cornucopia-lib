@@ -34,7 +34,7 @@ NAMESPACE_Cornu
 struct PathFindingVertexData
 {
     PathFindingVertexData()
-        : distance(0.), finished(false), prevEdge(-1), source(false), target(false), numIncoming(0), numOutgoing(0)
+        : distance(0.), finished(false), prevEdge(-1), source(false), target(false), fixed(false), numIncoming(0), numOutgoing(0)
     {
     }
 
@@ -43,6 +43,7 @@ struct PathFindingVertexData
     int prevEdge;
     bool source;
     bool target;
+    bool fixed;
     int numIncoming, numOutgoing;
     CurvePrimitive::PrimitiveType primitiveType;
 };
@@ -103,6 +104,7 @@ public:
         for(size_t i = 0; i < vertices.size(); ++i)
         {
             _vData[i].numOutgoing = (int)vertices[i].edges.size();
+            _vData[i].fixed = primitives[i].isFixed();
             _vData[i].primitiveType = primitives[i].curve->getType();
         }
         for(size_t i = 0; i < edges.size(); ++i)
@@ -215,9 +217,9 @@ private:
                 int ni = (i + 1) % path.size();
                 if(_edges[path[i]].continuity != 2 || _edges[path[ni]].continuity != 2)
                     continue;
-                if(_vData[_edges[path[i]].startVtx].primitiveType != CurvePrimitive::LINE)
+                if(!_vData[_edges[path[i]].startVtx].fixed && _vData[_edges[path[i]].startVtx].primitiveType != CurvePrimitive::LINE)
                     continue;
-                if(_vData[_edges[path[ni]].endVtx].primitiveType != CurvePrimitive::LINE)
+                if(!_vData[_edges[path[ni]].endVtx].fixed && _vData[_edges[path[ni]].endVtx].primitiveType != CurvePrimitive::LINE)
                     continue;
                 //the middle one has to be a clothoid
                 //Debugging::get()->printf("Line-clothoid-line!");

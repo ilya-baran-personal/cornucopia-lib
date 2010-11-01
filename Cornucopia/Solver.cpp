@@ -124,6 +124,10 @@ int LSSolver::_project(const VectorXd &from, VectorXd &delta, const set<LSBoxCon
     for(int i = 0; i < (int)_constraints.size(); ++i)
     {
         const LSBoxConstraint &c = _constraints[i];
+
+        if(c.sign == 0)
+            delta[c.index] = 0; //just in case
+
         if(activeSet.count(c))
             continue; //already constrained
         

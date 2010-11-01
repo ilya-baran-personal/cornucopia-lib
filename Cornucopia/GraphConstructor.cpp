@@ -371,6 +371,8 @@ protected:
 
                     if(primitives[prim].curve->getType() < continuity)
                         continue;
+                    if(primitives[prim].isFixed())
+                        continue;
 
                     //create edge
                     Edge e;
@@ -450,6 +452,8 @@ protected:
                     int continuity = corner ? 0 : osOutput->endContinuity;
 
                     if(primitives[prim].curve->getType() < continuity)
+                        continue;
+                    if(primitives[prim].isFixed())
                         continue;
 
                     //create edge
