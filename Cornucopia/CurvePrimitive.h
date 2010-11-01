@@ -60,7 +60,7 @@ public:
     //interface functions
     virtual PrimitiveType getType() const = 0;
 
-    virtual void trim(double sFrom, double sTo) = 0;
+    virtual void trim(double sFrom, double sTo) = 0; //this should work even for sFrom < 0 and sTo > length()
     virtual void flip() = 0;
     virtual CurvePrimitivePtr clone() const = 0;
 

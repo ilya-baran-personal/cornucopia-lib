@@ -30,6 +30,8 @@ CORNU_SMART_FORW_DECL(CurvePrimitive);
 
 struct FitPrimitive
 {
+    FitPrimitive() : fixed(false) {}
+
     CurvePrimitivePtr curve;
     int startIdx;
     int endIdx;
@@ -37,10 +39,11 @@ struct FitPrimitive
     double error;
     int startCurvSign;
     int endCurvSign;
+    bool fixed;
 
     bool isStartCurve() const { return startIdx == -1; }
-    bool isEndCurve() const { return numPts == 0 && startIdx != -1; }
-    bool isFixed() const { return numPts == 0; }
+    bool isEndCurve() const { return fixed && startIdx != -1; }
+    bool isFixed() const { return fixed; }
 };
 
 template<>

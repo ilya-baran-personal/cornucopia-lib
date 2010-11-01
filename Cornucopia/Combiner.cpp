@@ -32,7 +32,7 @@
 #include "Oversketcher.h"
 
 #include <iterator>
-#include <iostream> //TODO: tmp
+#include <iostream> //TODO: this is temporary
 #include <cstdio>
 
 #include <Eigen/LU>
@@ -624,10 +624,31 @@ protected:
         if(osOutput->toPrepend)
             outFinal.insert(outFinal.end(), osOutput->toPrepend->primitives().begin(), osOutput->toPrepend->primitives().end() - 1);
         outFinal.insert(outFinal.end(), outV.begin(), outV.end());
-        //TODO: this may fail when toAppend has only 1 item
+
         if(osOutput->toAppend)
-            outFinal.insert(outFinal.end(), osOutput->toAppend->primitives().begin() + 1,
-            osOutput->toAppend->primitives().end() - (osOutput->finallyClose ? 1 : 0));
+        {
+            if(!osOutput->finallyClose)
+            {
+                outFinal.insert(outFinal.end(), osOutput->toAppend->primitives().begin() + 1, osOutput->toAppend->primitives().end());
+            }
+            else
+            {
+                if(osOutput->toAppend->primitives().size() >= 2)
+                {
+                    outFinal.insert(outFinal.end(), osOutput->toAppend->primitives().begin() + 1, osOutput->toAppend->primitives().end() - 1);
+                }
+                else //start and end curve is the same curve -- its original length is the one toAppend curve
+                {
+                    //get rid of last curve and possibly extend the first one
+                    double lastCurveLen = outFinal.back()->length();
+                    double firstCurveLen = outFinal[0]->length();
+                    double origLen = osOutput->toAppend->primitives()[0]->length();
+                    outFinal.pop_back();
+                    //now extend the first curve to the combined length
+                    outFinal[0] = outFinal[0]->trimmed(origLen - lastCurveLen, firstCurveLen);
+                }
+            }
+        }
 
         out.output = new PrimitiveSequence(outFinal);
     }

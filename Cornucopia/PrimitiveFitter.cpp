@@ -119,9 +119,33 @@ protected:
             fit.endIdx = 0;
             fit.numPts = 0;
             fit.error = 0.;
+            fit.fixed = true;
             fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
             fit.endCurvSign = (fit.curve->endCurvature() >= 0) ? 1 : -1;
             out.primitives.push_back(fit);
+
+            for(int i = 1; i < pts.size(); ++i)
+            {
+                fit.curve = fit.curve->clone();
+                fit.endIdx = i;
+
+                //extend the curve up to the next point
+                fit.curve->trim(0, fit.curve->length() + 2 * (pts[i] - pts[i - 1]).norm());
+                fit.curve->trim(0, fit.curve->project(pts[i]));
+
+                fit.endCurvSign = (fit.curve->endCurvature() >= 0) ? 1 : -1;
+                fit.error = errorComputer->computeErrorForCost(fit.curve, 0, fit.endIdx, false);
+
+                if(fit.error > errorThreshold * errorThreshold)
+                    break;
+
+                //Debugging::get()->drawPrimitive(fit.curve, "Start Curves",  0);
+
+                out.primitives.push_back(fit);
+
+                if(corners[i])
+                    break; //don't pull curve past corner
+            }
         }
 
         if(osOutput->endCurve)
@@ -132,9 +156,33 @@ protected:
             fit.endIdx = fit.startIdx + 1;
             fit.numPts = 0;
             fit.error = 0.;
+            fit.fixed = true;
             fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
             fit.endCurvSign = (fit.curve->endCurvature() >= 0) ? 1 : -1;
             out.primitives.push_back(fit);
+
+            for(int i = fit.startIdx - 1; i >= 0; --i)
+            {
+                fit.curve = fit.curve->clone();
+                fit.startIdx = i;
+
+                //extend the curve up to the previous point
+                fit.curve->trim(-2 * (pts[i] - pts[i + 1]).norm(), fit.curve->length());
+                fit.curve->trim(fit.curve->project(pts[i]), fit.curve->length());
+
+                fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
+                fit.error = errorComputer->computeErrorForCost(fit.curve, fit.startIdx, (int)pts.size() - 1, true, false);
+
+                if(fit.error > errorThreshold * errorThreshold)
+                    break;
+
+                //Debugging::get()->drawPrimitive(fit.curve, "End Curves",  0);
+
+                out.primitives.push_back(fit);
+
+                if(corners[i])
+                    break; //don't pull curve past corner
+            }
         }
 
         for(int i = 0; i < pts.size(); ++i) //iterate over start points
@@ -181,7 +229,7 @@ protected:
                         if(fit.error > errorThreshold * errorThreshold)
                             break;
 
-                        Debugging::get()->drawCurve(curve, color, typeNames[type]);
+                        //Debugging::get()->drawCurve(curve, color, typeNames[type]);
                         out.primitives.push_back(fit);
 
                         if(type == 0 && inflectionAccounting) //line with "opposite" curvature
@@ -210,7 +258,7 @@ protected:
                             if(fit.error < errorThreshold * errorThreshold)
                             {
                                 out.primitives.push_back(fit);
-                                Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
+                                //Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
                             }
 
                             fit.curve = endNoCurv;
@@ -224,7 +272,7 @@ protected:
                             if(fit.error < errorThreshold * errorThreshold)
                             {
                                 out.primitives.push_back(fit);
-                                Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
+                                //Debugging::get()->drawCurve(fit.curve, color, typeNames[type]);
                             }
                         }
                     }

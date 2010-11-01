@@ -308,6 +308,7 @@ protected:
     {
         const vector<FitPrimitive> &primitives = fitter.output<PRIMITIVE_FITTING>()->primitives;
         PolylineConstPtr poly = fitter.output<RESAMPLING>()->output;
+        VectorC<bool> corners = fitter.output<RESAMPLING>()->corners;
         smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
         const VectorC<Vector2d> &pts = poly->pts();
         bool closed = poly->isClosed();
@@ -323,12 +324,12 @@ protected:
             if(!closed)
             {
                 if(osOutput->startCurve)
-                    out.vertices[i].source = (primitives[i].startIdx == -1);
+                    out.vertices[i].source = primitives[i].isStartCurve();
                 else
                     out.vertices[i].source = (primitives[i].startIdx == 0);
 
                 if(osOutput->endCurve)
-                    out.vertices[i].target = (primitives[i].endIdx == pts.size());
+                    out.vertices[i].target = primitives[i].isEndCurve();
                 else
                     out.vertices[i].target = (primitives[i].endIdx + 1 == pts.size());
             }
@@ -350,42 +351,47 @@ protected:
         VectorC<vector<int> > curvesStartingAt(pts.size(), pts.circular());
         for(int i = 0; i < (int)primitives.size(); ++i)
         {
-            if(primitives[i].numPts)
+            if(!primitives[i].isFixed())
                 curvesStartingAt[primitives[i].startIdx].push_back(i);
         }
 
-        //create edges from start curve, if necessary
+        //create edges from start curve(s), if necessary
         if(osOutput->startCurve)
         {
-            int startIdx = 0;
-            for(int i = 0; i < (int)curvesStartingAt[0].size(); ++i)
+            for(int startIdx = 0; startIdx < (int)primitives.size(); ++startIdx)
             {
-                int prim = curvesStartingAt[0][i];
-
-                int continuity = osOutput->startContinuity;
-
-                if(primitives[prim].curve->getType() == CurvePrimitive::LINE && continuity == 2)
+                if(!primitives[startIdx].isStartCurve())
                     continue;
+                int startPt = primitives[startIdx].endIdx;
+                for(int i = 0; i < (int)curvesStartingAt[startPt].size(); ++i)
+                {
+                    int prim = curvesStartingAt[startPt][i];
 
-                //create edge
-                Edge e;
-                e.continuity = continuity;
-                e.startVtx = startIdx;
-                e.endVtx = prim;
-                e.cost = out.costEvaluator->edgeCost(startIdx, prim, continuity);
-                e.cost += out.vertices[startIdx].cost;
-                e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
-                if(e.cost >= Parameters::infinity)
-                    continue;
-                out.vertices[startIdx].edges.push_back((int)out.edges.size());
-                out.edges.push_back(e);
+                    int continuity = (startPt > 0 && corners[startPt]) ? 0 : osOutput->startContinuity;
+
+                    if(primitives[prim].curve->getType() < continuity)
+                        continue;
+
+                    //create edge
+                    Edge e;
+                    e.continuity = continuity;
+                    e.startVtx = startIdx;
+                    e.endVtx = prim;
+                    e.cost = out.costEvaluator->edgeCost(startIdx, prim, continuity);
+                    e.cost += out.vertices[startIdx].cost;
+                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
+                    if(e.cost >= Parameters::infinity)
+                        continue;
+                    out.vertices[startIdx].edges.push_back((int)out.edges.size());
+                    out.edges.push_back(e);
+                }
             }
         }
 
         //create normal edges
         for(int i = 0; i < (int)primitives.size(); ++i)
         {
-            if(!primitives[i].numPts)
+            if(primitives[i].isFixed())
                 continue;
 
             int endIdx = primitives[i].endIdx;
@@ -428,32 +434,37 @@ protected:
             }
         }
 
-        //create edges to end curve, if necessary
+        //create edges to end curves, if necessary
         if(osOutput->endCurve)
         {
-            int endIdx = osOutput->startCurve ? 1 : 0; //start curve is first, end is second
-            for(int prim = 0; prim < (int)primitives.size(); ++prim)
+            for(int endIdx = 0; endIdx < (int)primitives.size(); ++endIdx)
             {
-                if(primitives[prim].endIdx + 1 != (int)pts.size())
+                if(!primitives[endIdx].isEndCurve())
                     continue;
+                for(int prim = 0; prim < (int)primitives.size(); ++prim)
+                {
+                    if(primitives[prim].endIdx != primitives[endIdx].startIdx)
+                        continue;
 
-                int continuity = osOutput->endContinuity;
+                    bool corner = corners[primitives[endIdx].startIdx] && primitives[endIdx].startIdx + 1 < (int)pts.size();
+                    int continuity = corner ? 0 : osOutput->endContinuity;
 
-                if(primitives[prim].curve->getType() == CurvePrimitive::LINE && continuity == 2)
-                    continue;
+                    if(primitives[prim].curve->getType() < continuity)
+                        continue;
 
-                //create edge
-                Edge e;
-                e.continuity = continuity;
-                e.startVtx = prim;
-                e.endVtx = endIdx;
-                e.cost = out.costEvaluator->edgeCost(prim, endIdx, continuity);
-                e.cost += out.vertices[endIdx].cost;
-                e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
-                if(e.cost >= Parameters::infinity)
-                    continue;
-                out.vertices[prim].edges.push_back((int)out.edges.size());
-                out.edges.push_back(e);
+                    //create edge
+                    Edge e;
+                    e.continuity = continuity;
+                    e.startVtx = prim;
+                    e.endVtx = endIdx;
+                    e.cost = out.costEvaluator->edgeCost(prim, endIdx, continuity);
+                    e.cost += out.vertices[endIdx].cost;
+                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
+                    if(e.cost >= Parameters::infinity)
+                        continue;
+                    out.vertices[prim].edges.push_back((int)out.edges.size());
+                    out.edges.push_back(e);
+                }
             }
         }
 
