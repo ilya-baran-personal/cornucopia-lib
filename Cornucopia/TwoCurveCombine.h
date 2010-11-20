@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TWOCURVECOMBINE_H_INCLUDED
-#define TWOCURVECOMBINE_H_INCLUDED
+#ifndef CORNUCOPIA_TWOCURVECOMBINE_H_INCLUDED
+#define CORNUCOPIA_TWOCURVECOMBINE_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -41,4 +41,4 @@ Combination twoCurveCombine(int p1, int p2, int continuity, const Fitter &fitter
 
 END_NAMESPACE_Cornu
 
-#endif //TWOCURVECOMBINE_H_INCLUDED
+#endif //CORNUCOPIA_TWOCURVECOMBINE_H_INCLUDED

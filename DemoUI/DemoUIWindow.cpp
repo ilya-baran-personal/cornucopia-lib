@@ -25,8 +25,6 @@
 #include "Document.h"
 #include "DebugWindow.h"
 
-#include "libTest.h"
-
 #include <QScrollArea>
 #include <QActionGroup>
 #include <QMenuBar>
@@ -72,8 +70,6 @@ DemoUIWindow::DemoUIWindow()
     connect(ui.actionSelect_Tool, SIGNAL(triggered()), mainView, SLOT(setSelectTool()));
 
     _debugWindow->show();
-
-    Cornu::f(4);
 }
 
 DemoUIWindow::~DemoUIWindow()

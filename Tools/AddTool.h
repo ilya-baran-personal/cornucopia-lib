@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ADDTOOL_H_INCLUDED
-#define ADDTOOL_H_INCLUDED
+#ifndef CORNUCOPIA_ADDTOOL_H_INCLUDED
+#define CORNUCOPIA_ADDTOOL_H_INCLUDED
 
 #include "Tool.h"
 
@@ -42,4 +42,4 @@ private:
                      const QList<QPair<QRegExp, QString> >& mapping); //returns false on failure
 };
 
-#endif //ADDTOOL_H_INCLUDED
+#endif //CORNUCOPIA_ADDTOOL_H_INCLUDED

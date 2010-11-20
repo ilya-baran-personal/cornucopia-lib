@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FORMATTOOL_H_INCLUDED
-#define FORMATTOOL_H_INCLUDED
+#ifndef CORNUCOPIA_FORMATTOOL_H_INCLUDED
+#define CORNUCOPIA_FORMATTOOL_H_INCLUDED
 
 #include "Tool.h"
 
@@ -43,4 +43,4 @@ private:
 };
 
 
-#endif //FORMATTOOL_H_INCLUDED
+#endif //CORNUCOPIA_FORMATTOOL_H_INCLUDED

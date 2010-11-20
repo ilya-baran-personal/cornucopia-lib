@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DOCUMENT_H_INCLUDED
-#define DOCUMENT_H_INCLUDED
+#ifndef CORNUCOPIA_DOCUMENT_H_INCLUDED
+#define CORNUCOPIA_DOCUMENT_H_INCLUDED
 
 #include "defs.h"
 #include "Parameters.h"
@@ -87,4 +87,4 @@ private:
     int _sketchIdx;
 };
 
-#endif //DOCUMENT_H_INCLUDED
+#endif //CORNUCOPIA_DOCUMENT_H_INCLUDED

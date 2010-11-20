@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TESTUTILS_H_INCLUDED
-#define TESTUTILS_H_INCLUDED
+#ifndef CORNUCOPIA_TESTUTILS_H_INCLUDED
+#define CORNUCOPIA_TESTUTILS_H_INCLUDED
 
 #include <string>
 #include <sstream>
@@ -71,4 +71,4 @@ struct Assertion {};
 
 inline double drand(double from, double to) { return from + (to - from) * double(rand() % RAND_MAX) / double(RAND_MAX); }
 
-#endif //TESTUTILS_H_INCLUDED
+#endif //CORNUCOPIA_TESTUTILS_H_INCLUDED

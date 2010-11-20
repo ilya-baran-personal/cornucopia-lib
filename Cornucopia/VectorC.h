@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef VECTORC_H_INCLUDED
-#define VECTORC_H_INCLUDED
+#ifndef CORNUCOPIA_VECTORC_H_INCLUDED
+#define CORNUCOPIA_VECTORC_H_INCLUDED
 
 #include "defs.h"
 #include <vector>
@@ -127,4 +127,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //VECTORC_H_INCLUDED
+#endif //CORNUCOPIA_VECTORC_H_INCLUDED

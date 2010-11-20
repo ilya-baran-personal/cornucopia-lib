@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CURVEPRIMITIVE_H_INCLUDED
-#define CURVEPRIMITIVE_H_INCLUDED
+#ifndef CORNUCOPIA_CURVEPRIMITIVE_H_INCLUDED
+#define CORNUCOPIA_CURVEPRIMITIVE_H_INCLUDED
 
 #include "defs.h"
 #include "Curve.h"
@@ -98,4 +98,4 @@ protected:
 
 END_NAMESPACE_Cornu
 
-#endif //CURVEPRIMITIVE_H_INCLUDED
+#endif //CORNUCOPIA_CURVEPRIMITIVE_H_INCLUDED

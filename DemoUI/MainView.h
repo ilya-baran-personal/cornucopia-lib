@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINVIEW_H_INCLUDED
-#define MAINVIEW_H_INCLUDED
+#ifndef CORNUCOPIA_MAINVIEW_H_INCLUDED
+#define CORNUCOPIA_MAINVIEW_H_INCLUDED
 
 #include "defs.h"
 #include "ScrollView.h"
@@ -62,4 +62,4 @@ private:
 };
 
 
-#endif //MAINVIEW_H_INCLUDED
+#endif //CORNUCOPIA_MAINVIEW_H_INCLUDED

@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ONEPARAMWIDGET_H_INCLUDED
-#define ONEPARAMWIDGET_H_INCLUDED
+#ifndef CORNUCOPIA_ONEPARAMWIDGET_H_INCLUDED
+#define CORNUCOPIA_ONEPARAMWIDGET_H_INCLUDED
 
 #include "defs.h"
 #include "Parameters.h"
@@ -86,4 +86,4 @@ private:
     Cornu::Parameters::ParameterType _parameter;
 };
 
-#endif //ONEPARAMWIDGET_H_INCLUDED
+#endif //CORNUCOPIA_ONEPARAMWIDGET_H_INCLUDED

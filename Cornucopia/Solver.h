@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SOLVER_H_INCLUDED
-#define SOLVER_H_INCLUDED
+#ifndef CORNUCOPIA_SOLVER_H_INCLUDED
+#define CORNUCOPIA_SOLVER_H_INCLUDED
 
 #include "defs.h"
 #include <vector>
@@ -105,4 +105,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //SOLVER_H_INCLUDED
+#endif //CORNUCOPIA_SOLVER_H_INCLUDED

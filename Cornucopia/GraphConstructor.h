@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GRAPHCONSTRUCTOR_H_INCLUDED
-#define GRAPHCONSTRUCTOR_H_INCLUDED
+#ifndef CORNUCOPIA_GRAPHCONSTRUCTOR_H_INCLUDED
+#define CORNUCOPIA_GRAPHCONSTRUCTOR_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
@@ -72,4 +72,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //GRAPHCONSTRUCTOR_H_INCLUDED
+#endif //CORNUCOPIA_GRAPHCONSTRUCTOR_H_INCLUDED

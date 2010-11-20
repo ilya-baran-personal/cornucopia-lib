@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CURVE_H_INCLUDED
-#define CURVE_H_INCLUDED
+#ifndef CORNUCOPIA_CURVE_H_INCLUDED
+#define CORNUCOPIA_CURVE_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -68,4 +68,4 @@ public:
 
 END_NAMESPACE_Cornu
 
-#endif //CURVE_H_INCLUDED
+#endif //CORNUCOPIA_CURVE_H_INCLUDED

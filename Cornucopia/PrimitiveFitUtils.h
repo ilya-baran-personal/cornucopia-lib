@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PRIMITIVEFITUTILS_H_INCLUDED
-#define PRIMITIVEFITUTILS_H_INCLUDED
+#ifndef CORNUCOPIA_PRIMITIVEFITUTILS_H_INCLUDED
+#define CORNUCOPIA_PRIMITIVEFITUTILS_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -120,4 +120,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //PRIMITIVEFITUTILS_H_INCLUDED
+#endif //CORNUCOPIA_PRIMITIVEFITUTILS_H_INCLUDED

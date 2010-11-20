@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef REGRESSION_H_INCLUDED
-#define REGRESSION_H_INCLUDED
+#ifndef CORNUCOPIA_REGRESSION_H_INCLUDED
+#define CORNUCOPIA_REGRESSION_H_INCLUDED
 
 #include "defs.h"
 #include "CurvePrimitive.h"
@@ -84,4 +84,4 @@ CORNU_SMART_TYPEDEFS(DataModel);
 
 END_NAMESPACE_Cornu
 
-#endif //REGRESSION_H_INCLUDED
+#endif //CORNUCOPIA_REGRESSION_H_INCLUDED

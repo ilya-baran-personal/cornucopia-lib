@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEFS_H_INCLUDED
-#define DEFS_H_INCLUDED
+#ifndef CORNUCOPIA_DEFS_H_INCLUDED
+#define CORNUCOPIA_DEFS_H_INCLUDED
 
 #ifdef _WIN32
 #pragma warning(disable:4251)
@@ -46,4 +46,4 @@ namespace Cornu
     template<typename T> T CUBE(const T &in) { return in * in * in; }
 }
 
-#endif //DEFS_H_INCLUDED
+#endif //CORNUCOPIA_DEFS_H_INCLUDED

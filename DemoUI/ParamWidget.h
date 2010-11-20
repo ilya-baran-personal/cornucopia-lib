@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PARAMWIDGET_H_INCLUDED
-#define PARAMWIDGET_H_INCLUDED
+#ifndef CORNUCOPIA_PARAMWIDGET_H_INCLUDED
+#define CORNUCOPIA_PARAMWIDGET_H_INCLUDED
 
 #include "defs.h"
 #include "Parameters.h"
@@ -63,4 +63,4 @@ private:
     std::vector<Cornu::Parameters> _presets;
 };
 
-#endif //PARAMWIDGET_H_INCLUDED
+#endif //CORNUCOPIA_PARAMWIDGET_H_INCLUDED

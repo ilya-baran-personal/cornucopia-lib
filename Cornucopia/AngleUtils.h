@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ANGLEUTILS_H_INCLUDED
-#define ANGLEUTILS_H_INCLUDED
+#ifndef CORNUCOPIA_ANGLEUTILS_H_INCLUDED
+#define CORNUCOPIA_ANGLEUTILS_H_INCLUDED
 
 #include "defs.h"
 
@@ -46,4 +46,4 @@ public:
 
 END_NAMESPACE_Cornu
 
-#endif //ANGLEUTILS_H_INCLUDED
+#endif //CORNUCOPIA_ANGLEUTILS_H_INCLUDED

@@ -1,5 +1,5 @@
 /*--
-    libTest.h  
+    Cornucopia.h  
 
     This file is part of the Cornucopia curve sketching library.
     Copyright (C) 2010 Ilya Baran (baran37@gmail.com)
@@ -18,11 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "defs.h"
+#ifndef CORNUCOPIA_CORNUCOPIA_H_INCLUDED
+#define CORNUCOPIA_CORNUCOPIA_H_INCLUDED
 
-NAMESPACE_Cornu
+//This file just collects the includes necessary to use Cornucopia
+#include "Fitter.h"
+#include "Polyline.h"
+#include "PrimitiveSequence.h"
+#include "Line.h"
+#include "Arc.h"
+#include "Clothoid.h"
 
-int f(int);
-int g(int);
-
-END_NAMESPACE_Cornu
+#endif //CORNUCOPIA_CORNUCOPIA_H_INCLUDED

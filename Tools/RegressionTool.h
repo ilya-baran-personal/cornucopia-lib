@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef REGRESSIONTOOL_H_INCLUDED
-#define REGRESSIONTOOL_H_INCLUDED
+#ifndef CORNUCOPIA_REGRESSIONTOOL_H_INCLUDED
+#define CORNUCOPIA_REGRESSIONTOOL_H_INCLUDED
 
 #include "Tool.h"
 
@@ -38,4 +38,4 @@ public slots:
 };
 
 
-#endif //REGRESSIONTOOL_H_INCLUDED
+#endif //CORNUCOPIA_REGRESSIONTOOL_H_INCLUDED

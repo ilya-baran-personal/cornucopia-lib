@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ARC_H_INCLUDED
-#define ARC_H_INCLUDED
+#ifndef CORNUCOPIA_ARC_H_INCLUDED
+#define CORNUCOPIA_ARC_H_INCLUDED
 
 #include "defs.h"
 #include "CurvePrimitive.h"
@@ -75,4 +75,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //ARC_H_INCLUDED
+#endif //CORNUCOPIA_ARC_H_INCLUDED

@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PARAMETERS_H_INCLUDED
-#define PARAMETERS_H_INCLUDED
+#ifndef CORNUCOPIA_PARAMETERS_H_INCLUDED
+#define CORNUCOPIA_PARAMETERS_H_INCLUDED
 
 #include "defs.h"
 
@@ -117,4 +117,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //PARAMETERS_H_INCLUDED
+#endif //CORNUCOPIA_PARAMETERS_H_INCLUDED

@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TOOLSWINDOW_H_INCLUDED
-#define TOOLSWINDOW_H_INCLUDED
+#ifndef CORNUCOPIA_TOOLSWINDOW_H_INCLUDED
+#define CORNUCOPIA_TOOLSWINDOW_H_INCLUDED
 
 #include <QMainWindow>
 
@@ -35,4 +35,4 @@ private:
     void addTool(Tool *tool);
 };
 
-#endif //TOOLSWINDOW_H_INCLUDED
+#endif //CORNUCOPIA_TOOLSWINDOW_H_INCLUDED

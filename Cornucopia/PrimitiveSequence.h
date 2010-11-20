@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PRIMITIVESEQUENCE_H_INCLUDED
-#define PRIMITIVESEQUENCE_H_INCLUDED
+#ifndef CORNUCOPIA_PRIMITIVESEQUENCE_H_INCLUDED
+#define CORNUCOPIA_PRIMITIVESEQUENCE_H_INCLUDED
 
 #include "defs.h"
 #include "CurvePrimitive.h"
@@ -62,4 +62,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //PRIMITIVESEQUENCE_H_INCLUDED
+#endif //CORNUCOPIA_PRIMITIVESEQUENCE_H_INCLUDED

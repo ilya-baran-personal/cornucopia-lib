@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCROLLVIEW_H_INCLUDED
-#define SCROLLVIEW_H_INCLUDED
+#ifndef CORNUCOPIA_SCROLLVIEW_H_INCLUDED
+#define CORNUCOPIA_SCROLLVIEW_H_INCLUDED
 
 #include "defs.h"
 
@@ -69,4 +69,4 @@ private:
 };
 
 
-#endif //SCROLLVIEW_H_INCLUDED
+#endif //CORNUCOPIA_SCROLLVIEW_H_INCLUDED

@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TEST_H_INCLUDED
-#define TEST_H_INCLUDED
+#ifndef CORNUCOPIA_TEST_H_INCLUDED
+#define CORNUCOPIA_TEST_H_INCLUDED
 
 #include <vector>
 #include <string>
@@ -50,4 +50,4 @@ public:
     static std::vector<TestCase *> &allTests(); //Meyer's singleton
 };
 
-#endif //TEST_H_INCLUDED
+#endif //CORNUCOPIA_TEST_H_INCLUDED

@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CORNERDETECTOR_H_INCLUDED
-#define CORNERDETECTOR_H_INCLUDED
+#ifndef CORNUCOPIA_CORNERDETECTOR_H_INCLUDED
+#define CORNUCOPIA_CORNERDETECTOR_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
@@ -47,4 +47,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //CORNERDETECTOR_H_INCLUDED
+#endif //CORNUCOPIA_CORNERDETECTOR_H_INCLUDED

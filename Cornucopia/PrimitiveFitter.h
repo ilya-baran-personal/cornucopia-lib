@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PRIMITIVEFITTER_H_INCLUDED
-#define PRIMITIVEFITTER_H_INCLUDED
+#ifndef CORNUCOPIA_PRIMITIVEFITTER_H_INCLUDED
+#define CORNUCOPIA_PRIMITIVEFITTER_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
@@ -66,4 +66,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //PRIMITIVEFITTER_H_INCLUDED
+#endif //CORNUCOPIA_PRIMITIVEFITTER_H_INCLUDED

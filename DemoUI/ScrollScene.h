@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCROLLSCENE_H_INCLUDED
-#define SCROLLSCENE_H_INCLUDED
+#ifndef CORNUCOPIA_SCROLLSCENE_H_INCLUDED
+#define CORNUCOPIA_SCROLLSCENE_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -60,4 +60,4 @@ protected:
     std::vector<SceneItemPtr> _items;
 };
 
-#endif //SCROLLSCENE_H_INCLUDED
+#endif //CORNUCOPIA_SCROLLSCENE_H_INCLUDED

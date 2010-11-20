@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef POLYLINE_H_INCLUDED
-#define POLYLINE_H_INCLUDED
+#ifndef CORNUCOPIA_POLYLINE_H_INCLUDED
+#define CORNUCOPIA_POLYLINE_H_INCLUDED
 
 #include "defs.h"
 #include "Curve.h"
@@ -65,4 +65,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //POLYLINE_H_INCLUDED
+#endif //CORNUCOPIA_POLYLINE_H_INCLUDED

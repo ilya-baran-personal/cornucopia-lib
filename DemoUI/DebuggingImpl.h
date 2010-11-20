@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEBUGGINGIMPL_H_INCLUDED
-#define DEBUGGINGIMPL_H_INCLUDED
+#ifndef CORNUCOPIA_DEBUGGINGIMPL_H_INCLUDED
+#define CORNUCOPIA_DEBUGGINGIMPL_H_INCLUDED
 
 #include "defs.h"
 #include "Debugging.h"
@@ -67,4 +67,4 @@ private:
     QHash<QString, int> _startTimes;
 };
 
-#endif //DEBUGGINGIMPL_H_INCLUDED
+#endif //CORNUCOPIA_DEBUGGINGIMPL_H_INCLUDED

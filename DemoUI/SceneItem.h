@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCENEITEM_H_INCLUDED
-#define SCENEITEM_H_INCLUDED
+#ifndef CORNUCOPIA_SCENEITEM_H_INCLUDED
+#define CORNUCOPIA_SCENEITEM_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -114,4 +114,4 @@ private:
 
 CORNU_SMART_TYPEDEFS(CurveSceneItem);
 
-#endif //SCENEITEM_H_INCLUDED
+#endif //CORNUCOPIA_SCENEITEM_H_INCLUDED

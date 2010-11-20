@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEMOUIWINDOW_H_INCLUDED
-#define DEMOUIWINDOW_H_INCLUDED
+#ifndef CORNUCOPIA_DEMOUIWINDOW_H_INCLUDED
+#define CORNUCOPIA_DEMOUIWINDOW_H_INCLUDED
 
 #include "defs.h"
 
@@ -38,4 +38,4 @@ private:
     DebugWindow *_debugWindow;
 };
 
-#endif //DEMOUIWINDOW_H_INCLUDED
+#endif //CORNUCOPIA_DEMOUIWINDOW_H_INCLUDED

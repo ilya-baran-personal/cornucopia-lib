@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEBUGGING_H_INCLUDED
-#define DEBUGGING_H_INCLUDED
+#ifndef CORNUCOPIA_DEBUGGING_H_INCLUDED
+#define CORNUCOPIA_DEBUGGING_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -78,4 +78,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //DEBUGGING_H_INCLUDED
+#endif //CORNUCOPIA_DEBUGGING_H_INCLUDED

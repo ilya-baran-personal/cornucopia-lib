@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FRESNEL_H_INCLUDED
-#define FRESNEL_H_INCLUDED
+#ifndef CORNUCOPIA_FRESNEL_H_INCLUDED
+#define CORNUCOPIA_FRESNEL_H_INCLUDED
 
 #include "defs.h"
 #include <Eigen/Core>
@@ -36,4 +36,4 @@ void fresnelApprox(const Eigen::VectorXd &t, Eigen::VectorXd *s, Eigen::VectorXd
 
 END_NAMESPACE_Cornu
 
-#endif //FRESNEL_H_INCLUDED
+#endif //CORNUCOPIA_FRESNEL_H_INCLUDED

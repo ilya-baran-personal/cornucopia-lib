@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GROUPSELWIDGET_H_INCLUDED
-#define GROUPSELWIDGET_H_INCLUDED
+#ifndef CORNUCOPIA_GROUPSELWIDGET_H_INCLUDED
+#define CORNUCOPIA_GROUPSELWIDGET_H_INCLUDED
 
 #include "defs.h"
 
@@ -66,4 +66,4 @@ private:
     QString _group;
 };
 
-#endif //GROUPSELWIDGET_H_INCLUDED
+#endif //CORNUCOPIA_GROUPSELWIDGET_H_INCLUDED

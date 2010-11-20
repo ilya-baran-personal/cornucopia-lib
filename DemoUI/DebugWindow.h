@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEBUGWINDOW_H_INCLUDED
-#define DEBUGWINDOW_H_INCLUDED
+#ifndef CORNUCOPIA_DEBUGWINDOW_H_INCLUDED
+#define CORNUCOPIA_DEBUGWINDOW_H_INCLUDED
 
 #include "defs.h"
 
@@ -43,4 +43,4 @@ private:
     ScrollScene *_scene;
 };
 
-#endif //DEBUGWINDOW_H_INCLUDED
+#endif //CORNUCOPIA_DEBUGWINDOW_H_INCLUDED

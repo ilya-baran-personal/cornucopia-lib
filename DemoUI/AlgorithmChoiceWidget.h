@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ALGORITHMCHOICEWIDGET_H_INCLUDED
-#define ALGORITHMCHOICEWIDGET_H_INCLUDED
+#ifndef CORNUCOPIA_ALGORITHMCHOICEWIDGET_H_INCLUDED
+#define CORNUCOPIA_ALGORITHMCHOICEWIDGET_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
@@ -63,4 +63,4 @@ private:
     int _algorithm;
 };
 
-#endif //ALGORITHMCHOICEWIDGET_H_INCLUDED
+#endif //CORNUCOPIA_ALGORITHMCHOICEWIDGET_H_INCLUDED

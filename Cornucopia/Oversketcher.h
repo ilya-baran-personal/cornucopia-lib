@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OVERSKETCHER_H_INCLUDED
-#define OVERSKETCHER_H_INCLUDED
+#ifndef CORNUCOPIA_OVERSKETCHER_H_INCLUDED
+#define CORNUCOPIA_OVERSKETCHER_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
@@ -56,4 +56,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //OVERSKETCHER_H_INCLUDED
+#endif //CORNUCOPIA_OVERSKETCHER_H_INCLUDED

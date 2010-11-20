@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CLOTHOID_H_INCLUDED
-#define CLOTHOID_H_INCLUDED
+#ifndef CORNUCOPIA_CLOTHOID_H_INCLUDED
+#define CORNUCOPIA_CLOTHOID_H_INCLUDED
 
 #include "defs.h"
 #include "CurvePrimitive.h"
@@ -81,4 +81,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //CLOTHOID_H_INCLUDED
+#endif //CORNUCOPIA_CLOTHOID_H_INCLUDED

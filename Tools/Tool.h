@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TOOL_H_INCLUDED
-#define TOOL_H_INCLUDED
+#ifndef CORNUCOPIA_TOOL_H_INCLUDED
+#define CORNUCOPIA_TOOL_H_INCLUDED
 
 #include <QWidget>
 #include <QString>
@@ -48,4 +48,4 @@ private:
     QWidget *_parentWidget;
 };
 
-#endif //TOOL_H_INCLUDED
+#endif //CORNUCOPIA_TOOL_H_INCLUDED

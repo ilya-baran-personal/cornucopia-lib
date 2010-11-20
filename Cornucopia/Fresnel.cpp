@@ -30,6 +30,7 @@ Copyright 1984, 1987, 1989, 2000 by Stephen L. Moshier
 
 using namespace std;
 using namespace Eigen;
+using namespace internal; //use Eigen's internal namespace for packet math
 NAMESPACE_Cornu
 
 typedef Packet4f PSETParam;
@@ -333,30 +334,30 @@ void fresnel(const VectorXd &t, VectorXd *s, VectorXd *c)
 
 //vectorized polynomial evaluation
 template<typename Packet>
-static Packet vecpolevl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
+static Packet vecpolevl( const Packet &x, const Matrix<typename unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
 {
     int i = (int)coefVec.size() - 1;
-    const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
-    Packet ans = ei_pset1<PSETParam>(*coef++);
+    const typename unpacket_traits<Packet>::type *coef = &(coefVec[0]);
+    Packet ans = pset1<PSETParam>(*coef++);
 
     do
     {
-        ans = ei_padd(ei_pmul(ans, x), ei_pset1<PSETParam>(*coef++));
+        ans = padd(pmul(ans, x), pset1<PSETParam>(*coef++));
     } while(--i);
 
     return ans;
 }
 
 template<typename Packet>
-static Packet vecp1evl( const Packet &x, const Matrix<typename ei_unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
+static Packet vecp1evl( const Packet &x, const Matrix<typename unpacket_traits<Packet>::type, Dynamic, 1> &coefVec )
 {
     int i = (int)coefVec.size() - 1;
-    const typename ei_unpacket_traits<Packet>::type *coef = &(coefVec[0]);
-    Packet ans = ei_padd(x, ei_pset1<PSETParam>(*coef++));
+    const typename unpacket_traits<Packet>::type *coef = &(coefVec[0]);
+    Packet ans = padd(x, pset1<PSETParam>(*coef++));
 
     do
     {
-        ans = ei_padd(ei_pmul(ans, x), ei_pset1<PSETParam>(*coef++));
+        ans = padd(pmul(ans, x), pset1<PSETParam>(*coef++));
     } while(--i);
 
     return ans;
@@ -376,9 +377,9 @@ EIGEN_STRONG_INLINE Packet2d packetTransferSign(const Packet2d& to, const Packet
 
 EIGEN_STRONG_INLINE Packet4f packetFmod(const Packet4f &a, const Packet4f &b)
 {
-    Packet4f div = ei_pdiv(a, b);
+    Packet4f div = pdiv(a, b);
     div = _mm_cvtepi32_ps(_mm_cvtps_epi32(div));
-    return ei_psub(a, ei_pmul(div, b));
+    return psub(a, pmul(div, b));
 }
 
 //vectorized for the low branch of the Fresnel approximation
@@ -387,12 +388,12 @@ void fresnelLow( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     Packet4f cc, ss, t;
     Packet4f x, x2;
 
-    x = ei_pabs(xxa);
-    x2 = ei_pmul(x, x);
+    x = pabs(xxa);
+    x2 = pmul(x, x);
 
-    t = ei_pmul(x2, x2);
-    ss = ei_pmul(x, ei_pmul(x2, vecpolevl( t, ssn)));
-    cc = ei_pmul(x, vecpolevl( t, scn));
+    t = pmul(x2, x2);
+    ss = pmul(x, pmul(x2, vecpolevl( t, ssn)));
+    cc = pmul(x, vecpolevl( t, scn));
 
     *ssa = packetTransferSign(ss, xxa);
     *cca = packetTransferSign(cc, xxa);
@@ -404,27 +405,27 @@ void fresnelMed( const Packet4f &xxa, Packet4f *ssa, Packet4f *cca )
     Packet4f cc, ss, t, u, f, g, c, s;
     Packet4f x, x2;
 
-    x = ei_pabs(xxa);
-    x2 = ei_pmul(x, x);
+    x = pabs(xxa);
+    x2 = pmul(x, x);
 
-    t = ei_pmul(ei_pset1<PSETParam>(float(PI)), x2);
-    t = ei_pdiv(ei_pset1<PSETParam>(float(1.0)), t);
-    u = ei_pmul(t, t);
-    f = ei_psub(ei_pset1<PSETParam>(float(1.0)), ei_pmul(u, vecpolevl( u, sfn)));
-    g = ei_pmul(t, vecpolevl( u, sgn));
+    t = pmul(pset1<PSETParam>(float(PI)), x2);
+    t = pdiv(pset1<PSETParam>(float(1.0)), t);
+    u = pmul(t, t);
+    f = psub(pset1<PSETParam>(float(1.0)), pmul(u, vecpolevl( u, sfn)));
+    g = pmul(t, vecpolevl( u, sgn));
 
-    t = ei_pmul(ei_pset1<PSETParam>(float(HALFPI)), x2);
+    t = pmul(pset1<PSETParam>(float(HALFPI)), x2);
 
-    //The following line is necessary because Eigen's ei_psin and ei_pcos don't handle large
+    //The following line is necessary because Eigen's psin and pcos don't handle large
     //inputs well.
-    t = packetFmod(t, ei_pset1<PSETParam>(float(TWOPI))); 
+    t = packetFmod(t, pset1<PSETParam>(float(TWOPI))); 
 
-    c = ei_pcos(t);
-    s = ei_psin(t);
+    c = pcos(t);
+    s = psin(t);
 
-    t = ei_pdiv(ei_pset1<PSETParam>(float(1. / PI)), x);
-    cc = ei_padd(ei_pset1<PSETParam>(float(0.5)), ei_pmul(t, ei_psub(ei_pmul(f, s), ei_pmul(g, c))));
-    ss = ei_psub(ei_pset1<PSETParam>(float(0.5)), ei_pmul(t, ei_padd(ei_pmul(f, c), ei_pmul(g, s))));
+    t = pdiv(pset1<PSETParam>(float(1. / PI)), x);
+    cc = padd(pset1<PSETParam>(float(0.5)), pmul(t, psub(pmul(f, s), pmul(g, c))));
+    ss = psub(pset1<PSETParam>(float(0.5)), pmul(t, padd(pmul(f, c), pmul(g, s))));
 
     *ssa = packetTransferSign(ss, xxa);
     *cca = packetTransferSign(cc, xxa);

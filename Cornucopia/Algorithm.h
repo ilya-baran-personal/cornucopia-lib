@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ALGORITHM_H_INCLUDED
-#define ALGORITHM_H_INCLUDED
+#ifndef CORNUCOPIA_ALGORITHM_H_INCLUDED
+#define CORNUCOPIA_ALGORITHM_H_INCLUDED
 
 #include "defs.h"
 #include "smart_ptr.h"
@@ -117,4 +117,4 @@ protected:
 
 END_NAMESPACE_Cornu
 
-#endif //ALGORITHM_H_INCLUDED
+#endif //CORNUCOPIA_ALGORITHM_H_INCLUDED

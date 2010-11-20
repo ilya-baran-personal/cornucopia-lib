@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SMART_PTR_H_INCLUDED
-#define SMART_PTR_H_INCLUDED
+#ifndef CORNUCOPIA_SMART_PTR_H_INCLUDED
+#define CORNUCOPIA_SMART_PTR_H_INCLUDED
 
 #include "defs.h"
 #include <algorithm>
@@ -173,4 +173,4 @@ smart_ptr<T> const_pointer_cast(const smart_ptr<U> &p) {
 
 END_NAMESPACE_Cornu
 
-#endif //SMART_PTR_H_INCLUDED
+#endif //CORNUCOPIA_SMART_PTR_H_INCLUDED

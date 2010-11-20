@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef COMBINER_H_INCLUDED
-#define COMBINER_H_INCLUDED
+#ifndef CORNUCOPIA_COMBINER_H_INCLUDED
+#define CORNUCOPIA_COMBINER_H_INCLUDED
 
 #include "defs.h"
 #include "Algorithm.h"
@@ -50,4 +50,4 @@ private:
 
 END_NAMESPACE_Cornu
 
-#endif //COMBINER_H_INCLUDED
+#endif //CORNUCOPIA_COMBINER_H_INCLUDED
