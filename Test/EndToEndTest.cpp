@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstdio>
 #include "Test.h"
 #include "Cornucopia.h" //includes everything necessary to use the library
 
