@@ -73,9 +73,14 @@ void Fitter::_clearBefore(AlgorithmStage stage)
         _outputs[i] = AlgorithmOutputBasePtr();
 }
 
+double Fitter::scale() const
+{
+    return output<SCALE_DETECTION>()->scale * _params.get(Parameters::PIXEL_SIZE);
+}
+
 double Fitter::scaledParameter(Parameters::ParameterType param) const
 {
-    return _params.get(param) * output<SCALE_DETECTION>()->scale * _params.get(Parameters::PIXEL_SIZE);
+    return _params.get(param) * scale();
 }
 
 PrimitiveSequenceConstPtr Fitter::finalOutput() const

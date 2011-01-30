@@ -21,7 +21,8 @@
 #ifndef CORNUCOPIA_CORNUCOPIA_H_INCLUDED
 #define CORNUCOPIA_CORNUCOPIA_H_INCLUDED
 
-//This file just collects the includes necessary to use Cornucopia
+//This file just collects the includes necessary to use Cornucopia fully
+//For a minimalistic API, see SimpleAPI.h
 #include "Fitter.h"
 #include "Polyline.h"
 #include "PrimitiveSequence.h"

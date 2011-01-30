@@ -54,6 +54,7 @@ public:
 
     PrimitiveSequenceConstPtr finalOutput() const;
 
+    double scale() const;  //returns the scale (pixel size * detected scale)
     double scaledParameter(Parameters::ParameterType param) const;
 
 private:

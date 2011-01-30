@@ -357,6 +357,7 @@ protected:
         double regionSize = fitter.scaledParameter(Parameters::CURVATURE_ESTIMATE_REGION);
         double maxInterval = fitter.scaledParameter(Parameters::MAX_SAMPLING_INTERVAL);
         double pointsPerCircle = fitter.params().get(Parameters::POINTS_PER_CIRCLE);
+        double arcFitterScale = 1. / fitter.scale(); //our ArcFitter is approximate and not scale-invariant, so we scale its input and output
 
         for(int i = 0; i < pts.size(); ++i)
         {
@@ -364,12 +365,12 @@ protected:
             //step forward
             double startParam = poly->idxToParam(i);
             for(double param = startParam; poly->isParamValid(param) && param < startParam + regionSize; param += step)
-                arcFitter.addPoint(poly->pos(param));
+                arcFitter.addPoint(poly->pos(param) * arcFitterScale);
             //step backward
             for(double param = startParam; poly->isParamValid(param) && param > startParam - regionSize; param -= step)
-                arcFitter.addPoint(poly->pos(param));
+                arcFitter.addPoint(poly->pos(param) * arcFitterScale);
 
-            double curvature = fabs(arcFitter.getCurve()->startCurvature());
+            double curvature = fabs(arcFitter.getCurve()->startCurvature()) * arcFitterScale;
             spacing.values()[i] = TWOPI / max(pointsPerCircle * curvature, TWOPI / maxInterval);
             if((i == 0 && denseNearStart) || ((i + 1) == pts.size() && denseNearEnd))
                 spacing.values()[i] = 1;
@@ -410,7 +411,7 @@ protected:
         Debugging::get()->printf("Log scale error at 1 = %lf", log(scale));
 #endif
 
-        for(int iters = 0; iters < 3; ++iters)
+        for(int iters = 0; iters < 3; ++iters) //three iterations have been sufficient for convergence
         {
             SampleSpacingFunction scaledSpacing = spacing;
             scaledSpacing.scale(scale);

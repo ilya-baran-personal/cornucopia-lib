@@ -21,13 +21,20 @@
 #ifndef CORNUCOPIA_PARAMETERS_H_INCLUDED
 #define CORNUCOPIA_PARAMETERS_H_INCLUDED
 
-#include "defs.h"
-
 #include <vector>
 #include <string>
 
-NAMESPACE_Cornu
+namespace Cornu
+{
 
+/*
+ * The Parameters object controls the execution of the fitting.  It specifies what the costs are for the
+ * shortest path graph, and it specifies many internal parameters.  It also specifies the choice of
+ * different algorithms for fitting stages.  Using the Parameters object, you can make the fitter
+ * use only arcs, increase the tolerance, etc.  The default constructor provides reasonable parameters
+ * for the G2 clothoid fit.  Several presets (defined in void Parameters::_initializePresets) allow
+ * other useful behaviors.
+ */
 class Parameters
 {
 public:
@@ -115,6 +122,6 @@ private:
     static std::vector<Parameters> _presets;
 };
 
-END_NAMESPACE_Cornu
+} //end of namespace Cornu
 
 #endif //CORNUCOPIA_PARAMETERS_H_INCLUDED

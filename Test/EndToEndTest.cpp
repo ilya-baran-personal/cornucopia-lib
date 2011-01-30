@@ -20,6 +20,7 @@
 
 #include <cstdio>
 #include "Test.h"
+#include "SimpleAPI.h" //just the simple API
 #include "Cornucopia.h" //includes everything necessary to use the library
 
 class EndToEndTest : public TestCase
@@ -31,9 +32,38 @@ public:
     //override
     void run()
     {
+        simpleAPITest();
+        fullAPITest();
+    }
+
+    void simpleAPITest()
+    {
+        Cornu::Parameters params; //default values
+        std::vector<Cornu::Point> pts;
+
+        pts.push_back(Cornu::Point(100, 100));
+        pts.push_back(Cornu::Point(120, 130));
+        pts.push_back(Cornu::Point(140, 140));
+        pts.push_back(Cornu::Point(300, 140));
+
+        //pass it to the fitter and process it
+        std::vector<Cornu::BasicPrimitive> result = Cornu::fit(pts, params);
+
+        int nPrims[3] = { 0, 0, 0 };
+        for(int i = 0; i < (int)result.size(); ++i)
+        {
+            nPrims[result[i].type]++;
+        }
+
+        printf("SimpleAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+    }
+
+    void fullAPITest()
+    {
         //initialize the fitter
         Cornu::Fitter fitter;
-        fitter.setParams(Cornu::Parameters::presets()[0]); //0 is the default parameters
+        Cornu::Parameters params; //default values
+        fitter.setParams(params);
 
         //initialize the curve to a sequence of points (there will usually be more and they'll come from a mouse or tablet)
         Cornu::VectorC<Eigen::Vector2d> pts(4, Cornu::NOT_CIRCULAR);
@@ -56,7 +86,27 @@ public:
             nPrims[output->primitives()[i]->getType()]++;
         }
 
-        printf("Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+        printf("FullAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+
+        //now try again with a reduced pixel size
+        double scale = 0.01;
+
+        params.set(Cornu::Parameters::PIXEL_SIZE, scale);
+
+        for(int i = 0; i < pts.size(); ++i)
+            pts[i] *= scale;
+
+        fitter.setParams(params);
+        fitter.setOriginalSketch(new Cornu::Polyline(pts));
+        fitter.run();
+
+        nPrims[0] = nPrims[1] = nPrims[2] = 0;
+        for(int i = 0; i < output->primitives().size(); ++i)
+        {
+            nPrims[output->primitives()[i]->getType()]++;
+        }
+
+        printf("Small Pixels Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
 
         //output is destroyed with the destruction of the smart pointer and the fitter
     }

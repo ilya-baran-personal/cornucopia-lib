@@ -12,8 +12,7 @@ LICENSING
 All of the source is distributed under the GNU GPL.  If you would
 like to use it under a different license, contact me at
 baran37@gmail.com and I will likely grant an exemption.  If you
-use the library for research, I would welcome an acknowledgement
-of this work, although this is not necessary.
+use the library for research, please cite the above paper.
 
 --------
 BUILDING
@@ -38,5 +37,9 @@ USING
 The interface is simple.  The example to get started is:
 Test/EndToEndTest.cpp.  You control the algorithm using the
 Parameters object that you pass in.  See the Parameters.h file.
-
+If you do not want to introduce a dependency on Eigen into your
+application, use the API in SimpleAPI.h.  Its use is also
+demonstrated in EndToEndTest.cpp.  Oversketching is not implemented
+in SimpleAPI yet--you need to call fitter.setOversketchBase,
+passing the curve being oversketched.
 
