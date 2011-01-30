@@ -56,7 +56,7 @@ struct BasicPrimitive
 
     //Evaluates this primitive at (arclength) parameter s (between 0 and length) and returns the position and first and second derivatives.
     //This function is slower than using CurvePrimitive's evaluators
-    void eval(double s, Point *outPos = NULL, Point *outDer = NULL, Point *outDer2 = NULL) const;
+    void eval(double s, Point *outPos, Point *outDer = NULL, Point *outDer2 = NULL) const;
 };
 
 //The basic API function: takes a vector of points and a Parameters object (see Parameters.h)

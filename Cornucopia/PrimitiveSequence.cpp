@@ -19,6 +19,7 @@
 */
 
 #include "PrimitiveSequence.h"
+#include "Bezier.h"
 
 using namespace std;
 using namespace Eigen;
@@ -153,6 +154,62 @@ PrimitiveSequencePtr PrimitiveSequence::flipped() const
         out.flatAt(i) = out.flatAt(i)->flipped();
 
     return new PrimitiveSequence(out);
+}
+
+BezierSplinePtr PrimitiveSequence::toBezierSpline(double tolerance) const
+{
+    BezierSpline::PrimitiveVector segments;
+
+    const int tolerancePts = 3; //compute difference at this many points
+    const int maxBeziers = 5; //every primitive will be represented by at most this many beziers
+
+    for(int i = 0; i < (int)_primitives.size(); ++i) //loop over primitives
+    {
+        int j;
+        for(j = 1; j < maxBeziers; ++j) //determine how many bezier segments we need
+        {
+            double step = _primitives[i]->length() / j;
+            bool errorTooHigh = false;
+
+            for(int k = 0; k < j; ++k) //for each bezier segment
+            {
+                double start = step * k;
+                double end = start + step;
+                CubicBezier cur = CubicBezier::hermite(_primitives[i]->pos(start), _primitives[i]->pos(end),
+                                                       _primitives[i]->der(start) * step, _primitives[i]->der(end) * step);
+
+                for(int m = 0; m < tolerancePts; ++m) //for each tolerance test point
+                {
+                    double t = double(m + 1) / double(tolerancePts + 1);
+                    Vector2d splinePt;
+                    cur.eval(t, &splinePt);
+                    if((splinePt - _primitives[i]->pos(start + step * t)).squaredNorm() > tolerance * tolerance)
+                    {
+                        errorTooHigh = true;
+                        break;
+                    }
+                }
+
+                if(errorTooHigh)
+                    break;
+            }
+
+            if(!errorTooHigh)
+                break; //j now contains the right number of segments
+        }
+
+        double step = _primitives[i]->length() / j;
+        for(int k = 0; k < j; ++k) //for each bezier segment
+        {
+            double start = step * k;
+            double end = start + step;
+            CubicBezier cur = CubicBezier::hermite(_primitives[i]->pos(start), _primitives[i]->pos(end),
+                                                    _primitives[i]->der(start) * step, _primitives[i]->der(end) * step);
+            segments.push_back(cur);
+        }
+    }
+
+    return new BezierSpline(segments);
 }
 
 END_NAMESPACE_Cornu

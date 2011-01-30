@@ -28,6 +28,7 @@
 NAMESPACE_Cornu
 
 CORNU_SMART_FORW_DECL(PrimitiveSequence);
+CORNU_SMART_FORW_DECL(BezierSpline);
 
 class PrimitiveSequence : public Curve
 {
@@ -53,6 +54,8 @@ public:
     PrimitiveSequencePtr flipped() const;
 
     const VectorC<CurvePrimitiveConstPtr> &primitives() const { return _primitives; }
+
+    BezierSplinePtr toBezierSpline(double tolerance) const;
 
 private:
     VectorC<CurvePrimitiveConstPtr> _primitives;
