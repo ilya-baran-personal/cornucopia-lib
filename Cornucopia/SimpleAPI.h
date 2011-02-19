@@ -63,6 +63,13 @@ struct BasicPrimitive
 //and returns a vector of primitives and (optionally) whether the curve is closed
 std::vector<BasicPrimitive> fit(const std::vector<Point> &points, const Parameters &parameters, bool *outClosed = NULL);
 
+struct BasicBezier
+{
+    Point controlPoint[4];
+};
+
+std::vector<BasicBezier> toBezierSpline(const std::vector<BasicPrimitive> &curve, double tolerance);
+
 } //end of namespace Cornu
 
 #endif //CORNUCOPIA_SIMPLEAPI_H_INCLUDED

@@ -28,6 +28,7 @@
 #include "GraphConstructor.h"
 #include "Regression.h"
 #include "PrimitiveSequence.h"
+#include "Bezier.h"
 
 #include <QFileDialog>
 #include <QFile>
@@ -198,6 +199,33 @@ void Document::_processSketch(int idx)
     {
         _sketches[idx].sceneItem = new CurveSceneItem(_sketches[idx].curve, _sketches[idx].name);
         _view->scene()->addItem(_sketches[idx].sceneItem);
+
+#if 0   //cubic spline fit -- for debugging
+        Cornu::BezierSplinePtr spline = _sketches[idx].curve->toBezierSpline(1);
+
+        Cornu::Debugging::get()->printf("Segments = %d, Bezier = %d", _sketches[idx].curve->primitives().size(), spline->primitives().size());
+
+        for(int i = 0; i < spline->primitives().size(); ++i)
+        {
+            double step = 1. / 20. + 1e-10;
+            for(double t = 0; t < 1.; t += step)
+            {
+                Vector2d p1, p2;
+                spline->primitives()[i].eval(t, &p1);
+                spline->primitives()[i].eval(t + step, &p2);
+                Cornu::Debugging::get()->drawLine(p1, p2, (i % 2 == 0) ? Vector3d(1, 0, 0) : Vector3d(1, .5, .5), "Bezier Spline");
+            }
+
+            for(int j = 0; j < 3; ++j)
+            {
+                Vector2d p1, p2;
+                p1 = spline->primitives()[i].controlPoint(j);
+                p2 = spline->primitives()[i].controlPoint(j + 1);
+                Cornu::Debugging::get()->drawLine(p1, p2, Vector3d(0, .5, .5), "Bezier Spline Control");
+            }
+        }
+#endif
+
     }
 
     //see if it output a regression dataset and offer to save it

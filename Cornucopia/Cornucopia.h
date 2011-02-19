@@ -29,5 +29,6 @@
 #include "Line.h"
 #include "Arc.h"
 #include "Clothoid.h"
+#include "Bezier.h"
 
 #endif //CORNUCOPIA_CORNUCOPIA_H_INCLUDED

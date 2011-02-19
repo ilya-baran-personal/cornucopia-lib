@@ -62,35 +62,43 @@ vector<BasicPrimitive> fit(const vector<Point> &points, const Parameters &parame
     return out;
 }
 
-void BasicPrimitive::eval(double s, Point *outPos, Point *outDer, Point *outDer2) const
+//converts a BasicPrimitive to a CurvePrimitive
+CurvePrimitivePtr _toCurvePrimitive(const BasicPrimitive &primitive)
 {
     CurvePrimitive::ParamVec params;
-    params.resize(4 + type, 1);
+    params.resize(4 + primitive.type, 1);
 
-    params[CurvePrimitive::X] = start.x;
-    params[CurvePrimitive::Y] = start.y;
-    params[CurvePrimitive::ANGLE] = startAngle;
-    params[CurvePrimitive::LENGTH] = length;
+    params[CurvePrimitive::X] = primitive.start.x;
+    params[CurvePrimitive::Y] = primitive.start.y;
+    params[CurvePrimitive::ANGLE] = primitive.startAngle;
+    params[CurvePrimitive::LENGTH] = primitive.length;
 
-    CurvePrimitivePtr curvePrimitive;
+    CurvePrimitivePtr out;
 
-    switch(type)
+    switch(primitive.type)
     {
-    case LINE:
-        curvePrimitive = new Line();
+    case BasicPrimitive::LINE:
+        out = new Line();
         break;
-    case ARC:
-        curvePrimitive = new Arc();
-        params[CurvePrimitive::CURVATURE] = startCurvature;
+    case BasicPrimitive::ARC:
+        out = new Arc();
+        params[CurvePrimitive::CURVATURE] = primitive.startCurvature;
         break;
-    case CLOTHOID:
-        curvePrimitive = new Clothoid();
-        params[CurvePrimitive::CURVATURE] = startCurvature;
-        params[CurvePrimitive::DCURVATURE] = curvatureDerivative;
+    case BasicPrimitive::CLOTHOID:
+        out = new Clothoid();
+        params[CurvePrimitive::CURVATURE] = primitive.startCurvature;
+        params[CurvePrimitive::DCURVATURE] = primitive.curvatureDerivative;
         break;
     };
 
-    curvePrimitive->setParams(params);
+    out->setParams(params);
+
+    return out;
+}
+
+void BasicPrimitive::eval(double s, Point *outPos, Point *outDer, Point *outDer2) const
+{
+    CurvePrimitivePtr curvePrimitive = _toCurvePrimitive(*this);
 
     Eigen::Vector2d pos, der, der2;
     curvePrimitive->eval(s, &pos, &der, &der2);
@@ -101,6 +109,31 @@ void BasicPrimitive::eval(double s, Point *outPos, Point *outDer, Point *outDer2
         *outDer = Point(der[0], der[1]);
     if(outDer2)
         *outDer2 = Point(der2[0], der2[1]);
+}
+
+vector<BasicBezier> toBezierSpline(const vector<BasicPrimitive> &curve, double tolerance)
+{
+    VectorC<CurvePrimitiveConstPtr> curvePrimitives;
+    for(int i = 0; i < (int)curve.size(); ++i)
+        curvePrimitives.push_back(_toCurvePrimitive(curve[i]));
+
+    PrimitiveSequence seq(curvePrimitives);
+
+    BezierSplinePtr spline = seq.toBezierSpline(tolerance);
+
+    vector<BasicBezier> out(spline->primitives().size());
+
+    for(int i = 0; i < (int)spline->primitives().size(); ++i)
+    {
+        for(int j = 0; j < 4; ++j)
+        {
+            Vector2d pt = spline->primitives()[i].controlPoint(j);
+            out[i].controlPoint[j].x = pt[0];
+            out[i].controlPoint[j].y = pt[1];
+        }
+    }
+
+    return out;
 }
 
 END_NAMESPACE_Cornu

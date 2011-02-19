@@ -56,6 +56,10 @@ public:
         }
 
         printf("SimpleAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+
+        std::vector<Cornu::BasicBezier> bezier = Cornu::toBezierSpline(result, 1.);
+
+        printf("Conversion to Bezier results in %d segments\n", bezier.size());
     }
 
     void fullAPITest()

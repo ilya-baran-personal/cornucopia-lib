@@ -4,6 +4,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 PROJECT( CORNUCOPIA )
 
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
 IF(MSVC)
    ADD_DEFINITIONS(/arch:SSE2 /fp:fast)
 ELSE(MSVC)
