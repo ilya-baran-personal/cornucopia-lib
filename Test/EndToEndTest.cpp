@@ -55,11 +55,11 @@ public:
             nPrims[result[i].type]++;
         }
 
-        printf("SimpleAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+        Cornu::Debugging::get()->printf("SimpleAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
 
         std::vector<Cornu::BasicBezier> bezier = Cornu::toBezierSpline(result, 1.);
 
-        printf("Conversion to Bezier results in %d segments\n", bezier.size());
+        Cornu::Debugging::get()->printf("Conversion to Bezier results in %d segments\n", bezier.size());
     }
 
     void fullAPITest()
@@ -90,7 +90,7 @@ public:
             nPrims[output->primitives()[i]->getType()]++;
         }
 
-        printf("FullAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+        Cornu::Debugging::get()->printf("FullAPI Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
 
         //now try again with a reduced pixel size
         double scale = 0.01;
@@ -110,7 +110,7 @@ public:
             nPrims[output->primitives()[i]->getType()]++;
         }
 
-        printf("Small Pixels Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
+        Cornu::Debugging::get()->printf("Small Pixels Finished, #lines = %d, #arcs = %d, #clothoids = %d\n", nPrims[0], nPrims[1], nPrims[2]);
 
         //output is destroyed with the destruction of the smart pointer and the fitter
     }
