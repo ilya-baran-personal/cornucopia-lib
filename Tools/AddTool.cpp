@@ -28,10 +28,10 @@
 #include <QFileInfo>
 #include <QProcess>
 
-static const QString cppTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/cpp_template.txt";
-static const QString hTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/h_template.txt";
-static const QString testTemplateFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/test_template.txt";
-static const QString cmakeListsFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/CMakeLists.txt";
+static const QString cppTemplateFileName = QString(Cornucopia_SOURCE_DIR) + "/Tools/cpp_template.txt";
+static const QString hTemplateFileName = QString(Cornucopia_SOURCE_DIR) + "/Tools/h_template.txt";
+static const QString testTemplateFileName = QString(Cornucopia_SOURCE_DIR) + "/Tools/test_template.txt";
+static const QString cmakeListsFileName = QString(Cornucopia_SOURCE_DIR) + "/CMakeLists.txt";
 
 void AddTool::execute()
 {
@@ -65,8 +65,8 @@ void AddTool::_add(QString fileName, bool header, bool source, bool moc, QString
 
     qDebug() << "Adding:" << fileName << "in project" << project << "Header =" << header << "Source =" << source;
 
-    QString headerFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/" + project + "/" + fileName + ".h";
-    QString sourceFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/" + project + "/" + fileName + ".cpp";
+    QString headerFileName = QString(Cornucopia_SOURCE_DIR) + "/" + project + "/" + fileName + ".h";
+    QString sourceFileName = QString(Cornucopia_SOURCE_DIR) + "/" + project + "/" + fileName + ".cpp";
 
     if(header && QFileInfo(headerFileName).exists())
     {

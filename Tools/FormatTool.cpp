@@ -25,7 +25,7 @@
 #include <QDir>
 #include <QDebug>
 
-static const QString fileHeaderFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Tools/fileHeader.txt";
+static const QString fileHeaderFileName = QString(Cornucopia_SOURCE_DIR) + "/Tools/fileHeader.txt";
 
 class _LineFormatter
 {
@@ -64,7 +64,7 @@ void FormatTool::execute()
 
     //Find all the cpp and h files in the source tree
     QStringList files;
-    _findAllCodeFiles(CORNUCOPIA_SOURCE_DIR, files);
+    _findAllCodeFiles(Cornucopia_SOURCE_DIR, files);
 
     for(int i = 0; i < files.count(); ++i)
         formatFile(files[i]);

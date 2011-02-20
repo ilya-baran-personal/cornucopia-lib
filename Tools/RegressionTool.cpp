@@ -32,7 +32,7 @@
 using namespace std;
 using namespace Eigen;
 
-static const QString regressionFileName = QString(CORNUCOPIA_SOURCE_DIR) + "/Cornucopia/RegressionGen.cpp";
+static const QString regressionFileName = QString(Cornucopia_SOURCE_DIR) + "/Cornucopia/RegressionGen.cpp";
 
 void RegressionTool::execute()
 {
