@@ -52,7 +52,7 @@ public:
 
     void run();
 
-    PrimitiveSequenceConstPtr finalOutput() const;
+    PrimitiveSequenceConstPtr finalOutput() const; //returns null if fitting failed for some reason
 
     double scale() const;  //returns the scale (pixel size * detected scale)
     double scaledParameter(Parameters::ParameterType param) const;

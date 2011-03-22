@@ -65,6 +65,8 @@ void Document::curveDrawn(Cornu::PolylineConstPtr polyline)
         if(!_sketches[i].selected)
             continue;
         Cornu::CurveConstPtr curve = _sketches[i].curve;
+        if(!curve)
+            continue;
         double distStart = curve->distanceSqTo(startPos);
         double distEnd = curve->distanceSqTo(endPos);
         if(distStart > threshold && distEnd > threshold)
