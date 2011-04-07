@@ -32,11 +32,16 @@ class ErrorComputer : public smart_base
 {
 public:
     virtual ~ErrorComputer() {}
+    //Computes the summed squared distance from the samples between from and to (incl.) to the given curve, weighted by distance between samples.
+    //If firstToEndpoint is true, computes the distance of the first sample to the start of the curve (end if reversed==true) instead of to the
+    //projection.  Analogously for lastToEndpoint.
     virtual double computeError(CurvePrimitiveConstPtr curve, int from, int to,
                                 bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
+    //Computes the individual error terms in a format suitable for optimization.
     virtual void computeErrorVector(CurvePrimitiveConstPtr curve, int from, int to,
                                     Eigen::VectorXd &outError, Eigen::MatrixXd *outErrorDer = NULL,
                                     bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
+    //Computes the error to be used in the graph weight--by default, the squared maximum distance to the curve
     virtual double computeErrorForCost(CurvePrimitiveConstPtr curve, int from, int to,
                                        bool firstToEndpoint = true, bool lastToEndpoint = true, bool reversed = false) const = 0;
 };

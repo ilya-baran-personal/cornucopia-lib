@@ -86,16 +86,18 @@ void Parameters::_initializePresets()
 
     _initializeParameters();
 
+    _presets.resize(NUM_PRESETS);
+
     //default
     Parameters defaultParams("Default (G2)");
-    _presets.push_back(defaultParams);
+    _presets[DEFAULT] = defaultParams;
 
     //Loose
     Parameters loose = defaultParams;
     loose._name = "Loose (G2)";
     loose.set(ERROR_COST, 0.2);
     loose.set(ERROR_THRESHOLD, 8.);
-    _presets.push_back(loose);
+    _presets[LOOSE] = loose;
 
     //Accurate
     Parameters accurate = defaultParams;
@@ -105,7 +107,7 @@ void Parameters::_initializePresets()
     accurate.set(CURVATURE_ESTIMATE_REGION, 10.);
     accurate.set(POINTS_PER_CIRCLE, 30.);
     accurate.set(ERROR_THRESHOLD, 2.);
-    _presets.push_back(accurate);
+    _presets[ACCURATE] = accurate;
 
     //polyline
     Parameters polyline = defaultParams;
@@ -117,7 +119,7 @@ void Parameters::_initializePresets()
     polyline.set(G1_COST, infinity);
     polyline.set(G2_COST, infinity);
     polyline.set(SHORTNESS_COST, 0);
-    _presets.push_back(polyline);
+    _presets[POLYLINE] = polyline;
 
     //lines and arcs
     Parameters linesarcs = defaultParams;
@@ -128,14 +130,14 @@ void Parameters::_initializePresets()
     linesarcs.set(G1_COST, 0.);
     linesarcs.set(G2_COST, infinity);
     linesarcs.set(SHORTNESS_COST, 0);
-    _presets.push_back(linesarcs);
+    _presets[LINES_AND_ARCS] = linesarcs;
 
     //Clothoid only
     Parameters co = defaultParams;
     co._name = "Clothoid Only";
     co.set(LINE_COST, infinity);
     co.set(ARC_COST, infinity);
-    _presets.push_back(co);
+    _presets[CLOTHOID_ONLY] = co;
 }
 
 const double Parameters::infinity = 1e30;

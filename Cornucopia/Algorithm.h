@@ -44,7 +44,7 @@ enum AlgorithmStage
     GRAPH_CONSTRUCTION,
     PATH_FINDING,
     COMBINING,
-    NUM_ALGORITHM_STAGES
+    NUM_ALGORITHM_STAGES //must be last
 };
 
 struct AlgorithmOutputBase : public smart_base

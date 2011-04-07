@@ -76,8 +76,20 @@ public:
         OVERSKETCH_THRESHOLD
     };
 
+    enum Preset
+    {
+        DEFAULT,
+        LOOSE,
+        ACCURATE,
+        POLYLINE,
+        LINES_AND_ARCS,
+        CLOTHOID_ONLY,
+        NUM_PRESETS //must be last
+    };
+
     Parameters(const std::string &name = std::string());
     Parameters(const Parameters &parameters) : _name(parameters._name), _values(parameters._values), _algorithms(parameters._algorithms) {}
+    Parameters(Preset preset) { *this = presets()[preset]; }
 
     void set(ParameterType param, double val) { _values[param] = val; }
     double get(ParameterType param) const { return _values[param]; }
