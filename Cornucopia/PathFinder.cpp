@@ -62,7 +62,7 @@ public:
         if(_validated)
             return true;
         _validated = true;
-        double newCost = _edge->validatedCost(fitter);
+        float newCost = _edge->validatedCost(fitter);
         if(newCost > _cost)
         {
             //Debugging::get()->printf("Inv");
@@ -78,14 +78,14 @@ public:
     void setIgnore() { _ignore = true; }
     double cost() const { return _cost; }
     double reducedCost() const { return _reducedCost; }
-    void reduce(double by) { _reducedCost = _cost - by; }
+    void reduce(double by) { _reducedCost = _cost - (float)by; }
 
 private:
     const Edge *_edge; //the actual edge in the graph
     bool _validated;
     bool _ignore;
-    double _cost;
-    double _reducedCost;
+    float _cost;
+    float _reducedCost;
 };
 
 class PathFindingGraph
@@ -100,7 +100,6 @@ public:
         _eData.reserve(edges.size());
         for(size_t i = 0; i < edges.size(); ++i)
             _eData.push_back(PathFindingEdgeData(&(edges[i])));
-
         for(size_t i = 0; i < vertices.size(); ++i)
         {
             _vData[i].numOutgoing = (int)vertices[i].edges.size();
@@ -436,7 +435,7 @@ protected:
             ss << curveTypes[primitives[graph->edges[shortestPath[i]].startVtx].curve->getType()];
             if(graph->edges[shortestPath[i]].continuity == -1)
                 break;
-            ss << "-" << graph->edges[shortestPath[i]].continuity << "-";
+            ss << "-" << (int)graph->edges[shortestPath[i]].continuity << "-";
             if(!closed && i + 1 == (int)shortestPath.size())
                 ss << curveTypes[primitives[graph->edges[shortestPath[i]].endVtx].curve->getType()];
         }

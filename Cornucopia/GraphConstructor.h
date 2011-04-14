@@ -31,7 +31,7 @@ struct Vertex
     int primitiveIdx;
     bool source;
     bool target;
-    double cost;
+    float cost;
 
     std::vector<int> edges; //edges that start at this vertex
 };
@@ -40,10 +40,10 @@ struct Edge
 {
     int startVtx;
     int endVtx;
-    int continuity; //continuity = -1 for a dummy edge from a vertex to itself
-    double cost; //includes the half the cost of the vertex behind and the vertex in front (full cost for source and target vertices).
+    char continuity; //continuity = -1 for a dummy edge from a vertex to itself
+    float cost; //includes the half the cost of the vertex behind and the vertex in front (full cost for source and target vertices).
 
-    double validatedCost(const Fitter &fitter) const;
+    float validatedCost(const Fitter &fitter) const;
 };
 
 CORNU_SMART_FORW_DECL(Dataset);

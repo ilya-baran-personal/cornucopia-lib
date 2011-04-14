@@ -334,7 +334,7 @@ protected:
                     out.vertices[i].target = (primitives[i].endIdx + 1 == pts.size());
             }
 
-            out.vertices[i].cost = out.costEvaluator->vertexCost(i);
+            out.vertices[i].cost = (float)out.costEvaluator->vertexCost(i);
 
             if(out.vertices[i].source && out.vertices[i].target) //one primitive over the entire curve--create dummy edge
             {
@@ -379,9 +379,9 @@ protected:
                     e.continuity = continuity;
                     e.startVtx = startIdx;
                     e.endVtx = prim;
-                    e.cost = out.costEvaluator->edgeCost(startIdx, prim, continuity);
+                    e.cost = (float)out.costEvaluator->edgeCost(startIdx, prim, continuity);
                     e.cost += out.vertices[startIdx].cost;
-                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
+                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1.f : 0.5f);
                     if(e.cost >= Parameters::infinity)
                         continue;
                     out.vertices[startIdx].edges.push_back((int)out.edges.size());
@@ -425,9 +425,9 @@ protected:
                     e.continuity = continuity;
                     e.startVtx = i;
                     e.endVtx = k;
-                    e.cost = out.costEvaluator->edgeCost(i, k, continuity);
-                    e.cost += out.vertices[i].cost * (out.vertices[i].source ? 1. : 0.5);
-                    e.cost += out.vertices[k].cost * (out.vertices[k].target ? 1. : 0.5);
+                    e.cost = (float)out.costEvaluator->edgeCost(i, k, continuity);
+                    e.cost += out.vertices[i].cost * (out.vertices[i].source ? 1.f : 0.5f);
+                    e.cost += out.vertices[k].cost * (out.vertices[k].target ? 1.f : 0.5f);
                     if(e.cost >= Parameters::infinity)
                         continue;
                     out.vertices[i].edges.push_back((int)out.edges.size());
@@ -461,9 +461,9 @@ protected:
                     e.continuity = continuity;
                     e.startVtx = prim;
                     e.endVtx = endIdx;
-                    e.cost = out.costEvaluator->edgeCost(prim, endIdx, continuity);
+                    e.cost = (float)out.costEvaluator->edgeCost(prim, endIdx, continuity);
                     e.cost += out.vertices[endIdx].cost;
-                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1. : 0.5);
+                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1.f : 0.5f);
                     if(e.cost >= Parameters::infinity)
                         continue;
                     out.vertices[prim].edges.push_back((int)out.edges.size());
@@ -505,14 +505,14 @@ protected:
     }
 };
 
-double Edge::validatedCost(const Fitter &fitter) const
+float Edge::validatedCost(const Fitter &fitter) const
 {
     if(continuity < 0) //dummy edge
         return cost;
 
     Combination comb = twoCurveCombine(startVtx, endVtx, continuity, fitter);
 
-    double newCost = fitter.output<GRAPH_CONSTRUCTION>()->costEvaluator->edgeCost(startVtx, endVtx, continuity, comb.err1, comb.err2);
+    float newCost = (float)fitter.output<GRAPH_CONSTRUCTION>()->costEvaluator->edgeCost(startVtx, endVtx, continuity, comb.err1, comb.err2);
 
     //only increase cost
     return max(newCost, cost);
