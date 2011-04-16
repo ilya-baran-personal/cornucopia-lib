@@ -26,7 +26,6 @@
 #include "CurvePrimitive.h"
 #include "Preprocessing.h"
 #include "TwoCurveCombine.h"
-#include "Regression.h"
 #include "Oversketcher.h"
 
 using namespace std;
@@ -99,8 +98,7 @@ class CostEvaluator : public smart_base
 public:
     CostEvaluator(const Fitter &fitter) :
         _primitives(fitter.output<PRIMITIVE_FITTING>()->primitives),
-        _corners(fitter.output<RESAMPLING>()->corners),
-        _dataModel(new DataModel())
+        _corners(fitter.output<RESAMPLING>()->corners)
     {
         for(int i = 0; i < 3; ++i)
         {
@@ -184,29 +182,6 @@ public:
         return out;
     }
 
-    IndependentValue independentValue(int p1, int p2, int continuity, bool reversed) const
-    {
-        IndependentValue out;
-
-        out.continuity = continuity;
-        int p = p1;
-        for(int i = 0; i < 2; ++i)
-        {
-            int idx = reversed ? 1 - i : i;
-            out.type[idx] = _primitives[p].curve->getType();
-            out.startCurvSign[idx] = _primitives[p].startCurvSign;
-            out.endCurvSign[idx] = _primitives[p].endCurvSign;
-            if(_inflectionCost == 0)
-                out.startCurvSign[idx] = out.endCurvSign[idx] = 0;
-            out.length[idx] = _primitives[p].curve->length();
-            p = p2;
-        }
-
-        out.diffs = _getDiffs(p1, p2, continuity);
-
-        return out;
-    }
-
 private:
     double _errorCost(double error) const
     {
@@ -216,7 +191,6 @@ private:
     void _getExtraError(int p1, int p2, int continuity, double &outExtra1, double &outExtra2) const
     {
         //outExtra1 = outExtra2 = 0.;  return;
-#if 1   //Dumb method
         int offset = continuity;
         if(continuity > 0 && _primitives[p1].endIdx == _primitives[p2].startIdx)
             offset = 0; //one of the curve is a start or an end curve
@@ -229,17 +203,6 @@ private:
 
         outExtra1 = diffs[0] * 0.5 + len1 * diffs[1] * 0.25 + SQR(len1) * diffs[2] * 0.125;
         outExtra2 = diffs[0] * 0.5 + len2 * diffs[1] * 0.25 + SQR(len2) * diffs[2] * 0.125;
-#else
-        IndependentValue indep = independentValue(p1, p2, continuity, false);
-        outExtra1 = max(0., _dataModel->get(indep));
-
-        //reverse
-        swap(indep.type[0], indep.type[1]);
-        swap(indep.length[0], indep.length[1]);
-        swap(indep.startCurvSign[0], indep.startCurvSign[1]);
-        swap(indep.endCurvSign[0], indep.endCurvSign[1]);
-        outExtra2 = max(0., _dataModel->get(indep));
-#endif
     }
 
     Vector3d _getDiffs(int p1, int p2, int offset) const
@@ -295,7 +258,6 @@ private:
     double _lengthScale;
     double _shortnessCostFactor;
     double _shortnessThreshold;
-    DataModelConstPtr _dataModel;
 };
 
 class DefaultGraphConstructor : public Algorithm<GRAPH_CONSTRUCTION>
@@ -476,35 +438,6 @@ protected:
     }
 };
 
-class DatasetConstructor : public DefaultGraphConstructor
-{
-public:
-    string name() const { return "Dataset Construction"; }
-
-protected:
-    void _run(const Fitter &fitter, AlgorithmOutput<GRAPH_CONSTRUCTION> &out)
-    {
-        const vector<FitPrimitive> &primitives = fitter.output<PRIMITIVE_FITTING>()->primitives;
-        DefaultGraphConstructor::_run(fitter, out);
-        out.dataset = new Dataset();
-
-        for(int i = 0; i < (int)out.edges.size(); ++i)
-        {
-            const Edge &e = out.edges[i];
-            if(e.continuity < 0)
-                continue; //dummy edge
-
-            Combination comb = twoCurveCombine(e.startVtx, e.endVtx, e.continuity, fitter);
-
-            double errDiff1 = (sqrt(comb.err1) - sqrt(primitives[e.startVtx].error)) * sqrt(primitives[e.startVtx].curve->length());
-            double errDiff2 = (sqrt(comb.err2) - sqrt(primitives[e.endVtx].error)) * sqrt(primitives[e.endVtx].curve->length());
-
-            out.dataset->addPoint(out.costEvaluator->independentValue(e.startVtx, e.endVtx, e.continuity, false), errDiff1);
-            out.dataset->addPoint(out.costEvaluator->independentValue(e.startVtx, e.endVtx, e.continuity, true), errDiff2);
-        }
-    }
-};
-
 float Edge::validatedCost(const Fitter &fitter) const
 {
     if(continuity < 0) //dummy edge
@@ -521,7 +454,6 @@ float Edge::validatedCost(const Fitter &fitter) const
 void Algorithm<GRAPH_CONSTRUCTION>::_initialize()
 {
     new DefaultGraphConstructor();
-    new DatasetConstructor();
 }
 
 END_NAMESPACE_Cornu

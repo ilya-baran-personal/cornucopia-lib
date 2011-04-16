@@ -21,7 +21,6 @@
 #include "ToolsWindow.h"
 #include "AddTool.h"
 #include "FormatTool.h"
-#include "RegressionTool.h"
 
 #include <QAction>
 #include <QMenuBar>
@@ -30,7 +29,6 @@ ToolsWindow::ToolsWindow()
 {
     addTool(new AddTool(this));
     addTool(new FormatTool(this));
-    addTool(new RegressionTool(this));
 }
 
 void ToolsWindow::addTool(Tool *tool)

@@ -26,7 +26,6 @@
 #include "ScrollScene.h"
 #include "SceneItem.h"
 #include "GraphConstructor.h"
-#include "Regression.h"
 #include "PrimitiveSequence.h"
 #include "Bezier.h"
 
@@ -228,22 +227,6 @@ void Document::_processSketch(int idx)
         }
 #endif
 
-    }
-
-    //see if it output a regression dataset and offer to save it
-    Cornu::DatasetPtr dataset = fitter.output<Cornu::GRAPH_CONSTRUCTION>()->dataset;
-    if(dataset)
-    {
-        Cornu::DataModelPtr model = new Cornu::DataModel(dataset);
-
-        QString fileName = QFileDialog::getSaveFileName(_view, "Save Dataset",
-                            "",
-                            "Cornu Dataset (*.cds)");
-
-        if(!fileName.isEmpty())
-        {
-            dataset->save(string(fileName.toAscii().constData(), fileName.length()));
-        }
     }
 }
 
