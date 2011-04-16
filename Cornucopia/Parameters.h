@@ -40,40 +40,42 @@ class Parameters
 public:
     enum ParameterType
     {
-        LINE_COST,
-        ARC_COST,
-        CLOTHOID_COST,
-        G0_COST,
-        G1_COST,
-        G2_COST,
-        ERROR_COST,
-        SHORTNESS_COST,
-        INFLECTION_COST,
+        //The costs are used for computing edge and vertex weights in the graph.
+        //Each comment is the effect increasing the parameter has on the results
+        LINE_COST, //Uses fewer lines
+        ARC_COST, //Uses fewer arcs
+        CLOTHOID_COST, //Uses fewer clothoids
+        G0_COST, //Uses fewer G0 transitions
+        G1_COST, //Uses fewer G1 transitions
+        G2_COST, //Uses fewer G2 transitions
+        ERROR_COST, //Favors better fit, but uses more primitives
+        SHORTNESS_COST, //Avoids shorter segments
+        INFLECTION_COST, //Avoids inflections
         //This is not a real parameter--below are parameters the user should not control
         INTERNAL_PARAMETERS_MARKER, 
-        PIXEL_SIZE,
-        SMALL_CURVE_PIXELS,
-        LARGE_CURVE_PIXELS,
-        MAX_RESCALE,
-        MIN_PRELIM_LENGTH,
-        DP_CUTOFF,
-        CLOSEDNESS_THRESHOLD,
-        MINIMUM_CORNER_SPACING,
-        CORNER_NEIGHBORHOOD,
+        PIXEL_SIZE, //Increasing the pixel size is almost equivalent to scaling down the curve by the same factor.  Many of the other parameters are in these "pixels"
+        SMALL_CURVE_PIXELS, //Curves below this size get scaled up
+        LARGE_CURVE_PIXELS, //Curves above this size get scaled down
+        MAX_RESCALE, //Maximum scale applied to the curve based on size -- set this to 1 to prevent rescaling
+        MIN_PRELIM_LENGTH, //The rate at which the curve gets resampled the first time around.  Increasing this decreases accuracy but makes the algorithm less sensitive to noise.
+        DP_CUTOFF, //The stopping criterion for the Douglas-Peucker part of preliminary resampling.  Increasing this decreases accuracy but makes the algorithm less sensitive to noise.
+        CLOSEDNESS_THRESHOLD, //Roughly how far the endpoints of a curve need to be for the curve to be considered closed.
+        MINIMUM_CORNER_SPACING, //Two corners will not be identified at smaller than this distance
+        CORNER_NEIGHBORHOOD, //How much arclength on each side of a point on the curve is used to determine whether it is a corner
         DENSE_SAMPLING_STEP,
         CORNER_SCALES,
         CORNER_THRESHOLD,
-        MAX_SAMPLING_INTERVAL,
-        CURVATURE_ESTIMATE_REGION,
-        POINTS_PER_CIRCLE,
-        MAX_SAMPLE_RATE_SLOPE,
-        ERROR_THRESHOLD,
-        SHORTNESS_THRESHOLD,
-        TWO_CURVE_CURVATURE_ADJUST,
-        CURVE_ADJUST_DAMPING,
-        REDUCE_GRAPH_EVERY,
-        COMBINE_DAMPING,
-        OVERSKETCH_THRESHOLD
+        MAX_SAMPLING_INTERVAL, //When resampling, maximum distance between adjacent samples, even on a straight line
+        CURVATURE_ESTIMATE_REGION, //How much arclength is used to estimate the local curvature at a point.  Decreasing this tends to make the estimated curvature larger.
+        POINTS_PER_CIRCLE, //If the curvature were constant, this would be the sampling rate.  Increasing this increases result quality at the cost of performance
+        MAX_SAMPLE_RATE_SLOPE, //How much the curvature-dependent sampling rate can change per unit arclength
+        ERROR_THRESHOLD, //Primitves whose error is greater than are discarded.  Decreasing this increases performance, but may hurt quality and eventually result in a fit failure
+        SHORTNESS_THRESHOLD, //Primitives below this length are considered "short" for the purposes of the shortness cost
+        TWO_CURVE_CURVATURE_ADJUST, //When combining two curves and matching their curvature, how much to compensate with the curvature at the opposite endpoints
+        CURVE_ADJUST_DAMPING, //How much regularization is added to the solver for edge validation--increasing this makes the solver more stable, but converge slower
+        REDUCE_GRAPH_EVERY, //How many invalid paths are found before the A* heuristic is recomputed.  Setting this too high or too low hurts performance.
+        COMBINE_DAMPING, //How much regularization is added to the solver for the final combine--increasing this makes the solver more stable, but converge slower
+        OVERSKETCH_THRESHOLD //How far the endpoints need to be from the base curve for them to be considered on the curve
     };
 
     enum Preset

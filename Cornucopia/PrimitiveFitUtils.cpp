@@ -61,8 +61,7 @@ LinePtr LineFitter::getCurve() const
     SelfAdjointEigenSolver<Matrix2d> eigenSolver(cov);
 
     Vector2d eigVs = eigenSolver.eigenvalues();
-    int idx = eigVs[0] > eigVs[1] ? 0 : 1;
-    Vector2d dir = eigenSolver.eigenvectors().col(idx).normalized();
+    Vector2d dir = eigenSolver.eigenvectors().col(1).normalized(); //1 is the index of the larger eigenvalue
     Vector2d pt = _sum * factor;
     Vector2d pt0 = pt + ((_firstPoint - pt).dot(dir)) * dir;
     Vector2d pt1 = pt + ((_lastPoint - pt).dot(dir)) * dir;
@@ -93,10 +92,7 @@ ArcPtr ArcFitter::getCurve() const
     SelfAdjointEigenSolver<Matrix3d> eigenSolver(cov);
     Vector3d eigVs = eigenSolver.eigenvalues();
 
-    Vector3d::Index idx;
-    eigVs.minCoeff(&idx);
-
-    Vector3d dir = eigenSolver.eigenvectors().col(idx);
+    Vector3d dir = eigenSolver.eigenvectors().col(0); //0 is the index of the smallest eigenvalue
     dir /= (1e-16 + dir[2]);
 
     double dot = dir.dot(pt);

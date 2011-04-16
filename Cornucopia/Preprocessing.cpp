@@ -94,8 +94,13 @@ protected:
 
         const double radius = fitter.scaledParameter(Parameters::MIN_PRELIM_LENGTH);
 
+        //First mark the points on the original curve we definitely want to keep (e.g., corners) using Douglas-Peucker
         vector<bool> keep = _markDouglasPeucker(pts, fitter.scaledParameter(Parameters::DP_CUTOFF));
 
+        //Go through the points and resample them at the rate of radius, discarding those that are too close
+        //to the previous output point, and subdiving the line segments between points that are too far.
+        //Note that we don't want to simply resample the curve by the arclength parameterization, because
+        //noisy regions with too much arclength will get too many samples.
         outPts.push_back(pts[0]);
         for(int idx = 1; idx < pts.size(); ++idx)
         {
@@ -104,6 +109,7 @@ protected:
 
             double distSqToCur = (curPt - curResampled).squaredNorm();
 
+            //If it's the last point or was marked for keeping, just output it
             if(idx + 1 == pts.size() || keep[idx])
             {
                 if(distSqToCur > 1e-16)
@@ -111,11 +117,15 @@ protected:
                 continue;
             }
 
+            //If this point is within radius of the last output point (i.e., too close), discard it.
             if(distSqToCur < SQR(radius))
                 continue;
 
+            //The previous point has to be within radius of the previous output point
             Vector2d prevPt = pts[idx - 1];
             
+            //Find the intersection of the line segment between the previous and the current point with the circle
+            //centered at the last output point whose radius is "radius".
             ParametrizedLine<double, 2> line = ParametrizedLine<double, 2>::Through(prevPt, curPt);
 
             Vector2d closestOnLine = line.projection(curResampled);
