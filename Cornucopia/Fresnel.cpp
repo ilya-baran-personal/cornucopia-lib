@@ -33,8 +33,6 @@ using namespace Eigen;
 using namespace internal; //use Eigen's internal namespace for packet math
 NAMESPACE_Cornu
 
-typedef Packet4f PSETParam;
-
 //Polynomial evaluation routines
 template<typename Scalar>
 static Scalar polevl( const Scalar &x, const Matrix<Scalar, Dynamic, 1> &coefVec ) //regular
@@ -331,6 +329,7 @@ void fresnel(const VectorXd &t, VectorXd *s, VectorXd *c)
 
 //Vectorization stuff
 #ifdef EIGEN_VECTORIZE_SSE
+typedef Packet4f PSETParam;
 
 //vectorized polynomial evaluation
 template<typename Packet>
