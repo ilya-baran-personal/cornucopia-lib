@@ -134,7 +134,8 @@ public:
             //test against arcs past the end of the precomputed ones
             double start = to;
             double stop = max(_maxArcParam, from);
-            while(start - 1e-8 > stop)
+            int cnt = 0; //iteration count to prevent looping over a really spirally clothoid
+            while(start - 1e-8 > stop && ++cnt < 100)
             {
                 double len = min(start - stop, 1. / start);
                 _ApproxArc(start - len, len).test(pt, minDistSq, minT, from, to);
