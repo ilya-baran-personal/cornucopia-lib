@@ -53,6 +53,7 @@ public:
     void run();
 
     PrimitiveSequenceConstPtr finalOutput() const; //returns null if fitting failed for some reason
+    const std::vector<double> &originalSketchToFinalParameters() const; //returns a vector that for each original sketch point has the final parameter value
 
     double scale() const;  //returns the scale (pixel size * detected scale)
     double scaledParameter(Parameters::ParameterType param) const;

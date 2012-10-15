@@ -40,6 +40,7 @@ template<>
 struct AlgorithmOutput<PRELIM_RESAMPLING> : public AlgorithmOutputBase
 {
     PolylineConstPtr output;
+    std::vector<double> parameters; //parameters[i] is the parameter in output of the original point with index i
 };
 
 template<>
@@ -47,6 +48,7 @@ struct AlgorithmOutput<CURVE_CLOSING> : public AlgorithmOutputBase
 {
     PolylineConstPtr output;
     bool closed;
+    std::vector<double> parameters; //parameters[i] is the parameter in output of the original point with index i
 };
 
 template<>

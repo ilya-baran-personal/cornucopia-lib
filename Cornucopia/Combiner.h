@@ -34,6 +34,7 @@ template<>
 struct AlgorithmOutput<COMBINING> : public AlgorithmOutputBase
 {
     PrimitiveSequenceConstPtr output;
+    std::vector<double> parameters; //parameters[i] is the parameter in output of the original point with index i
 };
 
 template<>

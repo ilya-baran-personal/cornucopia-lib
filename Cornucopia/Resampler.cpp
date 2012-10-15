@@ -22,8 +22,10 @@
 #include "Fitter.h"
 #include "Oversketcher.h"
 #include "Polyline.h"
+#include "Preprocessing.h"
 #include "CornerDetector.h"
 #include "PrimitiveFitUtils.h"
+#include "PiecewiseLinearUtils.h"
 #include "Arc.h"
 
 #include <iterator>
@@ -46,6 +48,9 @@ protected:
         smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
         PolylineConstPtr poly = osOutput->output;
         const VectorC<Vector2d> &pts = poly->pts();
+        out.parameters = fitter.output<OVERSKETCHING>()->parameters;
+
+        PiecewiseLinearMonotone prevToCur(PiecewiseLinearMonotone::POSITIVE);
 
         if(!poly->isClosed()) //if curve is not closed, start and end points are effectively corners
             corners[0] = corners.back() = true;
@@ -56,24 +61,29 @@ protected:
 
         if(!anyCorners) //also implies curve is closed
         {
-            out.output = _resample(fitter, poly);
+            vector<double> samples = _resample(fitter, poly);
+            out.output = _processSamples(samples, poly, 0, 0, prevToCur);
             out.corners = VectorC<bool>(vector<bool>(out.output->pts().size(), false), CIRCULAR);
-            displayOutput(out);
+            prevToCur.batchEval(out.parameters);
+            displayOutput(out, fitter);
             return;
         }
 
         out.corners = VectorC<bool>(0, pts.circular());
         VectorC<Vector2d> outputPts(0, pts.circular());
 
+        double lengthSoFar = 0;
+
         for(int idx = 0; idx < pts.endIdx(1); ++idx) //go through all possible segment starting points
         {
             if(!corners[idx])
                 continue;
 
+            int segmentStartIdx = idx;
             bool denseNearStart = (idx == 0) && osOutput->startCurve;
 
             VectorC<Vector2d> segment(0, NOT_CIRCULAR);
-            for(VectorC<Vector2d>::Circulator circ = pts.circulator(idx); !circ.done(); ++circ, ++idx)
+            for(VectorC<Vector2d>::Circulator circ = pts.circulator(idx); ; ++circ, ++idx)
             {
                 segment.push_back(*circ);
                 if(segment.size() > 1 && corners[circ.index()])
@@ -82,13 +92,16 @@ protected:
 
             bool denseNearEnd = (idx + 1 == pts.size()) && osOutput->endCurve;
 
-            --idx; //we should start the next segment from the last point of the current one
-
-            PolylineConstPtr resampled = _resample(fitter, new Polyline(segment), denseNearStart, denseNearEnd);
+            PolylineConstPtr segmentPoly = new Polyline(segment);
+            vector<double> samples = _resample(fitter, segmentPoly, denseNearStart, denseNearEnd);
+            PolylineConstPtr resampled = _processSamples(samples, segmentPoly, poly->idxToParam(segmentStartIdx), lengthSoFar, prevToCur);
             int startIdx = outputPts.empty() ? 0 : 1;
             copy(resampled->pts().begin() + startIdx, resampled->pts().end(), back_inserter(outputPts));
             out.corners.insert(out.corners.end(), resampled->pts().end() - (resampled->pts().begin() + startIdx), false);
             out.corners[0] = out.corners.back() = true;
+            lengthSoFar += resampled->length();
+
+            --idx; //we should start the next segment from the last point of the current one
         }
 
         if(poly->isClosed())
@@ -98,13 +111,36 @@ protected:
         }
 
         out.output = new Polyline(outputPts);
-        displayOutput(out);
+        //adjust the parameters into the range that the PiecewiseLinearMontone object uses
+        for(int i = 0; i < (int)out.parameters.size(); ++i)
+            if(out.parameters[i] < prevToCur.minX())
+                out.parameters[i] += poly->length();
+        prevToCur.batchEval(out.parameters);
+        displayOutput(out, fitter);
     }
 
-    virtual PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false) = 0;
+    virtual vector<double> _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false) = 0;
 
 private:
-    void displayOutput(AlgorithmOutput<RESAMPLING> &out)
+    PolylineConstPtr _processSamples(const vector<double> &samples, PolylineConstPtr prev, double offsetPrev,
+                                     double offsetCur, PiecewiseLinearMonotone &prevToCur)
+    {
+        VectorC<Vector2d> out(samples.size(), prev->pts().circular());
+        double lenSoFar = 0;
+        for(int i = 0; i < (int)samples.size(); ++i)
+        {
+            out[i] = prev->pos(samples[i]);
+            if(i > 0)
+                lenSoFar += (out[i] - out[i - 1]).norm();
+            prevToCur.add(offsetPrev + samples[i], offsetCur + lenSoFar);
+        }
+        if(prev->isClosed())
+            prevToCur.add(offsetPrev + prev->length(), offsetCur + lenSoFar + (out.back() - out[0]).norm());
+
+        return new Polyline(out);
+    }
+
+    void displayOutput(AlgorithmOutput<RESAMPLING> &out, const Fitter &fitter)
     {
         for(int i = 0; i < out.output->pts().size(); ++i)
         {
@@ -113,6 +149,14 @@ private:
                 Debugging::get()->drawPoint(out.output->pts()[i], Vector3d(0, 0, 0), "Resampled Corners");
         }
         Debugging::get()->printf("Num samples = %d", out.output->pts().size());
+
+#if 0
+        Debugging::get()->drawCurve(out.output, Vector3d(0, 0, 0), "Resampled curve");
+        for(int i = 0; i < (int)out.parameters.size(); ++i)
+        {
+            Debugging::get()->drawLine(fitter.originalSketch()->pts()[i], out.output->pos(out.parameters[i]), Vector3d(1, 0, 1), "Resampled Correspondence");
+        }
+#endif
     }
 };
 
@@ -295,60 +339,15 @@ private:
     PolylineConstPtr _basePoly;
 };
 
-//Approximates a monotone function piecewise-linearly.  Supports adding points and solving for x given y.
-//Used for solving for the adjustment to the sampling rate that leads to an integer number of samples.
-class PiecewiseLinearMonotone
-{
-public:
-    void add(double x, double y)
-    {
-        _map[x] = y;
-    }
-
-    //Find the x that maps to y.
-    double invert(double y) const
-    {
-        const double tol = 1e-8;
-        for(map<double, double>::const_iterator it = _map.begin(); it != _map.end(); ++it)
-        {
-            map<double, double>::const_iterator it2 = it;
-            ++it2;
-            if(it2 == _map.end())
-                break;
-
-            double x1 = it->first, y1 = it->second;
-            double x2 = it2->first, y2 = it2->second;
-            if(fabs(y1 - y2) < tol)
-                continue;
-
-            if(y1 < y2)
-                Debugging::get()->printf("ERROR: non-monotone sampling");
-
-            double w = (y - y1) / (y2 - y1);
-            double x = x1 * (1. - w) + x2 * w;
-            if(x + tol < x1 && it != _map.begin())
-                continue;
-            if(x - tol > x2 && (++it2 != _map.end())) //at this point, we don't need it2 anymore
-                continue;
-
-            return x;
-        }
-
-        return -1; //not found
-    }
-
-private:
-    map<double, double> _map;
-};
-
 class DefaultResampler : public BaseResampler
 {
 public:
     string name() const { return "Default"; }
 
 protected:
-    PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false)
+    vector<double> _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false)
     {
+        vector<double> outSamples;
         const VectorC<Vector2d> pts = poly->pts();
         SampleSpacingFunction spacing(poly);
 
@@ -403,7 +402,7 @@ protected:
         //We maintain the sampling spacing scales and the ratio of the last parameter to the curve length
         //as a piecewise linear function.
         //It is guaranteed to be monotone--reducing the sampling spacing must reduce the last parameter.
-        PiecewiseLinearMonotone pl;
+        PiecewiseLinearMonotone pl(PiecewiseLinearMonotone::NEGATIVE);
 
         double scale = poly->length() / param;
         pl.add(1., scale);
@@ -426,8 +425,9 @@ protected:
             Debugging::get()->printf("Log scale error at %lf = %lf", scale, log(y));
 #endif
 
-            scale = pl.invert(1.);
-            if(scale < 0)
+            //scale = pl.invert(1.);
+            //if(scale < 0)
+            if(!pl.invert(1., scale))
             {
                 scale = 1;
                 break;
@@ -435,12 +435,11 @@ protected:
         }
 
         spacing.scale(scale);
-        VectorC<Vector2d> out(0, pts.circular());
 
         param = 0;
         for(int i = 0; i < numPts; ++i)
         {
-            out.push_back(poly->pos(param));
+            outSamples.push_back(param);
             param += spacing.evalStep(param);
         }
 
@@ -451,9 +450,9 @@ protected:
 #endif
 
         if(!poly->isClosed())
-            out.push_back(poly->endPos());        
+            outSamples.push_back(poly->length());
 
-        return new Polyline(out);
+        return outSamples;
     }
 };
 
@@ -463,18 +462,18 @@ public:
     string name() const { return "Length"; }
 
 protected:
-    PolylineConstPtr _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false)
+    vector<double> _resample(const Fitter &fitter, PolylineConstPtr poly, bool denseNearStart = false, bool denseNearEnd = false)
     {
+        vector<double> outSamples;
         int numPts = 2 + int(poly->length() / fitter.scaledParameter(Parameters::MAX_SAMPLING_INTERVAL));
-        VectorC<Vector2d> out(numPts, poly->pts().circular());
 
         for(int i = 0; i < numPts; ++i)
         {
             double param = double(i) / (poly->isClosed() ? numPts : numPts - 1);
-            out[i] = poly->pos(param * poly->length());
+            outSamples.push_back(param * poly->length());
         }
 
-        return new Polyline(out);
+        return outSamples;
     }
 };
 

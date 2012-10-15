@@ -89,6 +89,14 @@ void MainView::mouseMoveEvent(QMouseEvent *e)
             QPointF scenePt = viewToScene(_prevMousePos);
             _pointsDrawn.push_back(Vector2d(scenePt.x(), scenePt.y()));
 
+#if 0 //hacky attempt at online drawing
+            if(_pointsDrawn.size() > 50)
+            {
+                _document->curveDrawn(new Cornu::Polyline(_pointsDrawn));
+                _pointsDrawn.erase(_pointsDrawn.begin(), _pointsDrawn.begin() + 35);
+            }
+#endif
+
             scene()->clearGroups("currentlyDrawing");
             scene()->addItem(new CurveSceneItem(new Cornu::Polyline(_pointsDrawn), "currentlyDrawing"));
 

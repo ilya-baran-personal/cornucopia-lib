@@ -33,6 +33,7 @@ template<>
 struct AlgorithmOutput<OVERSKETCHING> : public AlgorithmOutputBase
 {
     PolylineConstPtr output;
+    std::vector<double> parameters; //parameters[i] is the parameter in output of the original point with index i
     CurvePrimitiveConstPtr startCurve;
     CurvePrimitiveConstPtr endCurve;
     int startContinuity;

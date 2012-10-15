@@ -186,9 +186,9 @@ private:
     double _maxArcParam;
 };
 
-smart_ptr<Clothoid::_ClothoidProjector> Clothoid::_clothoidProjector()
+Clothoid::_ClothoidProjector *Clothoid::_clothoidProjector()
 {
-    static smart_ptr<Clothoid::_ClothoidProjector> projector = new _ClothoidProjectorImpl();
+    static Clothoid::_ClothoidProjector *projector = new _ClothoidProjectorImpl();
     return projector;
 }
 

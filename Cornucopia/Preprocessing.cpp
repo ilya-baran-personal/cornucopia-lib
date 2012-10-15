@@ -23,6 +23,7 @@
 #include "Polyline.h"
 #include "Debugging.h"
 #include "Line.h"
+#include "PiecewiseLinearUtils.h"
 #include <iostream>
 
 #include <Eigen/Geometry>
@@ -91,6 +92,7 @@ protected:
     {
         const VectorC<Vector2d> &pts = fitter.originalSketch()->pts();
         VectorC<Vector2d> outPts(0, NOT_CIRCULAR);
+        PiecewiseLinearMonotone origToCur(PiecewiseLinearMonotone::POSITIVE);
 
         const double radius = fitter.scaledParameter(Parameters::MIN_PRELIM_LENGTH);
 
@@ -102,6 +104,8 @@ protected:
         //Note that we don't want to simply resample the curve by the arclength parameterization, because
         //noisy regions with too much arclength will get too many samples.
         outPts.push_back(pts[0]);
+        origToCur.add(0, 0);
+        double lengthSoFar = 0;
         for(int idx = 1; idx < pts.size(); ++idx)
         {
             Vector2d curResampled = outPts.back();
@@ -112,6 +116,8 @@ protected:
             //If it's the last point or was marked for keeping, just output it
             if(idx + 1 == pts.size() || keep[idx])
             {
+                lengthSoFar += sqrt(distSqToCur);
+                origToCur.add(fitter.originalSketch()->idxToParam(idx), lengthSoFar);
                 if(distSqToCur > 1e-16)
                     outPts.push_back(curPt);
                 continue;
@@ -128,21 +134,38 @@ protected:
             //centered at the last output point whose radius is "radius".
             ParametrizedLine<double, 2> line = ParametrizedLine<double, 2>::Through(prevPt, curPt);
 
-            Vector2d closestOnLine = line.projection(curResampled);
+            double projectedLineParam = line.direction().dot(curResampled - line.origin());
+            Vector2d closestOnLine = line.origin() + line.direction() * projectedLineParam;
             double distSqToLine = (curResampled - closestOnLine).squaredNorm();
             if(distSqToLine < 1e-16)
             {
+                lengthSoFar += sqrt(distSqToCur);
+                origToCur.add(fitter.originalSketch()->idxToParam(idx), lengthSoFar);
                 outPts.push_back(curPt);
                 continue;
             }
             double y = sqrt(max(0., radius * radius - distSqToLine));
             Vector2d newPt = closestOnLine + y * line.direction(); //y is positive, so this will find the correct point
 
+            lengthSoFar += (curResampled - newPt).norm();
+            origToCur.add(fitter.originalSketch()->idxToParam(idx - 1) + projectedLineParam + y, lengthSoFar);
             outPts.push_back(newPt);
             --idx;
         }
 
         out.output = new Polyline(outPts);
+        out.parameters.resize(pts.size());
+        for(int i = 0; i < pts.size(); ++i)
+        {
+            double paramOrig = fitter.originalSketch()->idxToParam(i);
+            double paramNew;
+            if(!origToCur.eval(paramOrig, paramNew))
+                Debugging::get()->printf("Evaluation error!");
+            out.parameters[i] = paramNew;
+            //Debugging::get()->drawLine(pts[i], out.output->pos(paramNew), Vector3d(1, 0, 1), "Correspondence");
+        }
+
+
         for(int i = 0; i < (int)outPts.size(); ++i)
             Debugging::get()->drawPoint(outPts[i], Vector3d(0, 0, 1), "Prelim resampled");
         Debugging::get()->drawCurve(out.output, Vector3d(0, 0, 1), "Prelim resampled curve");
@@ -189,6 +212,9 @@ protected:
     void _run(const Fitter &fitter, AlgorithmOutput<PRELIM_RESAMPLING> &out)
     {
         out.output = fitter.originalSketch();
+        out.parameters.resize(fitter.originalSketch()->pts().size());
+        for(int i = 0; i < (int)out.parameters.size(); ++i)
+            out.parameters[i] = fitter.originalSketch()->idxToParam(i);
     }
 };
 
@@ -209,6 +235,7 @@ protected:
     void _run(const Fitter &fitter, AlgorithmOutput<CURVE_CLOSING> &out)
     {
         out.output = fitter.output<PRELIM_RESAMPLING>()->output;
+        out.parameters = fitter.output<PRELIM_RESAMPLING>()->parameters;
         out.closed = false;
         
         if(fitter.oversketchBase())
@@ -272,10 +299,10 @@ protected:
         //close and adjust curve
         VectorC<Vector2d>::Base newPts = pts;
 
-        if(closest1 + 1 < (int)newPts.size())
+        if(closest1 + 1 < (int)pts.size())
             newPts.erase(newPts.begin() + closest1 + 1, newPts.end());
         if(closest0 > 0)
-            newPts.erase(newPts.begin(), newPts.begin() + closest0 - 1);
+            newPts.erase(newPts.begin(), newPts.begin() + closest0);
 
         PolylinePtr polyptr = new Polyline(VectorC<Vector2d>(newPts, NOT_CIRCULAR));
         Vector2d adjust = newPts[0] - newPts.back();
@@ -288,6 +315,27 @@ protected:
         newPts.pop_back(); //the last point is duplicate
 
         out.output = new Polyline(VectorC<Vector2d>(newPts, CIRCULAR));
+
+        //adjust parameters
+        PiecewiseLinearMonotone prevToCur(PiecewiseLinearMonotone::POSITIVE);
+        PolylineConstPtr prevOutput = fitter.output<PRELIM_RESAMPLING>()->output;
+
+        for(int i = 0; i < (int)pts.size(); ++i)
+        {
+            double prevParam = prevOutput->idxToParam(i);
+            if(i < closest0)
+                prevToCur.add(prevParam, 0);
+            else if(i > closest1)
+                prevToCur.add(prevParam, out.output->length());
+            else
+                prevToCur.add(prevParam, out.output->idxToParam(i - closest0));
+        }
+        prevToCur.batchEval(out.parameters);
+
+#if 0
+        for(int i = 0; i < (int)out.parameters.size(); ++i)
+            Debugging::get()->drawLine(fitter.originalSketch()->pts()[i], out.output->pos(out.parameters[i]), Vector3d(1, 0, 1), "Closed Correspondence");
+#endif
 
         Debugging::get()->drawCurve(out.output, Debugging::Color(0., 0., 0.), "Closed", 2., Debugging::DOTTED);
     }

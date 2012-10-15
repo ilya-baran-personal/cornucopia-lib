@@ -32,7 +32,7 @@ NAMESPACE_Cornu
 void Fitter::run()
 {
     Debugging::get()->clear();
-    Debugging::get()->printf("Starting...");
+    Debugging::get()->printf("============= Starting =============");
     Debugging::get()->drawCurve(_originalSketch, Vector3d(0, 0, 0), "Original Sketch", 2., Debugging::DOTTED);
     Debugging::get()->startTiming("Total");
 
@@ -87,6 +87,12 @@ PrimitiveSequenceConstPtr Fitter::finalOutput() const
 {
     return output<COMBINING>()->output;
 }
+
+const vector<double> &Fitter::originalSketchToFinalParameters() const
+{
+    return output<COMBINING>()->parameters;
+}
+
 
 END_NAMESPACE_Cornu
 

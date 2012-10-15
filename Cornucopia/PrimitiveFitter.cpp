@@ -117,7 +117,7 @@ protected:
             fit.curve = osOutput->startCurve->clone();
             fit.startIdx = -1;
             fit.endIdx = 0;
-            fit.numPts = 0;
+            fit.numPts = 1;
             fit.error = 0.;
             fit.fixed = true;
             fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
@@ -135,6 +135,8 @@ protected:
 
                 fit.endCurvSign = (fit.curve->endCurvature() >= 0) ? 1 : -1;
                 fit.error = errorComputer->computeErrorForCost(fit.curve, 0, fit.endIdx, false);
+
+                fit.numPts++;
 
                 if(fit.error > errorThreshold * errorThreshold)
                     break;
@@ -154,7 +156,7 @@ protected:
             fit.curve = osOutput->endCurve->clone();
             fit.startIdx = (int)pts.size() - 1;
             fit.endIdx = fit.startIdx + 1;
-            fit.numPts = 0;
+            fit.numPts = 1;
             fit.error = 0.;
             fit.fixed = true;
             fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
@@ -172,6 +174,8 @@ protected:
 
                 fit.startCurvSign = (fit.curve->startCurvature() >= 0) ? 1 : -1;
                 fit.error = errorComputer->computeErrorForCost(fit.curve, fit.startIdx, (int)pts.size() - 1, true, false);
+
+                fit.numPts++;
 
                 if(fit.error > errorThreshold * errorThreshold)
                     break;

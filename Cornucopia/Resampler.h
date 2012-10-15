@@ -34,6 +34,7 @@ struct AlgorithmOutput<RESAMPLING> : public AlgorithmOutputBase
 {
     VectorC<bool> corners;
     PolylineConstPtr output;
+    std::vector<double> parameters; //parameters[i] is the parameter in output of the original point with index i
 };
 
 template<>

@@ -54,6 +54,7 @@ class PrimitiveCache
 public:
     PrimitiveCache(const PrimitiveCache &other)
     {
+        _numVals = other._numVals;
         for(int i = 0; i < 3; ++i)
         {
             _startData[i] = other._startData[i];
@@ -66,30 +67,28 @@ public:
         const VectorC<Vector2d> &pts = fitter.output<RESAMPLING>()->output->pts();
         CurvePrimitiveConstPtr curve = primitive.curve;
 
-        if(primitive.isFixed())
-        {
-            _startData[0] = PrimitiveCacheData::make(curve, 0.);
-            _endData[0] = PrimitiveCacheData::make(curve, curve->length());
-            return;
-        }
+        _numVals = min(3, primitive.numPts);
 
         for(int i = 0; i < 3; ++i)
         {
             if(i >= primitive.numPts)
                 break;
 
-            double startParam = (i == 0 ? 0. : curve->project(pts[primitive.startIdx + i]));
+            int realStartIdx = primitive.isFixed() ? 0 : primitive.startIdx;
+            double startParam = (i == 0 ? 0. : curve->project(pts[realStartIdx + i]));
             _startData[i] = PrimitiveCacheData::make(curve, startParam);
 
-            double endParam = (i == 0 ? curve->length() : curve->project(pts[primitive.endIdx - i]));
+            int realEndIdx = primitive.isFixed() ? (pts.size() - 1) : primitive.endIdx;
+            double endParam = (i == 0 ? curve->length() : curve->project(pts[realEndIdx - i]));
             _endData[i] = PrimitiveCacheData::make(curve, endParam);
         }
     }
 
-    const PrimitiveCacheData &start(int offs) const { return _startData[offs]; }
-    const PrimitiveCacheData &end(int offs) const { return _endData[offs]; }
+    const PrimitiveCacheData &start(int offs) const { assert(offs < _numVals); return _startData[offs]; }
+    const PrimitiveCacheData &end(int offs) const { assert(offs < _numVals); return _endData[offs]; }
 
 private:
+    int _numVals;
     PrimitiveCacheData _startData[3], _endData[3];
 };
 
@@ -165,6 +164,7 @@ public:
         //error
         double err1 = _primitives[p1].error;
         double err2 = _primitives[p2].error;
+
         if(error1 < 0.) //we need to predict the error
         {
             double extra1, extra2;
@@ -312,50 +312,12 @@ protected:
         //create edges
         VectorC<vector<int> > curvesStartingAt(pts.size(), pts.circular());
         for(int i = 0; i < (int)primitives.size(); ++i)
-        {
-            if(!primitives[i].isFixed())
+            if(!primitives[i].isStartCurve())
                 curvesStartingAt[primitives[i].startIdx].push_back(i);
-        }
 
-        //create edges from start curve(s), if necessary
-        if(osOutput->startCurve)
-        {
-            for(int startIdx = 0; startIdx < (int)primitives.size(); ++startIdx)
-            {
-                if(!primitives[startIdx].isStartCurve())
-                    continue;
-                int startPt = primitives[startIdx].endIdx;
-                for(int i = 0; i < (int)curvesStartingAt[startPt].size(); ++i)
-                {
-                    int prim = curvesStartingAt[startPt][i];
-
-                    int continuity = (startPt > 0 && corners[startPt]) ? 0 : osOutput->startContinuity;
-
-                    if(primitives[prim].curve->getType() < continuity)
-                        continue;
-                    if(primitives[prim].isFixed())
-                        continue;
-
-                    //create edge
-                    Edge e;
-                    e.continuity = continuity;
-                    e.startVtx = startIdx;
-                    e.endVtx = prim;
-                    e.cost = (float)out.costEvaluator->edgeCost(startIdx, prim, continuity);
-                    e.cost += out.vertices[startIdx].cost;
-                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1.f : 0.5f);
-                    if(e.cost >= Parameters::infinity)
-                        continue;
-                    out.vertices[startIdx].edges.push_back((int)out.edges.size());
-                    out.edges.push_back(e);
-                }
-            }
-        }
-
-        //create normal edges
         for(int i = 0; i < (int)primitives.size(); ++i)
         {
-            if(primitives[i].isFixed())
+            if(primitives[i].isEndCurve()) //no edges from end curves
                 continue;
 
             int endIdx = primitives[i].endIdx;
@@ -370,7 +332,8 @@ protected:
                 if(curve1len <= offset * 2) //if the first curve is already too short
                     continue;
 
-                int minType = primitives[i].curve->getType() < continuity ? continuity : 0;
+                bool firstCurveConstrained = (primitives[i].curve->getType() < continuity) || primitives[i].isFixed();
+                int minType = firstCurveConstrained ? continuity : 0;
 
                 for(int j = 0; j < (int)curvesStartingAt[startIdx].size(); ++j)
                 {
@@ -379,14 +342,15 @@ protected:
                     if(curve2len <= offset * 2)
                         continue;
 
-                    if(primitives[k].curve->getType() < minType)
+                    bool secondCurveConstrained = (primitives[k].curve->getType() < continuity) || primitives[k].isFixed();
+                    if(firstCurveConstrained && secondCurveConstrained)
                         continue;
 
                     //create edge
                     Edge e;
-                    e.continuity = continuity;
                     e.startVtx = i;
                     e.endVtx = k;
+                    e.continuity = continuity;
                     e.cost = (float)out.costEvaluator->edgeCost(i, k, continuity);
                     e.cost += out.vertices[i].cost * (out.vertices[i].source ? 1.f : 0.5f);
                     e.cost += out.vertices[k].cost * (out.vertices[k].target ? 1.f : 0.5f);
@@ -394,42 +358,9 @@ protected:
                         continue;
                     out.vertices[i].edges.push_back((int)out.edges.size());
                     out.edges.push_back(e);
-                }
-            }
-        }
 
-        //create edges to end curves, if necessary
-        if(osOutput->endCurve)
-        {
-            for(int endIdx = 0; endIdx < (int)primitives.size(); ++endIdx)
-            {
-                if(!primitives[endIdx].isEndCurve())
-                    continue;
-                for(int prim = 0; prim < (int)primitives.size(); ++prim)
-                {
-                    if(primitives[prim].endIdx != primitives[endIdx].startIdx)
-                        continue;
-
-                    bool corner = corners[primitives[endIdx].startIdx] && primitives[endIdx].startIdx + 1 < (int)pts.size();
-                    int continuity = corner ? 0 : osOutput->endContinuity;
-
-                    if(primitives[prim].curve->getType() < continuity)
-                        continue;
-                    if(primitives[prim].isFixed())
-                        continue;
-
-                    //create edge
-                    Edge e;
-                    e.continuity = continuity;
-                    e.startVtx = prim;
-                    e.endVtx = endIdx;
-                    e.cost = (float)out.costEvaluator->edgeCost(prim, endIdx, continuity);
-                    e.cost += out.vertices[endIdx].cost;
-                    e.cost += out.vertices[prim].cost * (out.vertices[prim].target ? 1.f : 0.5f);
-                    if(e.cost >= Parameters::infinity)
-                        continue;
-                    out.vertices[prim].edges.push_back((int)out.edges.size());
-                    out.edges.push_back(e);
+                    if(e.cost != e.cost)
+                        Debugging::get()->printf("Error! Nan cost for edge");
                 }
             }
         }
@@ -443,9 +374,19 @@ float Edge::validatedCost(const Fitter &fitter) const
     if(continuity < 0) //dummy edge
         return cost;
 
-    Combination comb = twoCurveCombine(startVtx, endVtx, continuity, fitter);
+    Combination comb;
+    comb = twoCurveCombine(startVtx, endVtx, continuity, fitter);
 
-    float newCost = (float)fitter.output<GRAPH_CONSTRUCTION>()->costEvaluator->edgeCost(startVtx, endVtx, continuity, comb.err1, comb.err2);
+#if 0
+    if(fitter.output<GRAPH_CONSTRUCTION>()->vertices[startVtx].source)
+    {
+        Debugging::get()->drawCurve(comb.c1, Debugging::Color(1, 0, 0), "Combined");
+        Debugging::get()->drawCurve(comb.c2, Debugging::Color(0.8, 0.5, 0), "Combined");
+    }
+#endif
+    
+    float newCost;
+     newCost = (float)fitter.output<GRAPH_CONSTRUCTION>()->costEvaluator->edgeCost(startVtx, endVtx, continuity, comb.err1, comb.err2);
 
     //only increase cost
     return max(newCost, cost);

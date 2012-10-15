@@ -44,10 +44,15 @@ public:
 protected:
     template<class U> friend class smart_ptr;
 
-    virtual void addRef() const { ++_refCount; }
+    virtual void addRef() const
+    {
+        ++_refCount;
+    }
     virtual void releaseRef() const
     {
-        if (--_refCount <= 0)
+        bool free = false;
+        free = (--_refCount <= 0);
+        if (free)
             const_cast<smart_base *>(this)->freeRef();
     }
     virtual void freeRef() { delete this; }

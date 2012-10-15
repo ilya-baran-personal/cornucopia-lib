@@ -55,7 +55,7 @@ public:
 
     void toEndCurvatureDerivative(Eigen::MatrixXd &der) const;
 
-    class _ClothoidProjector : public smart_base //internal singleton class
+    class _ClothoidProjector //internal singleton class
     {
     public:
         virtual double project(const Vec &pt, double from, double to) const = 0;
@@ -76,7 +76,7 @@ private:
     bool _flat;
 
     class _ClothoidProjectorImpl;
-    static smart_ptr<_ClothoidProjector> _clothoidProjector(); //projects onto a generic clothoid
+    static _ClothoidProjector *_clothoidProjector(); //projects onto a generic clothoid
 };
 
 END_NAMESPACE_Cornu

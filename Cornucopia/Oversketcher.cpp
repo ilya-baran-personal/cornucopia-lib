@@ -22,6 +22,7 @@
 #include "Fitter.h"
 #include "Preprocessing.h"
 #include "PrimitiveSequence.h"
+#include "PiecewiseLinearUtils.h"
 #include "Polyline.h"
 
 using namespace std;
@@ -41,6 +42,7 @@ protected:
 
         out.finallyClose = curve->isClosed();
         out.startContinuity = out.endContinuity = 2;
+        out.parameters = fitter.output<CURVE_CLOSING>()->parameters;
 
         if(!base)
         {
@@ -66,6 +68,11 @@ protected:
         //if the base is closed, both ends must be "close"
         if(base->isClosed())
         {
+            if(startDist > threshold || endDist > threshold)
+            {
+                out.output = curve;
+                return;
+            }
             startClose = endClose = true;
         }
         else
@@ -108,6 +115,8 @@ protected:
         else
             endSketchTransition = curve->length();
 
+        PiecewiseLinearMonotone prevToCur(PiecewiseLinearMonotone::POSITIVE);
+
         //construct the transitions
         VectorC<Vector2d> cur = curve->trimmed(startSketchTransition, endSketchTransition)->pts();
         VectorC<Vector2d> pre, post;
@@ -119,7 +128,10 @@ protected:
             pre = buildTransition(base, curve, (startBaseTransition + startParam) * 0.5, startParam, 0, startSketchTransition, (int)threshold);
             pre.insert(pre.begin(), prepre.begin(), prepre.end() - 1);
             pre.pop_back();
+            prevToCur.add(0, Polyline(prepre).length());
         }
+        prevToCur.add(startSketchTransition, Polyline(pre).length());
+        prevToCur.add(endSketchTransition, Polyline(pre).length() + Polyline(cur).length());
         if(endClose)
         {
             cur.pop_back();
@@ -127,11 +139,13 @@ protected:
             VectorC<Vector2d> postpost = buildTransition(base, base,
                                                          (endBaseTransition + endParam) * 0.5, endBaseTransition,
                                                          (endBaseTransition + endParam) * 0.5, endBaseTransition, (int)threshold);
+            prevToCur.add(curve->length(), Polyline(pre).length() + Polyline(cur).length() + Polyline(post).length());
             post.insert(post.end(), postpost.begin() + 1, postpost.end());
         }
         pre.insert(pre.end(), cur.begin(), cur.end());
         pre.insert(pre.end(), post.begin(), post.end());
         out.output = new Polyline(pre);
+        prevToCur.batchEval(out.parameters);
 
         //construct the trimmed toAppend and toPrepend curves
         if(base->isClosed() || (startClose && endClose && startBaseTransition > endBaseTransition))

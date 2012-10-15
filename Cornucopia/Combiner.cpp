@@ -30,9 +30,9 @@
 #include "ErrorComputer.h"
 #include "Fitter.h"
 #include "Oversketcher.h"
+#include "PiecewiseLinearUtils.h"
 
 #include <iterator>
-#include <iostream> //TODO: this is temporary
 #include <cstdio>
 
 #include <Eigen/LU>
@@ -617,12 +617,95 @@ protected:
             outV = problem.curves();
         }
 
-        //combine with what needs to be done w.r.t. oversketching
+        //==== track what happens to parameters ====
+        out.parameters = fitter.output<RESAMPLING>()->parameters;
+        PolylineConstPtr resampledCurve = fitter.output<RESAMPLING>()->output;
+        const VectorC<Vector2d> &resampled = resampledCurve->pts();
+
+        vector<int> finalPrimitives; //gather the indices of the graph vertices corresponding to the primitives
+        for(int i = 0; i < (int)path.size(); ++i)
+            finalPrimitives.push_back(graph->edges[path[i]].startVtx);
+        if(outV.size() > (int)finalPrimitives.size())
+            finalPrimitives.push_back(graph->edges[path.back()].endVtx);
+
+        assert(outV.size() == finalPrimitives.size());
+
+        vector<double> idxToParam(resampled.size()); //idx is the index into the resampled array
+        vector<double> idxToDistSq(resampled.size(), 1e10);
+
+        double lenSoFar = 0;
+        for(int i = 0; i < outV.size(); ++i) //for each primitive see what projects to it
+        {
+            const FitPrimitive &primitive = primitives[graph->vertices[finalPrimitives[i]].primitiveIdx];
+            for(int j = primitive.startIdx; ; ++j) //project each associated resampled point onto this primitive
+            {
+                if(j == (int)resampled.size()) //be careful with starts and ends of oversketched primitives
+                {
+                    if(closed) j = 0;
+                    else
+                        break;
+                }
+
+                if(j < 0)
+                    continue;
+
+                double proj = outV[i]->project(resampled[j]);
+                double distSq = (resampled[j] - outV[i]->pos(proj)).squaredNorm();
+                if(distSq < idxToDistSq[j])
+                {
+                    idxToDistSq[j] = distSq;
+                    idxToParam[j] = proj + lenSoFar;
+                }
+
+                if(j == primitive.endIdx)
+                    break;
+            }
+            lenSoFar += outV[i]->length();
+        }
+        double outputLength = lenSoFar;
+
+        if(!closed)
+        {
+            idxToParam[0] = 0;
+            idxToParam.back() = outputLength;
+        }
+
+        int minParamSample = min_element(idxToParam.begin(), idxToParam.end()) - idxToParam.begin();
+
+        PiecewiseLinearMonotone prevToFinal(PiecewiseLinearMonotone::POSITIVE);
+        //populate prevToFinal -- don't forget duplicating first point if closed
+        prevToFinal.add(0, idxToParam[minParamSample]);
+        lenSoFar = 0;
+        for(VectorC<Vector2d>::Circulator ci = resampled.circulator(minParamSample + 1); !ci.done(); ++ci)
+        {            
+            lenSoFar += (*ci - *(ci - 1)).norm();
+            double finalParam = 0;
+            if(ci.index() == minParamSample)
+                finalParam += outputLength;
+            else
+                idxToParam[ci.index()] = max(idxToParam[ci.index()], idxToParam[(ci - 1).index()]); //ensure monotonicity
+            finalParam += idxToParam[ci.index()];
+            prevToFinal.add(lenSoFar, finalParam);
+        }
+        //adjust parameters into range
+        for(int i = 0; i < (int)out.parameters.size(); ++i)
+        {
+            out.parameters[i] -= resampledCurve->idxToParam(minParamSample);
+            if(out.parameters[i] < 0)
+                out.parameters[i] += resampledCurve->length();
+        }
+        prevToFinal.batchEval(out.parameters);
+
+        //==== combine with what needs to be done w.r.t. oversketching ====
         smart_ptr<const AlgorithmOutput<OVERSKETCHING> > osOutput = fitter.output<OVERSKETCHING>();
         VectorC<CurvePrimitiveConstPtr> outFinal(0, osOutput->finallyClose ? CIRCULAR : NOT_CIRCULAR);
 
         if(osOutput->toPrepend)
+        {
             outFinal.insert(outFinal.end(), osOutput->toPrepend->primitives().begin(), osOutput->toPrepend->primitives().end() - 1);
+            for(int i = 0; i < (int)out.parameters.size(); ++i)
+                out.parameters[i] += (osOutput->toPrepend->length() - osOutput->toPrepend->primitives().back()->length());
+        }
         outFinal.insert(outFinal.end(), outV.begin(), outV.end());
 
         if(osOutput->toAppend)
@@ -646,11 +729,22 @@ protected:
                     outFinal.pop_back();
                     //now extend the first curve to the combined length
                     outFinal[0] = outFinal[0]->trimmed(origLen - lastCurveLen, firstCurveLen);
+                    for(int i = 0; i < (int)out.parameters.size(); ++i)
+                        out.parameters[i] -= (origLen - lastCurveLen);
                 }
             }
         }
 
         out.output = new PrimitiveSequence(outFinal);
+
+#if 1
+        for(int i = 0; i < (int)out.parameters.size(); ++i)
+        {
+            double paramOrig = fitter.originalSketch()->idxToParam(i);
+            Debugging::get()->drawLine(fitter.originalSketch()->pts()[i], out.output->pos(out.parameters[i]), Vector3d(1, 0, 1), "Correspondence");
+        }
+#endif
+
     }
 };
 
