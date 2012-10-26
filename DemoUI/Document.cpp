@@ -364,10 +364,11 @@ vector<Document::Sketch> Document::_readNative(QTextStream &stream)
         QScriptValue pts = curSketch.property("pts");
         if(!pts.isValid() || !pts.isArray() || pts.property("length").toInt32() % 2 != 0)
             return out;
+        int numPts = pts.property("length").toInt32() / 2;
 
         Cornu::VectorC<Vector2d> readPts;
         QScriptValueIterator it2(pts);
-        while(it2.hasNext())
+        for(int i = 0; i < numPts; ++i)
         {
             it2.next();
             double x = it2.value().toNumber();

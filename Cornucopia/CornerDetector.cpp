@@ -65,8 +65,11 @@ protected:
                     //check if we have a point near i with a higher corner probability
                     if(cur.index() != i && scores[cur.index()] >= scores[i])
                     {
-                        valid = false; //if so, i is not a corner
-                        break;
+                        if(cur.index() < i || scores[cur.index()] > scores[i]) //if scores are equal, break ties by index
+                        {
+                            valid = false; //if so, i is not a corner
+                            break;
+                        }
                     }
                 }
             }

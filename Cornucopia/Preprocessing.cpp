@@ -165,9 +165,8 @@ protected:
             //Debugging::get()->drawLine(pts[i], out.output->pos(paramNew), Vector3d(1, 0, 1), "Correspondence");
         }
 
-
         for(int i = 0; i < (int)outPts.size(); ++i)
-            Debugging::get()->drawPoint(outPts[i], Vector3d(0, 0, 1), "Prelim resampled");
+            Debugging::get()->drawPoint(outPts[i], Vector3d(0, (i % 10 == 0) ? 0.6 : 0, 1), "Prelim resampled");
         Debugging::get()->drawCurve(out.output, Vector3d(0, 0, 1), "Prelim resampled curve");
     }
 

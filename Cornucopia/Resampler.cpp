@@ -144,7 +144,7 @@ private:
     {
         for(int i = 0; i < out.output->pts().size(); ++i)
         {
-            Debugging::get()->drawPoint(out.output->pts()[i], Vector3d(0, 0, 0), "Resampled");
+            Debugging::get()->drawPoint(out.output->pts()[i], Vector3d(0, (i % 10 == 0) ? 0.6 : 0, 0), "Resampled");
             if(out.corners[i])
                 Debugging::get()->drawPoint(out.output->pts()[i], Vector3d(0, 0, 0), "Resampled Corners");
         }
