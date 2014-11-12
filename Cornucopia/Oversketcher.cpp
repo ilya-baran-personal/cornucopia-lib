@@ -128,10 +128,10 @@ protected:
             pre = buildTransition(base, curve, (startBaseTransition + startParam) * 0.5, startParam, 0, startSketchTransition, (int)threshold);
             pre.insert(pre.begin(), prepre.begin(), prepre.end() - 1);
             pre.pop_back();
-            prevToCur.add(0, Polyline(prepre).length());
+            prevToCur.add(0, length(prepre));
         }
-        prevToCur.add(startSketchTransition, Polyline(pre).length());
-        prevToCur.add(endSketchTransition, Polyline(pre).length() + Polyline(cur).length());
+        prevToCur.add(startSketchTransition, length(pre));
+        prevToCur.add(endSketchTransition, length(pre) + length(cur));
         if(endClose)
         {
             cur.pop_back();
@@ -139,7 +139,7 @@ protected:
             VectorC<Vector2d> postpost = buildTransition(base, base,
                                                          (endBaseTransition + endParam) * 0.5, endBaseTransition,
                                                          (endBaseTransition + endParam) * 0.5, endBaseTransition, (int)threshold);
-            prevToCur.add(curve->length(), Polyline(pre).length() + Polyline(cur).length() + Polyline(post).length());
+            prevToCur.add(curve->length(), length(pre) + length(cur) + length(post));
             post.insert(post.end(), postpost.begin() + 1, postpost.end());
         }
         pre.insert(pre.end(), cur.begin(), cur.end());
@@ -195,6 +195,14 @@ protected:
         }
 
         return out;
+    }
+
+    static double length(const VectorC<Vector2d> &pts)
+    {
+        double result = 0;
+        for(int i = 0; i < pts.endIdx(1); ++i)
+            result += (pts[i] - pts[i + 1]).norm();
+        return result;
     }
 };
 

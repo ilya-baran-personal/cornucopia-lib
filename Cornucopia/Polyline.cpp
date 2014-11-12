@@ -105,7 +105,7 @@ PolylinePtr Polyline::trimmed(double from, double to) const
 
     if(isClosed())
     {
-        if(to - from > len) //trim too long--trim around the middle
+        if(to - from > len - tol) //trim too long--trim around the middle
         {
             double mid = 0.5 * (to + from);
             from = mid - 0.5 * len + tol;
