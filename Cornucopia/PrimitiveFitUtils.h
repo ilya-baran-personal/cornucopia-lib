@@ -78,6 +78,7 @@ public:
     void addPointW(const Eigen::Vector2d &pt, double weight);
     CurvePrimitivePtr getPrimitive() const { return getCurve(); }
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
     Eigen::Matrix3d _squaredSum;
     Eigen::Vector3d _sum;
